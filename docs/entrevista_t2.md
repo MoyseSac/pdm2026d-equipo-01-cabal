@@ -1,16 +1,16 @@
-# Entrevista a tendero — T2
+# Entrevista a tendero — T<N>
 
 ## Datos de la entrevista
 
 | Campo                        | Dato              |
 | ---------------------------- | ----------------- |
-| Entrevistador                | [Completar]       |
-| Alias del entrevistado       | T2              |
+| Entrevistador                | Luisdl            |
+| Alias del entrevistado       | T2                |
 | Edad aproximada              | 50 años           |
 | Tipo de negocio              | Tienda de colonia |
 | Tiempo atendiendo el negocio | 4 años            |
 | Fecha                        | 24/08/2026        |
-| Duración                     | 20 min            |
+| Duración                     | 10 min            |
 | Permiso para tomar notas     | Sí                |
 
 > **Privacidad:** no se registra el nombre real del entrevistado, nombre del negocio ni ubicación.
@@ -65,8 +65,9 @@ De tres a cuatro productos.
 
 ### Observaciones del entrevistador
 
-* Una venta puede incluir varios productos.
-* La respuesta indica que el modelo de ventas debería permitir registrar más de un producto dentro de una misma compra.
+* El entrevistado indicó que normalmente un cliente lleva entre tres y cuatro productos en una compra.
+* La pregunta realizada no siguió exactamente la formulación definida en la guía común, ya que se preguntó por una cantidad habitual en lugar de partir de los últimos clientes atendidos.
+* Debido a esta diferencia, la respuesta representa una estimación general del entrevistado y no el detalle de compras realizadas por clientes específicos.
 
 ---
 
@@ -84,13 +85,13 @@ Por inventario.
 
 Llamar al distribuidor.
 
-**Seguimiento de la guía: ¿cómo decidió qué productos comprar?**
+**Seguimiento realizado:** ¿Cómo decidió qué productos comprar?
 
 **Respuesta:**
 
 Según lo que vi que me hacía falta.
 
-**Seguimiento de la guía: ¿cómo calculó las cantidades?**
+**Seguimiento realizado:** ¿Cómo calculó las cantidades?
 
 **Respuesta:**
 
@@ -100,8 +101,11 @@ Si no tenía nada, trato de comprar al menos 10 productos.
 
 * El entrevistado indicó que lleva un control de inventario.
 * Cuando detecta que un producto se terminó, contacta al distribuidor.
-* Decide qué comprar según los productos que observa que hacen falta.
+* Decide qué productos comprar según lo que observa que hace falta.
 * Cuando no tiene existencias de un producto, utiliza como referencia comprar al menos 10 unidades.
+* El bloque no inició con la pregunta exacta definida en la guía común: “Cuénteme sobre la última vez que tuvo que hacer un pedido o comprar productos para surtir la tienda”.
+* En su lugar, se comenzó preguntando por el control de inventario y por la última vez que se agotó un producto.
+* Los seguimientos sobre cómo decidió qué comprar y cómo calculó las cantidades sí corresponden a los temas definidos en la guía, aunque se obtuvieron a partir de una pregunta inicial diferente.
 
 ---
 
@@ -121,7 +125,7 @@ Bajarle el precio.
 
 ### Observaciones del entrevistador
 
-* El entrevistado identifica productos de baja rotación observando cuáles no aparecen registrados entre las ventas del cuaderno.
+* El entrevistado identifica productos de baja rotación al observar que no aparecen registrados entre las ventas del cuaderno.
 * Cuando detecta que un producto no se vende como esperaba, una de las acciones que realiza es disminuir su precio.
 
 ---
@@ -184,7 +188,7 @@ Mmm, no.
 1. El control de ventas se realiza manualmente mediante un cuaderno.
 2. Para cada venta se registra principalmente el nombre del producto y el precio.
 3. El total vendido durante el día se obtiene sumando los registros para realizar el cuadre de caja.
-4. Una compra puede incluir varios productos; normalmente un cliente lleva entre tres y cuatro productos.
+4. El entrevistado estima que normalmente un cliente lleva entre tres y cuatro productos por compra; sin embargo, este dato no se obtuvo a partir de clientes específicos atendidos recientemente, como establece la guía común.
 5. El entrevistado lleva un control de inventario para conocer las existencias de los productos.
 6. Cuando detecta que un producto se terminó, contacta al distribuidor.
 7. Decide qué productos comprar según lo que observa que hace falta en la tienda.
@@ -193,3 +197,4 @@ Mmm, no.
 10. Cuando un producto no se vende como esperaba, una de las acciones que realiza es bajarle el precio.
 11. En momentos de alta demanda atiende primero a los clientes y registra posteriormente las ventas que recuerda.
 12. Registrar las ventas mientras atiende a varios clientes resulta difícil, por lo que no siempre puede realizar el registro en el momento exacto de la venta.
+13. En el Bloque 3, la pregunta inicial aplicada no correspondió exactamente a la formulación de la guía común, aunque sí se obtuvieron respuestas relacionadas con la decisión de compra y las cantidades solicitadas.
