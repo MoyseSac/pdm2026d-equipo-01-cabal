@@ -14,17 +14,11 @@ qué productos conviene seguir comprando.
    ```bash
    flutter pub get
    ```
-3. Correr la app (con un emulador o dispositivo conectado):
+3. Correr la app:
    ```bash
    flutter run
    ```
 
-Si `flutter run` no detecta ningún dispositivo, revisa que tengas un emulador
-abierto o un celular conectado con depuración USB activada. Puedes verificar
-los dispositivos disponibles con:
-```bash
-flutter devices
-```
 
 ## Sobre el `pubspec.yaml`
 
@@ -89,7 +83,7 @@ Punto de entrada de la app. Contiene únicamente:
 
 ```dart
 void main() {
-  runApp(const MyApp());
+  runApp(const CabalApp());
 }
 ```
 
