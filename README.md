@@ -87,6 +87,14 @@ issue -> rama -> PR -> revision -> merge
 6. El reviewer compara contra los criterios de aceptacion del issue
 7. Con la aprobacion, se hace merge y el issue se cierra solo
 
+## Documentación técnica
+ 
+- [`docs/pantallas-navegacion-mvp.md`](docs/pantallas-navegacion-mvp.md) —
+  pantallas del flujo principal del MVP y navegación entre ellas.
+- [`docs/decision_estado_y_almacenamiento.md`](docs/decision_estado_y_almacenamiento.md) —
+  decisión de manejo de estado (Provider) y almacenamiento local (sqflite),
+  con las alternativas evaluadas.
+  
 ## Privacidad
 
 Los datos de las personas entrevistadas se manejan con alias. No publicamos
