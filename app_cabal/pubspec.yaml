@@ -35,6 +35,13 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
 
+  # Manejo de estado (ver docs/decision_estado_y_almacenamiento.md)
+  flutter_riverpod: ^2.6.1
+
+  # Almacenamiento local (ver docs/decision_estado_y_almacenamiento.md)
+  sqflite: ^2.4.1
+  path: ^1.9.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
