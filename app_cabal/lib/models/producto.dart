@@ -8,4 +8,12 @@ class Producto {
     required this.nombre,
     required this.precio,
   });
+
+  Producto copyWith({String? id, String? nombre, double? precio}) {
+    return Producto(
+      id: id ?? this.id,
+      nombre: nombre ?? this.nombre,
+      precio: precio ?? this.precio,
+    );
+  }
 }

@@ -1,10 +1,5 @@
 import 'package:flutter/material.dart';
 
-/// Estado vacio del catalogo. Es un widget separado (no una pantalla con
-/// ruta propia) porque conceptualmente es un estado de CatalogoScreen, no
-/// un destino distinto de navegacion. Contenido visual pendiente: esto
-/// solo cubre el esqueleto de navegacion (issue actual), el diseno final
-/// se hace en el issue de contenido de catalogo.
 class CatalogoVacioWidget extends StatelessWidget {
   final VoidCallback onAgregarProducto;
 
@@ -16,11 +11,29 @@ class CatalogoVacioWidget extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Text('Catalogo vacio (placeholder)'),
-          const SizedBox(height: 12),
-          ElevatedButton(
+          Icon(
+            Icons.shopping_cart_outlined,
+            size: 64,
+            color: Colors.grey[400],
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Catálogo vacío',
+            style: Theme.of(context).textTheme.headlineSmall,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'No hay productos registrados aún',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: Colors.grey[600],
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 24),
+          ElevatedButton.icon(
             onPressed: onAgregarProducto,
-            child: const Text('Agregar producto'),
+            icon: const Icon(Icons.add),
+            label: const Text('Agregar primer producto'),
           ),
         ],
       ),

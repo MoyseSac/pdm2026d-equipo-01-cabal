@@ -1,54 +1,112 @@
 import 'package:flutter/material.dart';
 import '../constants/app_routes.dart';
 import '../widgets/catalogo_vacio_widget.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../providers/producto_provider.dart';
 
-/// Pantalla de catalogo / home. Contenido real pendiente (lista de
-/// productos) — este issue solo cubre que se pueda llegar y regresar de
-/// aqui hacia el resto del flujo principal.
-///
-/// Nota: como todavia no existe una fuente de datos real de productos,
-/// se muestra siempre el estado de catalogo vacio (comportamiento real
-/// esperado en un catalogo sin productos) junto con un acceso de prueba
-/// a "Registrar venta", para que ese tramo del flujo principal se pueda
-/// navegar y verificar aunque el contenido real no exista todavia.
-///
-/// TODO(contenido-catalogo): reemplazar este acceso de prueba por la
-/// lista real de productos una vez exista la fuente de datos.
-class CatalogoScreen extends StatelessWidget {
+class CatalogoScreen extends ConsumerWidget {
   const CatalogoScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final productos = ref.watch(productoProvider);
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Catalogo')),
-      body: Column(
-        children: [
-          Expanded(
-            child: CatalogoVacioWidget(
-              onAgregarProducto: () => Navigator.of(context)
-                  .pushNamed(AppRoutes.agregarProducto),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: OutlinedButton(
-              // Acceso de prueba: permite verificar el tramo
-              // catalogo -> registrar venta -> confirmacion sin
-              // depender de que existan productos reales todavia.
-              onPressed: () =>
-                  Navigator.of(context).pushNamed(AppRoutes.registrarVenta),
-              child: const Text(
-                'Probar registrar venta (placeholder producto)',
+      appBar: AppBar(title: const Text('Catálogo')),
+      body: productos.isEmpty
+        ? CatalogoVacioWidget(
+            onAgregarProducto: () =>
+              Navigator.of(context).pushNamed(AppRoutes.agregarProducto),
+          )
+        : Column(
+            children: [
+              Expanded(
+                child: GridView.builder(
+                  padding: const EdgeInsets.all(12),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    childAspectRatio: 0.75,
+                    crossAxisSpacing: 12,
+                    mainAxisSpacing: 12,
+                  ),
+                  itemCount: productos.length,
+                  itemBuilder: (context, index) {
+                    final producto = productos[index];
+                    return Card(
+                      child: InkWell(
+                        onTap: () => Navigator.of(context)
+                            .pushNamed(AppRoutes.registrarVenta),
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Container(
+                                height: 80,
+                                width: double.infinity,
+                                decoration: BoxDecoration(
+                                  color: Colors.grey[300],
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: const Icon(Icons.image_not_supported,
+                                    color: Colors.grey),
+                              ),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    producto.nombre,
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    '\$${producto.precio.toStringAsFixed(2)}',
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.green,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
               ),
-            ),
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: OutlinedButton(
+                  onPressed: () =>
+                      Navigator.of(context).pushNamed(AppRoutes.registrarVenta),
+                  child: const Text('Probar registrar venta'),
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
       floatingActionButton: FloatingActionButton.extended(
-        heroTag: 'cierre',
-        onPressed: () => Navigator.of(context).pushNamed(AppRoutes.cierreDia),
-        label: const Text('Cierre del dia'),
-        icon: const Icon(Icons.summarize_outlined),
+        heroTag: 'agregar',
+        onPressed: () async {
+          final result = await Navigator.of(context)
+              .pushNamed(AppRoutes.agregarProducto);
+          if (result == true) {
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Producto agregado')),
+              );
+            }
+          }
+        },
+        label: const Text('Agregar producto'),
+        icon: const Icon(Icons.add),
       ),
     );
   }
