@@ -10,7 +10,6 @@ class CatalogoScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final productos = ref.watch(productoProvider);
-    final notifier = ref.read(productoProvider.notifier);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Catálogo')),
