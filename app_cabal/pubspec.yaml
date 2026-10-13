@@ -41,6 +41,7 @@ dependencies:
   # Almacenamiento local (ver docs/decision_estado_y_almacenamiento.md)
   sqflite: ^2.4.1
   path: ^1.9.0
+  sqflite_common_ffi: ^2.4.3
 
 dev_dependencies:
   flutter_test:
