@@ -48,7 +48,7 @@ Finder _enVenta(String texto) => find.descendant(
     );
 
 Finder _confirmar() =>
-    find.widgetWithText(ElevatedButton, 'Confirmar venta (placeholder)');
+    find.widgetWithText(ElevatedButton, 'Confirmar venta');
 
 Finder _campoCantidad(int posicion) => find.byType(TextField).at(posicion);
 

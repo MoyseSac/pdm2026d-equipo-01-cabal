@@ -120,6 +120,40 @@ class VentaNotifier extends StateNotifier<VentaState> {
     return true;
   }
 
+  /// Fija la cantidad de un producto que ya esta en la venta en curso.
+  /// Devuelve false (con el mensaje en el estado) si la cantidad no es
+  /// valida, o false sin cambios si el producto no esta en la venta o hay
+  /// un guardado en curso.
+  bool establecerCantidad(String productoId, int cantidad) {
+    if (state.guardando) return false;
+
+    if (cantidad <= 0) {
+      state = state.copyWith(
+        estado: EstadoRegistroVenta.error,
+        mensajeError: mensajeCantidadInvalida,
+      );
+      return false;
+    }
+
+    final detalles = [...state.detalles];
+    final indice = detalles.indexWhere((d) => d.producto.id == productoId);
+    if (indice == -1) return false;
+
+    final existente = detalles[indice];
+    detalles[indice] = DetalleVenta(
+      producto: existente.producto,
+      cantidad: cantidad,
+      precioAlMomento: existente.precioAlMomento,
+    );
+
+    state = state.copyWith(
+      detalles: detalles,
+      estado: EstadoRegistroVenta.inactivo,
+      limpiarError: true,
+    );
+    return true;
+  }
+
   void quitarProducto(String productoId) {
     if (state.guardando) return;
 
