@@ -11,13 +11,17 @@ const mensajeErrorGuardado = 'No se pudo registrar la venta. Intenta de nuevo.';
 
 enum EstadoRegistroVenta { inactivo, guardando, exito, error }
 
-/// Suma de subtotales (cantidad x precio al momento), redondeada a 2
-/// decimales trabajando en centavos para evitar errores de representacion.
+/// Subtotal de un detalle (cantidad x precio al momento) en centavos, para
+/// evitar errores de representacion de los decimales.
+int _centavosDe(DetalleVenta detalle) =>
+    (detalle.cantidad * detalle.precioAlMomento * 100).round();
+
+double subtotalDe(DetalleVenta detalle) => _centavosDe(detalle) / 100;
+
+/// Suma de subtotales, redondeada a 2 decimales trabajando en centavos.
 double totalDe(List<DetalleVenta> detalles) {
-  final centavos = detalles.fold<int>(
-    0,
-    (suma, d) => suma + (d.cantidad * d.precioAlMomento * 100).round(),
-  );
+  final centavos =
+      detalles.fold<int>(0, (suma, d) => suma + _centavosDe(d));
   return centavos / 100;
 }
 
