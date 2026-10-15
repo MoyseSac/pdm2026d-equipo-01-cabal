@@ -10,9 +10,8 @@ import '../utils/moneda.dart';
 import '../validators/cantidad_validator.dart';
 
 /// Pantalla de registrar venta. Permite seleccionar productos del
-/// catalogo, editar sus cantidades y ver subtotales y total. La venta en
-/// curso vive en memoria de la pantalla; guardarla queda para un issue
-/// posterior.
+/// catalogo, editar sus cantidades, ver subtotales y total, y confirmar la
+/// venta. La venta en curso y su guardado viven en ventaProvider.
 class RegistrarVentaScreen extends ConsumerStatefulWidget {
   const RegistrarVentaScreen({super.key});
 
@@ -22,47 +21,23 @@ class RegistrarVentaScreen extends ConsumerStatefulWidget {
 }
 
 class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
-  final List<DetalleVenta> _seleccion = [];
-
   /// Ids de productos cuya cantidad escrita es invalida en este momento.
   final Set<String> _invalidos = {};
 
-  bool get _puedeConfirmar => _seleccion.isNotEmpty && _invalidos.isEmpty;
+  VentaNotifier get _venta => ref.read(ventaProvider.notifier);
 
   /// Agrega el producto a la venta. Si ya estaba, no se duplica: se suma
   /// uno a su cantidad.
   void _seleccionar(Producto producto) {
-    setState(() {
-      final index = _seleccion.indexWhere((d) => d.producto.id == producto.id);
-      if (index == -1) {
-        _seleccion.add(DetalleVenta(
-          producto: producto,
-          cantidad: 1,
-          precioAlMomento: producto.precio,
-        ));
-      } else {
-        _cambiarCantidad(index, _seleccion[index].cantidad + 1);
-        _invalidos.remove(producto.id);
-      }
-    });
-  }
-
-  void _cambiarCantidad(int index, int cantidad) {
-    final actual = _seleccion[index];
-    _seleccion[index] = DetalleVenta(
-      producto: actual.producto,
-      cantidad: cantidad,
-      precioAlMomento: actual.precioAlMomento,
-    );
+    if (_venta.agregarProducto(producto, 1)) {
+      setState(() => _invalidos.remove(producto.id));
+    }
   }
 
   void _establecerCantidad(String productoId, int cantidad) {
-    setState(() {
-      final index = _seleccion.indexWhere((d) => d.producto.id == productoId);
-      if (index == -1) return;
-      _cambiarCantidad(index, cantidad);
-      _invalidos.remove(productoId);
-    });
+    if (_venta.establecerCantidad(productoId, cantidad)) {
+      setState(() => _invalidos.remove(productoId));
+    }
   }
 
   void _marcarInvalido(String productoId) {
@@ -70,15 +45,22 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
   }
 
   void _eliminar(String productoId) {
-    setState(() {
-      _seleccion.removeWhere((d) => d.producto.id == productoId);
-      _invalidos.remove(productoId);
-    });
+    _venta.quitarProducto(productoId);
+    setState(() => _invalidos.remove(productoId));
+  }
+
+  Future<void> _confirmar() async {
+    final guardada = await _venta.confirmarVenta();
+    if (!guardada || !mounted) return;
+
+    setState(_invalidos.clear);
+    await Navigator.of(context).pushNamed(AppRoutes.confirmacionVenta);
   }
 
   @override
   Widget build(BuildContext context) {
     final productos = ref.watch(productoProvider);
+    final venta = ref.watch(ventaProvider);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Registrar venta')),
@@ -86,10 +68,20 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
           ? const _SinProductos()
           : Column(
               children: [
-                Expanded(child: _listaProductos(productos)),
+                Expanded(
+                  child: IgnorePointer(
+                    ignoring: venta.guardando,
+                    child: _listaProductos(productos),
+                  ),
+                ),
                 const Divider(height: 1),
-                Expanded(child: _ventaActual()),
-                _resumen(),
+                Expanded(
+                  child: IgnorePointer(
+                    ignoring: venta.guardando,
+                    child: _ventaActual(venta.detalles),
+                  ),
+                ),
+                _resumen(venta),
               ],
             ),
     );
@@ -128,7 +120,7 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
     );
   }
 
-  Widget _ventaActual() {
+  Widget _ventaActual(List<DetalleVenta> seleccion) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -140,7 +132,7 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
           ),
         ),
         Expanded(
-          child: _seleccion.isEmpty
+          child: seleccion.isEmpty
               ? Center(
                   child: Text(
                     'Toca un producto para agregarlo a la venta',
@@ -148,9 +140,9 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
                   ),
                 )
               : ListView.builder(
-                  itemCount: _seleccion.length,
+                  itemCount: seleccion.length,
                   itemBuilder: (context, index) {
-                    final detalle = _seleccion[index];
+                    final detalle = seleccion[index];
                     return _FilaDetalle(
                       key: ValueKey(detalle.producto.id),
                       detalle: detalle,
@@ -166,8 +158,9 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
     );
   }
 
-  Widget _resumen() {
-    final total = totalDe(_seleccion);
+  Widget _resumen(VentaState venta) {
+    final puedeConfirmar =
+        venta.detalles.isNotEmpty && _invalidos.isEmpty && !venta.guardando;
 
     return Padding(
       padding: const EdgeInsets.all(16),
@@ -182,7 +175,7 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               Text(
-                formatearQuetzales(total),
+                formatearQuetzales(venta.total),
                 style: const TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
@@ -190,15 +183,28 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
               ),
             ],
           ),
+          if (venta.estado == EstadoRegistroVenta.error &&
+              venta.mensajeError != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Text(
+                venta.mensajeError!,
+                style: const TextStyle(color: Colors.red),
+                textAlign: TextAlign.center,
+              ),
+            ),
           const SizedBox(height: 12),
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: _puedeConfirmar
-                  ? () => Navigator.of(context)
-                      .pushNamed(AppRoutes.confirmacionVenta)
-                  : null,
-              child: const Text('Confirmar venta (placeholder)'),
+              onPressed: puedeConfirmar ? _confirmar : null,
+              child: venta.guardando
+                  ? const SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Text('Confirmar venta'),
             ),
           ),
         ],
