@@ -62,28 +62,33 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
     final productos = ref.watch(productoProvider);
     final venta = ref.watch(ventaProvider);
 
-    return Scaffold(
-      appBar: AppBar(title: const Text('Registrar venta')),
-      body: productos.isEmpty
-          ? const _SinProductos()
-          : Column(
-              children: [
-                Expanded(
-                  child: IgnorePointer(
-                    ignoring: venta.guardando,
-                    child: _listaProductos(productos),
+    // Mientras se guarda no se permite salir de la pantalla, para que el
+    // resultado del guardado no quede sin mostrar.
+    return PopScope(
+      canPop: !venta.guardando,
+      child: Scaffold(
+        appBar: AppBar(title: const Text('Registrar venta')),
+        body: productos.isEmpty
+            ? const _SinProductos()
+            : Column(
+                children: [
+                  Expanded(
+                    child: IgnorePointer(
+                      ignoring: venta.guardando,
+                      child: _listaProductos(productos),
+                    ),
                   ),
-                ),
-                const Divider(height: 1),
-                Expanded(
-                  child: IgnorePointer(
-                    ignoring: venta.guardando,
-                    child: _ventaActual(venta.detalles),
+                  const Divider(height: 1),
+                  Expanded(
+                    child: IgnorePointer(
+                      ignoring: venta.guardando,
+                      child: _ventaActual(venta.detalles),
+                    ),
                   ),
-                ),
-                _resumen(venta),
-              ],
-            ),
+                  _resumen(venta),
+                ],
+              ),
+      ),
     );
   }
 
@@ -382,9 +387,9 @@ class _SinProductos extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               'Agrega productos al catálogo para registrar ventas.',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Colors.grey[600],
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
