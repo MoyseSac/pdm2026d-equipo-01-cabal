@@ -119,7 +119,7 @@ Volver a dejar el archivo como estaba al terminar esos casos.
 | VEN-09 | Subtotal con redondeo | Agregar `Aceite` con cantidad 3. | 19.99 × 3 | Subtotal y total `Q59.97`. | Subtotal y total Q59.97. | ✔ |
 | VEN-10 | Cantidad grande | Agregar `Coca Cola` con cantidad `100`. | 10.50 × 100 | Subtotal y total `Q1050.00`. | Subtotal y total Q1050.00. | ✔ |
 | VEN-11 | El total sigue a cada cambio | Agregar un producto, subir su cantidad, agregar otro y eliminar el primero. | — | Después de cada acción el total refleja exactamente la suma de los subtotales visibles. | Total Q10.50 → Q21.00 (+1) → Q23.50 (agregar Pan dulce) → Q2.50 (eliminar Coca Cola ×2). | ✔ |
-| VEN-12 | Formato en quetzales | Revisar precios y totales en toda la pantalla. | — | Todos con prefijo `Q` y dos decimales. | Precios, subtotales y totales de Registrar venta y de la confirmación llevan Q y dos decimales. El Catálogo muestra `$` (ver D-02). | ✔ |
+| VEN-12 | Formato en quetzales | Revisar precios y totales en toda la pantalla. | — | Todos con prefijo `Q` y dos decimales. | Precios, subtotales y totales de Registrar venta y de la confirmación llevan Q y dos decimales. El Catálogo mostraba `$` (ver D-02, corregido). | ✔ |
 
 ## D. Venta vacía o con datos inválidos
 
@@ -227,7 +227,7 @@ en todos los casos. Los issues de corrección están por crear.
 | ID | Caso | Descripción | Severidad | Issue de corrección | Estado |
 |---|---|---|---|---|---|
 | D-01 | P4 | En el Catálogo, el botón flotante "Agregar producto" cubre el botón "Probar registrar venta" (ventana 430×880). Un clic en el centro de "Probar registrar venta" abre "Agregar producto". Se puede entrar a vender tocando una tarjeta. Captura `defecto-01`. | Media | _por crear_ | Abierto |
-| D-02 | VEN-12 | El Catálogo muestra los precios con `$` y Registrar venta con `Q`. | Baja | _por crear_ | Abierto |
+| D-02 | VEN-12 | El Catálogo muestra los precios con `$` y Registrar venta con `Q`. | Baja | Corregido en este PR (verificado en la app, captura `14-catalogo-en-quetzales.png`) | Corregido |
 | D-03 | VEN-35, VEN-37 | En pantallas pequeñas o en apaisado, la lista de productos y "Venta actual" se reparten el alto a partes iguales: "Venta actual" muestra solo 1–2 filas, el subtotal se parte en dos líneas y las filas quedan recortadas. Capturas 10 y 11. | Media | _por crear_ | Abierto |
 | D-04 | VEN-14 a VEN-18 | Con una cantidad inválida escrita, el subtotal y el total siguen mostrando el último valor válido, que no coincide con lo que se ve en el campo. | Baja | _por crear_ | Abierto |
 | D-05 | VEN-21 | Registrar venta solo es accesible con productos, por lo que su mensaje de catálogo vacío no se puede ver desde la interfaz. No es un fallo, pero deja ese caso sin poder probarse a mano. | Baja | — | Informativo |

@@ -3,6 +3,7 @@ import '../constants/app_routes.dart';
 import '../widgets/catalogo_vacio_widget.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/producto_provider.dart';
+import '../utils/moneda.dart';
 
 class CatalogoScreen extends ConsumerWidget {
   const CatalogoScreen({super.key});
@@ -65,7 +66,7 @@ class CatalogoScreen extends ConsumerWidget {
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
-                                    '\$${producto.precio.toStringAsFixed(2)}',
+                                    formatearQuetzales(producto.precio),
                                     style: const TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.bold,

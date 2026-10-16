@@ -43,7 +43,7 @@ se guarda nada y el formulario permanece abierto.
 | CAT-02 | Catálogo vacío — acción principal | En el estado vacío, pulsar "Agregar primer producto". | Navega a la pantalla "Agregar producto" con el formulario vacío. | |
 | CAT-03 | Catálogo vacío — botón flotante | En el estado vacío, pulsar el botón flotante "Agregar producto". | Navega a "Agregar producto". | |
 | CAT-04 | Catálogo con productos — grid | Con al menos 3 productos cargados, entrar al Catálogo. | Se muestra un grid de **2 columnas**. Cada tarjeta muestra imagen placeholder, nombre y precio. | |
-| CAT-05 | Formato de precio | Revisar productos con precios 10, 10.5 y 10.55. | Se muestran como `$10.00`, `$10.50` y `$10.55` (siempre 2 decimales, prefijo `$`). | |
+| CAT-05 | Formato de precio | Revisar productos con precios 10, 10.5 y 10.55. | Se muestran como `Q10.00`, `Q10.50` y `Q10.55` (siempre 2 decimales, prefijo `Q`). | |
 | CAT-06 | Nombre largo | Tener un producto con nombre de más de 2 líneas. | El nombre se corta a máximo 2 líneas con `…`; la tarjeta no se desborda ni rompe el layout. | |
 | CAT-07 | Muchos productos — scroll | Tener más productos de los que caben en pantalla (≥ 10). | El grid hace scroll vertical sin errores y el botón inferior sigue visible. | |
 | CAT-08 | Navegación desde tarjeta | Tocar una tarjeta de producto. | Navega a "Registrar venta". | |
@@ -65,14 +65,14 @@ se guarda nada y el formulario permanece abierto.
 
 | ID | Nombre | Precio | Resultado esperado | ✔/✘ |
 |---|---|---|---|---|
-| AGR-V01 | `Coca Cola` | `10.50` | Se guarda, se vuelve al Catálogo y el producto aparece con `$10.50`. | |
-| AGR-V02 | `Pan` | `5` | Se guarda; aparece con `$5.00` (precio entero válido). | |
-| AGR-V03 | `Chicle` | `0.01` | Se guarda; aparece con `$0.01` (mínimo positivo). | |
-| AGR-V04 | `Aceite` | `12.5` | Se guarda; aparece con `$12.50` (un decimal válido). | |
+| AGR-V01 | `Coca Cola` | `10.50` | Se guarda, se vuelve al Catálogo y el producto aparece con `Q10.50`. | |
+| AGR-V02 | `Pan` | `5` | Se guarda; aparece con `Q5.00` (precio entero válido). | |
+| AGR-V03 | `Chicle` | `0.01` | Se guarda; aparece con `Q0.01` (mínimo positivo). | |
+| AGR-V04 | `Aceite` | `12.5` | Se guarda; aparece con `Q12.50` (un decimal válido). | |
 | AGR-V05 | `  Leche  ` | `18` | Se guarda con el nombre **sin espacios** al inicio/fin (`Leche`). | |
 | AGR-V06 | Nombre de ~50 caracteres | `20` | Se guarda; en el Catálogo se corta con `…` sin romper el layout (ver CAT-06). | |
 | AGR-V07 | `Café ñandú 100%` | `35` | Se guarda y muestra correctamente acentos, ñ y símbolos. | |
-| AGR-V08 | `Arroz` | `  25.00  ` | Se guarda (el precio se recorta); aparece `$25.00`. | |
+| AGR-V08 | `Arroz` | `  25.00  ` | Se guarda (el precio se recorta); aparece `Q25.00`. | |
 | AGR-V09 | Dos productos con el mismo nombre (`Pan` dos veces) | `5` | Ambos se guardan sin error (no hay regla de unicidad); ambos aparecen en el Catálogo. | |
 
 ### B.3 Casos inválidos
