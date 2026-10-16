@@ -7,6 +7,8 @@ import 'screens/agregar_producto_screen.dart';
 import 'screens/registrar_venta_screen.dart';
 import 'screens/confirmacion_venta_screen.dart';
 import 'screens/cierre_dia_screen.dart';
+import 'screens/ventas_registradas_screen.dart';
+import 'screens/detalle_venta_screen.dart';
 
 /// Configuracion principal de la app: tema, pantalla inicial y rutas.
 /// El mapa de rutas vive aqui (no en constants/) porque necesita conocer
@@ -30,6 +32,9 @@ class CabalApp extends StatelessWidget {
         AppRoutes.confirmacionVenta: (context) =>
             const ConfirmacionVentaScreen(),
         AppRoutes.cierreDia: (context) => const CierreDiaScreen(),
+        AppRoutes.ventasRegistradas: (context) =>
+            const VentasRegistradasScreen(),
+        AppRoutes.detalleVenta: (context) => const DetalleVentaScreen(),
       },
       // No se necesita configuracion extra para el boton de retroceso:
       // Navigator maneja el stack automaticamente y el sistema (Android)
