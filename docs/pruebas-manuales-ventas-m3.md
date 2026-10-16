@@ -16,7 +16,7 @@ dejar evidencia del funcionamiento alcanzado en M3.
 > **Estado:** ejecutado el 2026-10-15 en Windows de escritorio (ver
 > [Datos de la ejecución](#datos-de-la-ejecución)). 35 de 40 casos aprobados,
 > 2 fallidos y 3 no ejecutados. Las capturas están en
-> `docs/evidencia-m3/capturas/`. Conviene repetir en Android antes de cerrar M3.
+> `docs/evidencia-m3/capturas/`. Ver [Alcance y limitaciones](#alcance-y-limitaciones-de-esta-ejecución).
 
 ## Datos de la ejecución
 
@@ -38,6 +38,24 @@ Notas de la ejecución:
 - Los tamaños de pantalla se probaron redimensionando la ventana de escritorio,
   no en dispositivos reales.
 - No se grabó video; la evidencia son capturas y volcados de la base.
+
+## Alcance y limitaciones de esta ejecución
+
+- **No se probó en Android.** En el entorno donde se ejecutó no hay Android SDK
+  ni emulador ni dispositivo físico, así que no fue posible hacerlo. Todo se
+  verificó en Windows de escritorio con `sqflite_common_ffi`, que usa el mismo
+  código de la app pero no es el entorno final del tendero. Por eso los
+  tamaños de pantalla se probaron redimensionando la ventana, y el
+  comportamiento del teclado táctil y de la rotación real de un celular no se
+  comprobó.
+- **No se grabará video del flujo completo.** El equipo decidió no hacerlo; la
+  evidencia queda como capturas de pantalla y volcados de la base de datos
+  (ver [Evidencia](#evidencia)).
+- **Tres casos quedan sin ejecutar y así se dejan:**
+  - **VEN-21:** no se puede alcanzar desde la interfaz (ver D-05).
+  - **VEN-38:** necesita un teclado táctil, que no existe en escritorio.
+  - **VEN-40:** necesita una persona con cronómetro y es solo una observación
+    de usabilidad, no un criterio de aprobación.
 
 ## Preparación
 
@@ -173,7 +191,7 @@ guardado](#cómo-provocar-un-error-de-guardado).
 | VEN-35 | Pantalla pequeña (≈ 360×640) | Hacer la venta de VEN-04 en un dispositivo o emulador pequeño. | Sin textos cortados ni franjas de desborde amarillas/negras. Las dos listas, el total y el botón son accesibles. | Ventana de 380×700: sin franjas de desborde. Pero "Venta actual" solo deja ver unas 2 filas (la tercera exige scroll), "Subtotal" se parte en dos líneas y la última fila queda recortada. Captura 10 (ver D-03). | ✘ |
 | VEN-36 | Pantalla grande | Repetir en un dispositivo grande. | Misma validación que VEN-35. | Ventana de 1300×900: sin desbordes ni recortes. Captura 13. | ✔ |
 | VEN-37 | Rotación | Rotar el dispositivo en Registrar venta y en la confirmación. | La pantalla se adapta, no pierde la venta en curso ni muestra errores. | Apaisado (820×470): la lista de productos muestra una fila y "Venta actual" una fila con el campo de cantidad y el subtotal recortados. No hay errores ni se pierde la venta. Captura 11 (ver D-03). | ✘ |
-| VEN-38 | Teclado numérico | Tocar el campo de cantidad. | Aparece teclado numérico. | No ejecutable en Windows de escritorio (no hay teclado táctil). Probar en Android. | ➖ |
+| VEN-38 | Teclado numérico | Tocar el campo de cantidad. | Aparece teclado numérico. | No ejecutable en Windows de escritorio (no hay teclado táctil) y no se pudo probar en Android. Queda sin ejecutar. | ➖ |
 | VEN-39 | Nombre largo | Con un producto de nombre muy largo, agregarlo a la venta. | El nombre se corta con `…` sin romper la fila. | El nombre se corta con "…" ("Refresco gase…") sin romper la fila. Captura 12. | ✔ |
 | VEN-40 | Rapidez de la venta | Con cronómetro, registrar una venta de 3 productos. | Anotar el tiempo y cualquier punto que haya costado trabajo (observación de usabilidad, no criterio de aprobación). | No ejecutado: requiere una persona con cronómetro. | ➖ |
 
@@ -182,7 +200,7 @@ guardado](#cómo-provocar-un-error-de-guardado).
 ## Evidencia
 
 Capturas y volcados en [`evidencia-m3/capturas/`](evidencia-m3/capturas/).
-No se grabó video del flujo completo.
+No se grabará video del flujo completo (decisión del equipo).
 
 | Paso | Caso | Qué debe verse | Archivo | ✔/✘ |
 |---|---|---|---|---|
