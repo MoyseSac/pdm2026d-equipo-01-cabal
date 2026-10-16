@@ -11,4 +11,6 @@ class AppRoutes {
   static const String registrarVenta = '/registrar-venta';
   static const String confirmacionVenta = '/confirmacion-venta';
   static const String cierreDia = '/cierre-dia';
+  static const String ventasRegistradas = '/ventas-registradas';
+  static const String detalleVenta = '/detalle-venta';
 }

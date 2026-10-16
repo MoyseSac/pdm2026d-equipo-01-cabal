@@ -13,7 +13,17 @@ class CatalogoScreen extends ConsumerWidget {
     final productos = ref.watch(productoProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Catálogo')),
+      appBar: AppBar(
+        title: const Text('Catálogo'),
+        actions: [
+          IconButton(
+            tooltip: 'Ventas registradas',
+            icon: const Icon(Icons.receipt_long),
+            onPressed: () =>
+                Navigator.of(context).pushNamed(AppRoutes.ventasRegistradas),
+          ),
+        ],
+      ),
       body: productos.isEmpty
         ? CatalogoVacioWidget(
             onAgregarProducto: () =>
