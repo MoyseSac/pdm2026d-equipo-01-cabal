@@ -12,9 +12,7 @@ class CierreDiaScreen extends StatelessWidget {
       // El AppBar ya trae la flecha de regreso automatica al haber
       // llegado aqui con pushNamed; cubre tanto el boton en pantalla
       // como el boton fisico/gesto de retroceso del dispositivo.
-      body: const Center(
-        child: Text('Cierre del dia (placeholder)'),
-      ),
+      body: const Center(child: Text('Cierre del dia (placeholder)')),
     );
   }
 }

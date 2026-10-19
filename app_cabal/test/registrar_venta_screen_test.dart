@@ -23,13 +23,16 @@ Future<void> _abrir(WidgetTester tester, List<Producto> productos) async {
   tester.view.devicePixelRatio = 2.0;
   addTearDown(tester.view.reset);
 
-  await tester.pumpWidget(ProviderScope(
-    overrides: [
-      productoServiceProvider
-          .overrideWithValue(_FakeProductoService(productos)),
-    ],
-    child: const MaterialApp(home: RegistrarVentaScreen()),
-  ));
+  await tester.pumpWidget(
+    ProviderScope(
+      overrides: [
+        productoServiceProvider.overrideWithValue(
+          _FakeProductoService(productos),
+        ),
+      ],
+      child: const MaterialApp(home: RegistrarVentaScreen()),
+    ),
+  );
   await tester.pumpAndSettle();
 }
 
@@ -38,17 +41,14 @@ const _pan = Producto(id: '2', nombre: 'Pan dulce', precio: 2.5);
 const _agua = Producto(id: '3', nombre: 'Agua pura', precio: 8);
 
 Finder _enProductos(String texto) => find.descendant(
-      of: find.byType(ListView).first,
-      matching: find.text(texto),
-    );
+  of: find.byType(ListView).first,
+  matching: find.text(texto),
+);
 
-Finder _enVenta(String texto) => find.descendant(
-      of: find.byType(ListView).last,
-      matching: find.text(texto),
-    );
+Finder _enVenta(String texto) =>
+    find.descendant(of: find.byType(ListView).last, matching: find.text(texto));
 
-Finder _confirmar() =>
-    find.widgetWithText(ElevatedButton, 'Confirmar venta');
+Finder _confirmar() => find.widgetWithText(ElevatedButton, 'Confirmar venta');
 
 Finder _campoCantidad(int posicion) => find.byType(TextField).at(posicion);
 
@@ -58,25 +58,27 @@ String _cantidadEn(WidgetTester tester, int posicion) =>
 bool _confirmarHabilitado(WidgetTester tester) =>
     tester.widget<ElevatedButton>(_confirmar()).onPressed != null;
 
-Finder _total(String texto) => find.descendant(
-      of: find.byType(Padding),
-      matching: find.text(texto),
-    );
+Finder _total(String texto) =>
+    find.descendant(of: find.byType(Padding), matching: find.text(texto));
 
 void main() {
   group('selección de productos', () {
-    testWidgets('sin productos muestra mensaje para agregar al catálogo',
-        (tester) async {
+    testWidgets('sin productos muestra mensaje para agregar al catálogo', (
+      tester,
+    ) async {
       await _abrir(tester, []);
 
       expect(find.text('No hay productos registrados'), findsOneWidget);
-      expect(find.textContaining('Agrega productos al catálogo'),
-          findsOneWidget);
+      expect(
+        find.textContaining('Agrega productos al catálogo'),
+        findsOneWidget,
+      );
       expect(find.text('Venta actual'), findsNothing);
     });
 
-    testWidgets('muestra nombre y precio en quetzales de cada producto',
-        (tester) async {
+    testWidgets('muestra nombre y precio en quetzales de cada producto', (
+      tester,
+    ) async {
       await _abrir(tester, [_cola, _pan, _agua]);
 
       expect(find.text('Coca Cola'), findsOneWidget);
@@ -87,8 +89,9 @@ void main() {
       expect(find.text('Q8.00'), findsOneWidget);
     });
 
-    testWidgets('seleccionar varios productos los agrega a la venta actual',
-        (tester) async {
+    testWidgets('seleccionar varios productos los agrega a la venta actual', (
+      tester,
+    ) async {
       await _abrir(tester, [_cola, _pan, _agua]);
 
       await tester.tap(_enProductos('Coca Cola'));
@@ -100,8 +103,9 @@ void main() {
       expect(_enVenta('Agua pura'), findsNothing);
     });
 
-    testWidgets('volver a seleccionar un producto actualiza su cantidad',
-        (tester) async {
+    testWidgets('volver a seleccionar un producto actualiza su cantidad', (
+      tester,
+    ) async {
       await _abrir(tester, [_cola, _pan]);
 
       await tester.tap(_enProductos('Coca Cola'));
@@ -113,8 +117,9 @@ void main() {
       expect(_cantidadEn(tester, 0), '3');
     });
 
-    testWidgets('se puede eliminar un producto de la selección',
-        (tester) async {
+    testWidgets('se puede eliminar un producto de la selección', (
+      tester,
+    ) async {
       await _abrir(tester, [_cola, _pan]);
 
       await tester.tap(_enProductos('Coca Cola'));
@@ -130,15 +135,18 @@ void main() {
   });
 
   group('cantidades', () {
-    testWidgets('los botones +/- ajustan la cantidad y no bajan de 1',
-        (tester) async {
+    testWidgets('los botones +/- ajustan la cantidad y no bajan de 1', (
+      tester,
+    ) async {
       await _abrir(tester, [_cola]);
 
       await tester.tap(_enProductos('Coca Cola'));
       await tester.pumpAndSettle();
 
-      final menos =
-          find.widgetWithIcon(IconButton, Icons.remove_circle_outline);
+      final menos = find.widgetWithIcon(
+        IconButton,
+        Icons.remove_circle_outline,
+      );
       expect(tester.widget<IconButton>(menos).onPressed, isNull);
 
       await tester.tap(find.byTooltip('Agregar una unidad'));
@@ -169,8 +177,9 @@ void main() {
       'abc': CantidadValidator.mensajeInvalida,
       '': CantidadValidator.mensajeInvalida,
     }.entries) {
-      testWidgets('cantidad "${caso.key}" muestra error y bloquea confirmar',
-          (tester) async {
+      testWidgets('cantidad "${caso.key}" muestra error y bloquea confirmar', (
+        tester,
+      ) async {
         await _abrir(tester, [_cola]);
         await tester.tap(_enProductos('Coca Cola'));
         await tester.pumpAndSettle();
@@ -189,8 +198,9 @@ void main() {
       });
     }
 
-    testWidgets('una cantidad inválida en un producto bloquea toda la venta',
-        (tester) async {
+    testWidgets('una cantidad inválida en un producto bloquea toda la venta', (
+      tester,
+    ) async {
       await _abrir(tester, [_cola, _pan]);
       await tester.tap(_enProductos('Coca Cola'));
       await tester.tap(_enProductos('Pan dulce'));
@@ -206,8 +216,9 @@ void main() {
       expect(_confirmarHabilitado(tester), isTrue);
     });
 
-    testWidgets('confirmar está deshabilitado mientras la venta está vacía',
-        (tester) async {
+    testWidgets('confirmar está deshabilitado mientras la venta está vacía', (
+      tester,
+    ) async {
       await _abrir(tester, [_cola]);
 
       expect(_confirmarHabilitado(tester), isFalse);
@@ -229,8 +240,9 @@ void main() {
       expect(_total('Q0.00'), findsOneWidget);
     });
 
-    testWidgets('calcula subtotales y total con varios productos',
-        (tester) async {
+    testWidgets('calcula subtotales y total con varios productos', (
+      tester,
+    ) async {
       await _abrir(tester, [_cola, _pan, _agua]);
 
       await tester.tap(_enProductos('Coca Cola'));
@@ -245,8 +257,9 @@ void main() {
       expect(_total('Q28.50'), findsOneWidget);
     });
 
-    testWidgets('el total se actualiza al agregar, modificar y eliminar',
-        (tester) async {
+    testWidgets('el total se actualiza al agregar, modificar y eliminar', (
+      tester,
+    ) async {
       await _abrir(tester, [_cola, _pan]);
 
       await tester.tap(_enProductos('Coca Cola'));
@@ -283,10 +296,10 @@ void main() {
 
   group('cálculo monetario', () {
     DetalleVenta detalle(double precio, int cantidad) => DetalleVenta(
-          producto: Producto(id: '$precio', nombre: 'P', precio: precio),
-          cantidad: cantidad,
-          precioAlMomento: precio,
-        );
+      producto: Producto(id: '$precio', nombre: 'P', precio: precio),
+      cantidad: cantidad,
+      precioAlMomento: precio,
+    );
 
     test('subtotal = cantidad x precio, a dos decimales', () {
       expect(subtotalDe(detalle(10.5, 2)), 21.0);
@@ -313,21 +326,35 @@ void main() {
     test('CantidadValidator sigue las reglas de negocio', () {
       expect(CantidadValidator.validar('1'), isNull);
       expect(CantidadValidator.validar(' 25 '), isNull);
-      expect(CantidadValidator.validar('0'),
-          CantidadValidator.mensajeNoPositiva);
-      expect(CantidadValidator.validar('-3'),
-          CantidadValidator.mensajeNoPositiva);
-      expect(CantidadValidator.validar('1.5'),
-          CantidadValidator.mensajeNoEntera);
-      expect(CantidadValidator.validar('2.0'),
-          CantidadValidator.mensajeNoEntera);
-      expect(CantidadValidator.validar('abc'),
-          CantidadValidator.mensajeInvalida);
-      expect(CantidadValidator.validar('NaN'),
-          CantidadValidator.mensajeInvalida);
+      expect(
+        CantidadValidator.validar('0'),
+        CantidadValidator.mensajeNoPositiva,
+      );
+      expect(
+        CantidadValidator.validar('-3'),
+        CantidadValidator.mensajeNoPositiva,
+      );
+      expect(
+        CantidadValidator.validar('1.5'),
+        CantidadValidator.mensajeNoEntera,
+      );
+      expect(
+        CantidadValidator.validar('2.0'),
+        CantidadValidator.mensajeNoEntera,
+      );
+      expect(
+        CantidadValidator.validar('abc'),
+        CantidadValidator.mensajeInvalida,
+      );
+      expect(
+        CantidadValidator.validar('NaN'),
+        CantidadValidator.mensajeInvalida,
+      );
       expect(CantidadValidator.validar(''), CantidadValidator.mensajeInvalida);
-      expect(CantidadValidator.validar(null),
-          CantidadValidator.mensajeInvalida);
+      expect(
+        CantidadValidator.validar(null),
+        CantidadValidator.mensajeInvalida,
+      );
     });
   });
 }

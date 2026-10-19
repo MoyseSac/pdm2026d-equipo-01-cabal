@@ -20,8 +20,7 @@ double subtotalDe(DetalleVenta detalle) => _centavosDe(detalle) / 100;
 
 /// Suma de subtotales, redondeada a 2 decimales trabajando en centavos.
 double totalDe(List<DetalleVenta> detalles) {
-  final centavos =
-      detalles.fold<int>(0, (suma, d) => suma + _centavosDe(d));
+  final centavos = detalles.fold<int>(0, (suma, d) => suma + _centavosDe(d));
   return centavos / 100;
 }
 
@@ -158,8 +157,9 @@ class VentaNotifier extends StateNotifier<VentaState> {
     if (state.guardando) return;
 
     state = state.copyWith(
-      detalles:
-          state.detalles.where((d) => d.producto.id != productoId).toList(),
+      detalles: state.detalles
+          .where((d) => d.producto.id != productoId)
+          .toList(),
       estado: EstadoRegistroVenta.inactivo,
       limpiarError: true,
     );

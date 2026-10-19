@@ -115,8 +115,9 @@ void main() {
     expect(totalDe(state.ventaConfirmada!.detalles), 28.5);
 
     await DatabaseService.instance.close();
-    final guardada =
-        await VentaService().obtenerVenta(state.ventaConfirmada!.id);
+    final guardada = await VentaService().obtenerVenta(
+      state.ventaConfirmada!.id,
+    );
 
     expect(guardada, isNotNull);
     expect(guardada!.detalles.length, 2);

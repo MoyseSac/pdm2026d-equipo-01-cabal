@@ -16,11 +16,8 @@ const _cola = Producto(id: 'p1', nombre: 'Coca Cola', precio: 10.5);
 const _pan = Producto(id: 'p2', nombre: 'Pan dulce', precio: 2.5);
 const _agua = Producto(id: 'p3', nombre: 'Agua pura', precio: 8);
 
-DetalleVenta _detalle(Producto p, int cantidad) => DetalleVenta(
-      producto: p,
-      cantidad: cantidad,
-      precioAlMomento: p.precio,
-    );
+DetalleVenta _detalle(Producto p, int cantidad) =>
+    DetalleVenta(producto: p, cantidad: cantidad, precioAlMomento: p.precio);
 
 Venta _venta(String id, DateTime fecha, List<DetalleVenta> detalles) =>
     Venta(id: id, fechaHora: fecha, detalles: detalles);
@@ -77,14 +74,15 @@ void main() {
       expect(lista.map((v) => v.id), ['v3', 'v2', 'v1']);
     });
 
-    test('cada venta trae su fecha, productos, cantidades y precios',
-        () async {
+    test('cada venta trae su fecha, productos, cantidades y precios', () async {
       final fecha = DateTime(2026, 10, 15, 21, 5, 30);
-      await ventas.registrarVenta(_venta('v1', fecha, [
-        _detalle(_cola, 2),
-        _detalle(_pan, 3),
-        _detalle(_agua, 1),
-      ]));
+      await ventas.registrarVenta(
+        _venta('v1', fecha, [
+          _detalle(_cola, 2),
+          _detalle(_pan, 3),
+          _detalle(_agua, 1),
+        ]),
+      );
 
       final venta = (await ventas.obtenerVentas()).single;
 
@@ -106,8 +104,7 @@ void main() {
       expect(totalDe(venta.detalles), 36.5);
     });
 
-    test('los detalles de cada venta no se mezclan con los de otra',
-        () async {
+    test('los detalles de cada venta no se mezclan con los de otra', () async {
       await ventas.registrarVenta(
         _venta('v1', DateTime(2026, 10, 15, 9), [_detalle(_cola, 1)]),
       );
@@ -129,25 +126,28 @@ void main() {
       expect(totalDe(v2.detalles), 47.0);
     });
 
-    test('conserva el precio de la venta aunque cambie el del catálogo',
-        () async {
-      await ventas.registrarVenta(
-        _venta('v1', DateTime(2026, 10, 15, 9), [_detalle(_cola, 2)]),
-      );
+    test(
+      'conserva el precio de la venta aunque cambie el del catálogo',
+      () async {
+        await ventas.registrarVenta(
+          _venta('v1', DateTime(2026, 10, 15, 9), [_detalle(_cola, 2)]),
+        );
 
-      await productos.actualizarProducto(_cola.copyWith(precio: 15));
+        await productos.actualizarProducto(_cola.copyWith(precio: 15));
 
-      final detalle = (await ventas.obtenerVentas()).single.detalles.single;
-      expect(detalle.precioAlMomento, 10.5);
-      expect(totalDe([detalle]), 21.0);
-    });
+        final detalle = (await ventas.obtenerVentas()).single.detalles.single;
+        expect(detalle.precioAlMomento, 10.5);
+        expect(totalDe([detalle]), 21.0);
+      },
+    );
 
     test('coincide con lo guardado por obtenerVenta', () async {
-      await ventas.registrarVenta(_venta(
-        'v1',
-        DateTime(2026, 10, 15, 9),
-        [_detalle(_cola, 2), _detalle(_pan, 3)],
-      ));
+      await ventas.registrarVenta(
+        _venta('v1', DateTime(2026, 10, 15, 9), [
+          _detalle(_cola, 2),
+          _detalle(_pan, 3),
+        ]),
+      );
 
       final deLista = (await ventas.obtenerVentas()).single;
       final individual = await ventas.obtenerVenta('v1');
@@ -158,68 +158,71 @@ void main() {
       expect(totalDe(deLista.detalles), totalDe(individual.detalles));
     });
 
-    test('las ventas siguen disponibles tras cerrar y reabrir la base',
-        () async {
-      await ventas.registrarVenta(
-        _venta('v1', DateTime(2026, 10, 15, 9), [_detalle(_cola, 2)]),
-      );
-      await ventas.registrarVenta(
-        _venta('v2', DateTime(2026, 10, 15, 10), [_detalle(_pan, 3)]),
-      );
+    test(
+      'las ventas siguen disponibles tras cerrar y reabrir la base',
+      () async {
+        await ventas.registrarVenta(
+          _venta('v1', DateTime(2026, 10, 15, 9), [_detalle(_cola, 2)]),
+        );
+        await ventas.registrarVenta(
+          _venta('v2', DateTime(2026, 10, 15, 10), [_detalle(_pan, 3)]),
+        );
 
-      await DatabaseService.instance.close();
+        await DatabaseService.instance.close();
 
-      final lista = await VentaService().obtenerVentas();
-      expect(lista.map((v) => v.id), ['v2', 'v1']);
-      expect(totalDe(lista.first.detalles), 7.5);
-      expect(totalDe(lista.last.detalles), 21.0);
-    });
+        final lista = await VentaService().obtenerVentas();
+        expect(lista.map((v) => v.id), ['v2', 'v1']);
+        expect(totalDe(lista.first.detalles), 7.5);
+        expect(totalDe(lista.last.detalles), 21.0);
+      },
+    );
   });
 
   group('con Riverpod', () {
-    test('ventasRegistradasProvider lee lo que registra ventaProvider',
-        () async {
-      final container = ProviderContainer();
-      addTearDown(container.dispose);
+    test(
+      'ventasRegistradasProvider lee lo que registra ventaProvider',
+      () async {
+        final container = ProviderContainer();
+        addTearDown(container.dispose);
 
-      expect(await container.read(ventasRegistradasProvider.future), isEmpty);
+        expect(await container.read(ventasRegistradasProvider.future), isEmpty);
 
-      final notifier = container.read(ventaProvider.notifier);
-      notifier.agregarProducto(_cola, 2);
-      notifier.agregarProducto(_pan, 3);
-      expect(await notifier.confirmarVenta(), isTrue);
+        final notifier = container.read(ventaProvider.notifier);
+        notifier.agregarProducto(_cola, 2);
+        notifier.agregarProducto(_pan, 3);
+        expect(await notifier.confirmarVenta(), isTrue);
 
-      container.invalidate(ventasRegistradasProvider);
-      final lista = await container.read(ventasRegistradasProvider.future);
+        container.invalidate(ventasRegistradasProvider);
+        final lista = await container.read(ventasRegistradasProvider.future);
 
-      expect(lista, hasLength(1));
-      expect(lista.single.detalles, hasLength(2));
-      expect(totalDe(lista.single.detalles), 28.5);
-    });
+        expect(lista, hasLength(1));
+        expect(lista.single.detalles, hasLength(2));
+        expect(totalDe(lista.single.detalles), 28.5);
+      },
+    );
 
-    test('varias ventas se consultan de la más reciente a la más antigua',
-        () async {
-      final container = ProviderContainer();
-      addTearDown(container.dispose);
-      final notifier = container.read(ventaProvider.notifier);
+    test(
+      'varias ventas se consultan de la más reciente a la más antigua',
+      () async {
+        final container = ProviderContainer();
+        addTearDown(container.dispose);
+        final notifier = container.read(ventaProvider.notifier);
 
-      notifier.agregarProducto(_cola, 1);
-      await notifier.confirmarVenta();
-      // El id y la fecha salen del reloj; se deja avanzar entre ventas.
-      await Future<void>.delayed(const Duration(milliseconds: 5));
-      notifier.agregarProducto(_pan, 2);
-      await notifier.confirmarVenta();
-      await Future<void>.delayed(const Duration(milliseconds: 5));
-      notifier.agregarProducto(_agua, 3);
-      await notifier.confirmarVenta();
+        notifier.agregarProducto(_cola, 1);
+        await notifier.confirmarVenta();
+        // El id y la fecha salen del reloj; se deja avanzar entre ventas.
+        await Future<void>.delayed(const Duration(milliseconds: 5));
+        notifier.agregarProducto(_pan, 2);
+        await notifier.confirmarVenta();
+        await Future<void>.delayed(const Duration(milliseconds: 5));
+        notifier.agregarProducto(_agua, 3);
+        await notifier.confirmarVenta();
 
-      final lista = await container.read(ventasRegistradasProvider.future);
+        final lista = await container.read(ventasRegistradasProvider.future);
 
-      expect(lista.map((v) => totalDe(v.detalles)), [24.0, 5.0, 10.5]);
-      expect(
-        lista.first.fechaHora.isAfter(lista.last.fechaHora),
-        isTrue,
-      );
-    });
+        expect(lista.map((v) => totalDe(v.detalles)), [24.0, 5.0, 10.5]);
+        expect(lista.first.fechaHora.isAfter(lista.last.fechaHora), isTrue);
+      },
+    );
   });
 }

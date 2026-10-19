@@ -9,10 +9,10 @@ import 'package:flutter_test/flutter_test.dart';
 class _FakeProductoService extends ProductoService {
   @override
   Future<List<Producto>> obtenerProductos() async => const [
-        Producto(id: '1', nombre: 'Coca Cola', precio: 10.5),
-        Producto(id: '2', nombre: 'Pan dulce', precio: 2),
-        Producto(id: '3', nombre: 'Chicle', precio: 0.1),
-      ];
+    Producto(id: '1', nombre: 'Coca Cola', precio: 10.5),
+    Producto(id: '2', nombre: 'Pan dulce', precio: 2),
+    Producto(id: '3', nombre: 'Chicle', precio: 0.1),
+  ];
 }
 
 void main() {
@@ -21,12 +21,14 @@ void main() {
     tester.view.devicePixelRatio = 2.0;
     addTearDown(tester.view.reset);
 
-    await tester.pumpWidget(ProviderScope(
-      overrides: [
-        productoServiceProvider.overrideWithValue(_FakeProductoService()),
-      ],
-      child: const MaterialApp(home: CatalogoScreen()),
-    ));
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          productoServiceProvider.overrideWithValue(_FakeProductoService()),
+        ],
+        child: const MaterialApp(home: CatalogoScreen()),
+      ),
+    );
     await tester.pumpAndSettle();
 
     expect(find.text('Q10.50'), findsOneWidget);

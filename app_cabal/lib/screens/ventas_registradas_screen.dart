@@ -63,10 +63,9 @@ class VentasRegistradasScreen extends ConsumerWidget {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                onTap: () => Navigator.of(context).pushNamed(
-                  AppRoutes.detalleVenta,
-                  arguments: venta,
-                ),
+                onTap: () => Navigator.of(
+                  context,
+                ).pushNamed(AppRoutes.detalleVenta, arguments: venta),
               );
             },
           );
@@ -101,9 +100,9 @@ class _SinVentas extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               'Las ventas que registres aparecerán aquí.',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Colors.grey[600],
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
               textAlign: TextAlign.center,
             ),
           ],
