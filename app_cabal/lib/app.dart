@@ -26,8 +26,7 @@ class CabalApp extends StatelessWidget {
       routes: {
         AppRoutes.login: (context) => const LoginScreen(),
         AppRoutes.catalogo: (context) => const CatalogoScreen(),
-        AppRoutes.agregarProducto: (context) =>
-            const AgregarProductoScreen(),
+        AppRoutes.agregarProducto: (context) => const AgregarProductoScreen(),
         AppRoutes.registrarVenta: (context) => const RegistrarVentaScreen(),
         AppRoutes.confirmacionVenta: (context) =>
             const ConfirmacionVentaScreen(),

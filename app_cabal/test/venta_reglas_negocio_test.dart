@@ -28,10 +28,10 @@ class _VentaServiceFalso extends VentaService {
 }
 
 DetalleVenta _detalle(double precio, int cantidad) => DetalleVenta(
-      producto: Producto(id: 'x$precio', nombre: 'P', precio: precio),
-      cantidad: cantidad,
-      precioAlMomento: precio,
-    );
+  producto: Producto(id: 'x$precio', nombre: 'P', precio: precio),
+  cantidad: cantidad,
+  precioAlMomento: precio,
+);
 
 void main() {
   late _VentaServiceFalso servicio;
@@ -50,8 +50,7 @@ void main() {
   });
 
   group('una venta debe tener al menos un producto', () {
-    test('confirmar sin productos se rechaza y no llama al servicio',
-        () async {
+    test('confirmar sin productos se rechaza y no llama al servicio', () async {
       final ok = await notifier.confirmarVenta();
 
       expect(ok, isFalse);
@@ -61,17 +60,19 @@ void main() {
       expect(estado().ventaConfirmada, isNull);
     });
 
-    test('confirmar tras quitar todos los productos también se rechaza',
-        () async {
-      notifier.agregarProducto(_cola, 1);
-      notifier.quitarProducto(_cola.id);
+    test(
+      'confirmar tras quitar todos los productos también se rechaza',
+      () async {
+        notifier.agregarProducto(_cola, 1);
+        notifier.quitarProducto(_cola.id);
 
-      final ok = await notifier.confirmarVenta();
+        final ok = await notifier.confirmarVenta();
 
-      expect(ok, isFalse);
-      expect(estado().mensajeError, mensajeVentaSinProductos);
-      expect(servicio.llamadas, 0);
-    });
+        expect(ok, isFalse);
+        expect(estado().mensajeError, mensajeVentaSinProductos);
+        expect(servicio.llamadas, 0);
+      },
+    );
 
     test('con un producto la venta sí se guarda', () async {
       notifier.agregarProducto(_cola, 1);
@@ -198,53 +199,59 @@ void main() {
       expect(totalDe(guardada.detalles), 21.0);
     });
 
-    test('al guardar se envía un detalle por producto con sus cantidades',
-        () async {
-      notifier.agregarProducto(_cola, 2);
-      notifier.agregarProducto(_pan, 3);
-      await notifier.confirmarVenta();
+    test(
+      'al guardar se envía un detalle por producto con sus cantidades',
+      () async {
+        notifier.agregarProducto(_cola, 2);
+        notifier.agregarProducto(_pan, 3);
+        await notifier.confirmarVenta();
 
-      final guardada = servicio.guardadas.single;
-      expect(guardada.detalles, hasLength(2));
-      expect(guardada.detalles.map((d) => d.producto.id), ['p1', 'p2']);
-      expect(guardada.detalles.map((d) => d.cantidad), [2, 3]);
-      expect(guardada.id, isNotEmpty);
-    });
+        final guardada = servicio.guardadas.single;
+        expect(guardada.detalles, hasLength(2));
+        expect(guardada.detalles.map((d) => d.producto.id), ['p1', 'p2']);
+        expect(guardada.detalles.map((d) => d.cantidad), [2, 3]);
+        expect(guardada.id, isNotEmpty);
+      },
+    );
   });
 
   group('errores del servicio de ventas', () {
-    test('si falla se informa el error y se conserva la venta en curso',
-        () async {
-      servicio.error = Exception('fallo simulado');
-      notifier.agregarProducto(_cola, 2);
-      notifier.agregarProducto(_pan, 1);
+    test(
+      'si falla se informa el error y se conserva la venta en curso',
+      () async {
+        servicio.error = Exception('fallo simulado');
+        notifier.agregarProducto(_cola, 2);
+        notifier.agregarProducto(_pan, 1);
 
-      final ok = await notifier.confirmarVenta();
+        final ok = await notifier.confirmarVenta();
 
-      expect(ok, isFalse);
-      expect(estado().estado, EstadoRegistroVenta.error);
-      expect(estado().mensajeError, mensajeErrorGuardado);
-      expect(estado().detalles, hasLength(2));
-      expect(estado().total, 23.5);
-      expect(estado().guardando, isFalse);
-      expect(estado().ventaConfirmada, isNull);
-    });
-
-    test('cualquier tipo de error produce el mismo mensaje al usuario',
-        () async {
-      for (final error in <Object>[
-        StateError('x'),
-        ArgumentError('x'),
-        'texto',
-      ]) {
-        servicio.error = error;
-        notifier.limpiar();
-        notifier.agregarProducto(_cola, 1);
-
-        expect(await notifier.confirmarVenta(), isFalse);
+        expect(ok, isFalse);
+        expect(estado().estado, EstadoRegistroVenta.error);
         expect(estado().mensajeError, mensajeErrorGuardado);
-      }
-    });
+        expect(estado().detalles, hasLength(2));
+        expect(estado().total, 23.5);
+        expect(estado().guardando, isFalse);
+        expect(estado().ventaConfirmada, isNull);
+      },
+    );
+
+    test(
+      'cualquier tipo de error produce el mismo mensaje al usuario',
+      () async {
+        for (final error in <Object>[
+          StateError('x'),
+          ArgumentError('x'),
+          'texto',
+        ]) {
+          servicio.error = error;
+          notifier.limpiar();
+          notifier.agregarProducto(_cola, 1);
+
+          expect(await notifier.confirmarVenta(), isFalse);
+          expect(estado().mensajeError, mensajeErrorGuardado);
+        }
+      },
+    );
 
     test('tras un fallo se puede reintentar y guardar', () async {
       servicio.error = Exception('fallo simulado');

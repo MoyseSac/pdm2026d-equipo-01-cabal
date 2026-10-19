@@ -65,11 +65,13 @@ void main() {
 
   group('guardado de una venta con varios productos', () {
     test('guarda la venta y un detalle por producto', () async {
-      await ventas.registrarVenta(_venta('v1', [
-        _detalle(_cola, 2),
-        _detalle(_pan, 3),
-        _detalle(_agua, 1),
-      ]));
+      await ventas.registrarVenta(
+        _venta('v1', [
+          _detalle(_cola, 2),
+          _detalle(_pan, 3),
+          _detalle(_agua, 1),
+        ]),
+      );
 
       final filasVenta = await filas('venta');
       expect(filasVenta, hasLength(1));
@@ -79,11 +81,9 @@ void main() {
       final db = await DatabaseService.instance.database;
       final detalles = await db.query('detalle_venta', orderBy: 'producto_id');
       expect(detalles, hasLength(3));
-      expect(
-        detalles.map((d) => d['venta_id']).toSet(),
-        {'v1'},
-        reason: 'todos los detalles pertenecen a la venta',
-      );
+      expect(detalles.map((d) => d['venta_id']).toSet(), {
+        'v1',
+      }, reason: 'todos los detalles pertenecen a la venta');
       expect(detalles[0]['producto_id'], 'p1');
       expect(detalles[0]['cantidad'], 2);
       expect(detalles[0]['precio_al_momento'], 10.5);
@@ -121,35 +121,37 @@ void main() {
       final venta = await ventas.obtenerVenta('v1');
       final detalle = venta!.detalles.single;
       expect(detalle.precioAlMomento, 10.5);
-      expect(detalle.producto.precio, 15.0,
-          reason: 'el producto refleja el precio actual del catálogo');
+      expect(
+        detalle.producto.precio,
+        15.0,
+        reason: 'el producto refleja el precio actual del catálogo',
+      );
 
       final db = await DatabaseService.instance.database;
       final guardado = await db.query('detalle_venta');
       expect(guardado.single['precio_al_momento'], 10.5);
     });
 
-    test('una venta nueva usa el precio vigente y la anterior no cambia',
-        () async {
-      await ventas.registrarVenta(_venta('v1', [_detalle(_cola, 1)]));
+    test(
+      'una venta nueva usa el precio vigente y la anterior no cambia',
+      () async {
+        await ventas.registrarVenta(_venta('v1', [_detalle(_cola, 1)]));
 
-      final nueva = _cola.copyWith(precio: 12);
-      await productos.actualizarProducto(nueva);
-      await ventas.registrarVenta(_venta('v2', [_detalle(nueva, 1)]));
+        final nueva = _cola.copyWith(precio: 12);
+        await productos.actualizarProducto(nueva);
+        await ventas.registrarVenta(_venta('v2', [_detalle(nueva, 1)]));
 
-      final v1 = await ventas.obtenerVenta('v1');
-      final v2 = await ventas.obtenerVenta('v2');
-      expect(v1!.detalles.single.precioAlMomento, 10.5);
-      expect(v2!.detalles.single.precioAlMomento, 12.0);
-    });
+        final v1 = await ventas.obtenerVenta('v1');
+        final v2 = await ventas.obtenerVenta('v2');
+        expect(v1!.detalles.single.precioAlMomento, 10.5);
+        expect(v2!.detalles.single.precioAlMomento, 12.0);
+      },
+    );
   });
 
   group('un guardado fallido no deja datos incompletos', () {
     test('producto inexistente: no queda venta ni detalles', () async {
-      final venta = _venta('v1', [
-        _detalle(_cola, 1),
-        _detalle(_fantasma, 1),
-      ]);
+      final venta = _venta('v1', [_detalle(_cola, 1), _detalle(_fantasma, 1)]);
 
       await expectLater(ventas.registrarVenta(venta), throwsA(anything));
 
@@ -201,11 +203,9 @@ void main() {
   group('recuperación de ventas', () {
     test('obtenerVenta devuelve la venta completa', () async {
       final fecha = DateTime(2026, 10, 15, 18, 45, 5);
-      await ventas.registrarVenta(_venta(
-        'v1',
-        [_detalle(_cola, 2), _detalle(_pan, 3)],
-        fecha,
-      ));
+      await ventas.registrarVenta(
+        _venta('v1', [_detalle(_cola, 2), _detalle(_pan, 3)], fecha),
+      );
 
       final venta = await ventas.obtenerVenta('v1');
 
@@ -234,10 +234,7 @@ void main() {
       final venta = await VentaService().obtenerVenta('v1');
       expect(venta, isNotNull);
       expect(venta!.detalles, hasLength(2));
-      expect(
-        venta.detalles.fold<int>(0, (suma, d) => suma + d.cantidad),
-        5,
-      );
+      expect(venta.detalles.fold<int>(0, (suma, d) => suma + d.cantidad), 5);
     });
   });
 }

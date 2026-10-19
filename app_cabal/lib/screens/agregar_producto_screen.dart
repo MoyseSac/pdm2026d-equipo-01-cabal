@@ -53,9 +53,7 @@ class _AgregarProductoScreenState extends ConsumerState<AgregarProductoScreen> {
         precio: precio,
       );
 
-      await ref
-          .read(productoProvider.notifier)
-          .agregarProducto(nuevoProducto);
+      await ref.read(productoProvider.notifier).agregarProducto(nuevoProducto);
 
       if (mounted) {
         Navigator.of(context).pop();
@@ -105,8 +103,9 @@ class _AgregarProductoScreenState extends ConsumerState<AgregarProductoScreen> {
                   hintText: 'Ej: 10.50',
                   border: OutlineInputBorder(),
                 ),
-                keyboardType:
-                    const TextInputType.numberWithOptions(decimal: true),
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
                 validator: ProductoValidator.validarPrecio,
               ),
               const SizedBox(height: 24),
@@ -118,9 +117,7 @@ class _AgregarProductoScreenState extends ConsumerState<AgregarProductoScreen> {
                       ? const SizedBox(
                           height: 20,
                           width: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                          ),
+                          child: CircularProgressIndicator(strokeWidth: 2),
                         )
                       : const Text('Guardar producto'),
                 ),

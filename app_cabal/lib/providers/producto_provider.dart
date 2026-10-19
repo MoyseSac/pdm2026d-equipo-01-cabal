@@ -9,10 +9,10 @@ final productoServiceProvider = Provider<ProductoService>((ref) {
 
 final productoProvider =
     StateNotifierProvider<ProductoNotifier, List<Producto>>((ref) {
-  final productoService = ref.watch(productoServiceProvider);
+      final productoService = ref.watch(productoServiceProvider);
 
-  return ProductoNotifier(productoService);
-});
+      return ProductoNotifier(productoService);
+    });
 
 class ProductoNotifier extends StateNotifier<List<Producto>> {
   final ProductoService _productoService;

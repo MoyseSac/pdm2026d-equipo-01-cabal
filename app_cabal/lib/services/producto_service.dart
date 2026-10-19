@@ -7,7 +7,7 @@ class ProductoService {
   final DatabaseService _databaseService;
 
   ProductoService({DatabaseService? databaseService})
-      : _databaseService = databaseService ?? DatabaseService.instance;
+    : _databaseService = databaseService ?? DatabaseService.instance;
 
   Map<String, Object?> _toMap(Producto producto) {
     return {
@@ -38,10 +38,7 @@ class ProductoService {
   Future<List<Producto>> obtenerProductos() async {
     final db = await _databaseService.database;
 
-    final resultado = await db.query(
-      'producto',
-      orderBy: 'nombre ASC',
-    );
+    final resultado = await db.query('producto', orderBy: 'nombre ASC');
 
     return resultado.map(_fromMap).toList();
   }
@@ -60,10 +57,6 @@ class ProductoService {
   Future<void> eliminarProducto(Producto producto) async {
     final db = await _databaseService.database;
 
-    await db.delete(
-      'producto',
-      where: 'id = ?',
-      whereArgs: [producto.id],
-    );
+    await db.delete('producto', where: 'id = ?', whereArgs: [producto.id]);
   }
 }

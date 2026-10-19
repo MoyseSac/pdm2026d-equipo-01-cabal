@@ -9,32 +9,24 @@ class VentaService {
   final DatabaseService _databaseService;
 
   VentaService({DatabaseService? databaseService})
-      : _databaseService = databaseService ?? DatabaseService.instance;
+    : _databaseService = databaseService ?? DatabaseService.instance;
 
   Future<void> registrarVenta(Venta venta) async {
     final db = await _databaseService.database;
 
     await db.transaction((txn) async {
-      await txn.insert(
-        'venta',
-        {
-          'id': venta.id,
-          'fecha_hora': venta.fechaHora.toIso8601String(),
-        },
-        conflictAlgorithm: ConflictAlgorithm.abort,
-      );
+      await txn.insert('venta', {
+        'id': venta.id,
+        'fecha_hora': venta.fechaHora.toIso8601String(),
+      }, conflictAlgorithm: ConflictAlgorithm.abort);
 
       for (final detalle in venta.detalles) {
-        await txn.insert(
-          'detalle_venta',
-          {
-            'venta_id': venta.id,
-            'producto_id': detalle.producto.id,
-            'cantidad': detalle.cantidad,
-            'precio_al_momento': detalle.precioAlMomento,
-          },
-          conflictAlgorithm: ConflictAlgorithm.abort,
-        );
+        await txn.insert('detalle_venta', {
+          'venta_id': venta.id,
+          'producto_id': detalle.producto.id,
+          'cantidad': detalle.cantidad,
+          'precio_al_momento': detalle.precioAlMomento,
+        }, conflictAlgorithm: ConflictAlgorithm.abort);
       }
     });
   }
@@ -94,11 +86,7 @@ class VentaService {
   Future<Venta?> obtenerVenta(String id) async {
     final db = await _databaseService.database;
 
-    final ventas = await db.query(
-      'venta',
-      where: 'id = ?',
-      whereArgs: [id],
-    );
+    final ventas = await db.query('venta', where: 'id = ?', whereArgs: [id]);
 
     if (ventas.isEmpty) {
       return null;

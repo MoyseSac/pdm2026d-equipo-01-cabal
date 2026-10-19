@@ -59,13 +59,15 @@ Future<void> _abrirVentas(
   tester.view.devicePixelRatio = 2.0;
   addTearDown(tester.view.reset);
 
-  await tester.pumpWidget(ProviderScope(
-    overrides: [
-      productoServiceProvider.overrideWithValue(_FakeProductoService()),
-      ventaServiceProvider.overrideWithValue(servicio),
-    ],
-    child: const CabalApp(),
-  ));
+  await tester.pumpWidget(
+    ProviderScope(
+      overrides: [
+        productoServiceProvider.overrideWithValue(_FakeProductoService()),
+        ventaServiceProvider.overrideWithValue(servicio),
+      ],
+      child: const CabalApp(),
+    ),
+  );
   await tester.tap(find.text('Ingresar (placeholder)'));
   await tester.pumpAndSettle();
   await tester.tap(find.byTooltip('Ventas registradas'));
@@ -74,8 +76,10 @@ Future<void> _abrirVentas(
 
 void main() {
   test('formatearFechaHora usa dd/mm/aaaa hh:mm', () {
-    expect(formatearFechaHora(DateTime(2026, 10, 15, 21, 5)),
-        '15/10/2026 21:05');
+    expect(
+      formatearFechaHora(DateTime(2026, 10, 15, 21, 5)),
+      '15/10/2026 21:05',
+    );
     expect(formatearFechaHora(DateTime(2026, 1, 2, 3, 4)), '02/01/2026 03:04');
   });
 
@@ -84,13 +88,16 @@ void main() {
 
     expect(find.widgetWithText(AppBar, 'Ventas registradas'), findsOneWidget);
     expect(find.text('Aún no hay ventas registradas'), findsOneWidget);
-    expect(find.text('Las ventas que registres aparecerán aquí.'),
-        findsOneWidget);
+    expect(
+      find.text('Las ventas que registres aparecerán aquí.'),
+      findsOneWidget,
+    );
     expect(find.byType(ListTile), findsNothing);
   });
 
-  testWidgets('lista las ventas con fecha, cantidad de productos y total',
-      (tester) async {
+  testWidgets('lista las ventas con fecha, cantidad de productos y total', (
+    tester,
+  ) async {
     await _abrirVentas(tester, _FakeVentaService([_reciente, _antigua]));
 
     expect(find.text('15/10/2026 21:05'), findsOneWidget);
@@ -102,14 +109,16 @@ void main() {
     expect(find.text('Q2.00'), findsOneWidget);
   });
 
-  testWidgets('se muestran en el orden en que llegan, la más reciente primero',
-      (tester) async {
-    await _abrirVentas(tester, _FakeVentaService([_reciente, _antigua]));
+  testWidgets(
+    'se muestran en el orden en que llegan, la más reciente primero',
+    (tester) async {
+      await _abrirVentas(tester, _FakeVentaService([_reciente, _antigua]));
 
-    final arriba = tester.getTopLeft(find.text('15/10/2026 21:05')).dy;
-    final abajo = tester.getTopLeft(find.text('14/10/2026 09:30')).dy;
-    expect(arriba, lessThan(abajo));
-  });
+      final arriba = tester.getTopLeft(find.text('15/10/2026 21:05')).dy;
+      final abajo = tester.getTopLeft(find.text('14/10/2026 09:30')).dy;
+      expect(arriba, lessThan(abajo));
+    },
+  );
 
   testWidgets('tocar una venta muestra su detalle', (tester) async {
     await _abrirVentas(tester, _FakeVentaService([_reciente, _antigua]));
@@ -134,8 +143,9 @@ void main() {
     expect(find.text('14/10/2026 09:30'), findsOneWidget);
   });
 
-  testWidgets('el detalle muestra el precio al momento de la venta',
-      (tester) async {
+  testWidgets('el detalle muestra el precio al momento de la venta', (
+    tester,
+  ) async {
     await _abrirVentas(tester, _FakeVentaService([_antigua]));
 
     await tester.tap(find.text('14/10/2026 09:30'));
@@ -146,8 +156,9 @@ void main() {
     expect(find.text('1 × Q2.50'), findsNothing);
   });
 
-  testWidgets('si falla la lectura informa y permite reintentar',
-      (tester) async {
+  testWidgets('si falla la lectura informa y permite reintentar', (
+    tester,
+  ) async {
     final servicio = _FakeVentaService([_reciente], fallar: true);
     await _abrirVentas(tester, servicio);
 
@@ -161,8 +172,9 @@ void main() {
     expect(servicio.lecturas, 2);
   });
 
-  testWidgets('al volver a abrir la pantalla se leen de nuevo las ventas',
-      (tester) async {
+  testWidgets('al volver a abrir la pantalla se leen de nuevo las ventas', (
+    tester,
+  ) async {
     final servicio = _FakeVentaService([_antigua]);
     await _abrirVentas(tester, servicio);
     expect(servicio.lecturas, 1);
