@@ -1,0 +1,51 @@
+# CI de Cabal: cada push y cada Pull Request se verifica en una máquina limpia.
+# "En mi compu sí funciona" deja de ser un argumento.
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch: # botón "Run workflow" en la pestaña Actions
+
+# Si haces push dos veces seguidas a la misma rama, se cancela la corrida vieja.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  calidad:
+    name: Formato, análisis y pruebas
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    # La app vive en app_cabal/, no en la raíz del repositorio.
+    defaults:
+      run:
+        working-directory: app_cabal
+    steps:
+      - uses: actions/checkout@v4
+
+      # Misma versión que en las computadoras del equipo: builds reproducibles.
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: 3.47.5
+          cache: true
+
+      - name: Dependencias
+        run: flutter pub get
+
+      - name: Formato (dart format)
+        run: dart format --output=none --set-exit-if-changed lib test
+
+      - name: Análisis estático (flutter analyze)
+        run: flutter analyze
+
+      # sqflite_common_ffi corre SQLite nativo de Linux: así las pruebas de
+      # base de datos se ejecutan sin emulador. Solo hay que instalarlo.
+      - name: SQLite para las pruebas
+        run: sudo apt-get update && sudo apt-get install -y libsqlite3-dev
+
+      - name: Pruebas (flutter test)
+        run: flutter test --reporter expanded
