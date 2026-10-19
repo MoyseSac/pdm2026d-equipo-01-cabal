@@ -41,7 +41,10 @@ class VentasRegistradasScreen extends ConsumerWidget {
         ),
         data: (lista) {
           if (lista.isEmpty) {
-            return const _SinVentas();
+            return _SinVentas(
+              onRegistrarVenta: () =>
+                  Navigator.of(context).pushNamed(AppRoutes.registrarVenta),
+            );
           }
 
           return ListView.separated(
@@ -76,7 +79,9 @@ class VentasRegistradasScreen extends ConsumerWidget {
 }
 
 class _SinVentas extends StatelessWidget {
-  const _SinVentas();
+  final VoidCallback onRegistrarVenta;
+
+  const _SinVentas({required this.onRegistrarVenta});
 
   @override
   Widget build(BuildContext context) {
@@ -104,6 +109,12 @@ class _SinVentas extends StatelessWidget {
                 context,
               ).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
               textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+            FilledButton.icon(
+              onPressed: onRegistrarVenta,
+              icon: const Icon(Icons.add),
+              label: const Text('Registrar venta'),
             ),
           ],
         ),

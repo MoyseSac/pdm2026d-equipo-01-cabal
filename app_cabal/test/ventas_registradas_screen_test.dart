@@ -95,6 +95,15 @@ void main() {
     expect(find.byType(ListTile), findsNothing);
   });
 
+  testWidgets('el estado vacío ofrece registrar una venta', (tester) async {
+    await _abrirVentas(tester, _FakeVentaService([]));
+
+    await tester.tap(find.text('Registrar venta'));
+    await tester.pumpAndSettle();
+
+    expect(find.widgetWithText(AppBar, 'Registrar venta'), findsOneWidget);
+  });
+
   testWidgets('lista las ventas con fecha, cantidad de productos y total', (
     tester,
   ) async {
