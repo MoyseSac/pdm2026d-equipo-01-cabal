@@ -1,0 +1,8 @@
+# Quién revisa qué. Con "Require review from Code Owners" en la protección de
+# main, GitHub pide automáticamente la revisión de estas personas.
+# Formato: <ruta> <@usuario o @org/equipo>
+# La última regla que coincide con un archivo es la que manda.
+
+# Todo el equipo puede aprobar cualquier Pull Request (quien lo abre no puede
+# aprobar el suyo, así que siempre hay otro integrante que revisa).
+*    @MoyseSac @danielixcot @aemendez11 @Luisdl23 @julianvgg
