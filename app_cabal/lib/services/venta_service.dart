@@ -24,6 +24,7 @@ class VentaService {
         await txn.insert('detalle_venta', {
           'venta_id': venta.id,
           'producto_id': detalle.producto.id,
+          'nombre_producto': detalle.producto.nombre,
           'cantidad': detalle.cantidad,
           'precio_al_momento': detalle.precioAlMomento,
         }, conflictAlgorithm: ConflictAlgorithm.abort);
@@ -48,10 +49,11 @@ class VentaService {
 
     final filasDetalle = await db.rawQuery('''
       SELECT d.venta_id, d.cantidad, d.precio_al_momento,
-             p.id AS producto_id, p.nombre, p.precio
+             p.id AS producto_id, COALESCE(d.nombre_producto, p.nombre) AS nombre,
+             p.precio
       FROM detalle_venta d
       JOIN producto p ON p.id = d.producto_id
-      ORDER BY p.nombre ASC
+      ORDER BY nombre ASC
     ''');
 
     final detallesPorVenta = <String, List<DetalleVenta>>{};
@@ -112,7 +114,7 @@ class VentaService {
         DetalleVenta(
           producto: Producto(
             id: producto['id'] as String,
-            nombre: producto['nombre'] as String,
+            nombre: (fila['nombre_producto'] ?? producto['nombre']) as String,
             precio: (producto['precio'] as num).toDouble(),
           ),
           cantidad: fila['cantidad'] as int,

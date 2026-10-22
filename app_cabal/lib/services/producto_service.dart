@@ -38,7 +38,11 @@ class ProductoService {
   Future<List<Producto>> obtenerProductos() async {
     final db = await _databaseService.database;
 
-    final resultado = await db.query('producto', orderBy: 'nombre ASC');
+    final resultado = await db.query(
+      'producto',
+      where: 'eliminado_en IS NULL',
+      orderBy: 'nombre ASC',
+    );
 
     return resultado.map(_fromMap).toList();
   }
@@ -57,6 +61,11 @@ class ProductoService {
   Future<void> eliminarProducto(Producto producto) async {
     final db = await _databaseService.database;
 
-    await db.delete('producto', where: 'id = ?', whereArgs: [producto.id]);
+    await db.update(
+      'producto',
+      {'eliminado_en': DateTime.now().toIso8601String()},
+      where: 'id = ?',
+      whereArgs: [producto.id],
+    );
   }
 }

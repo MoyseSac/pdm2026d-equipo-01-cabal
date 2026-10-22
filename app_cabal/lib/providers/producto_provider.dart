@@ -36,4 +36,10 @@ class ProductoNotifier extends StateNotifier<List<Producto>> {
 
     state = await _productoService.obtenerProductos();
   }
+
+  Future<void> eliminarProducto(Producto producto) async {
+    await _productoService.eliminarProducto(producto);
+
+    state = await _productoService.obtenerProductos();
+  }
 }
