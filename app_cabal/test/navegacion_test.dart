@@ -5,6 +5,7 @@ import 'package:app_cabal/models/venta.dart';
 import 'package:app_cabal/providers/producto_provider.dart';
 import 'package:app_cabal/providers/tab_provider.dart';
 import 'package:app_cabal/providers/venta_provider.dart';
+import 'package:app_cabal/screens/catalogo_screen.dart';
 import 'package:app_cabal/services/producto_service.dart';
 import 'package:app_cabal/services/venta_service.dart';
 import 'package:flutter/material.dart';
@@ -94,7 +95,10 @@ void main() {
   testWidgets('al volver a una pestaña conserva su scroll', (tester) async {
     await _abrirApp(tester);
 
-    final grid = find.byType(GridView);
+    final grid = find.descendant(
+      of: find.byType(CatalogoScreen),
+      matching: find.byType(ListView),
+    );
     await tester.drag(grid, const Offset(0, -600));
     await tester.pumpAndSettle();
     double offset() => tester
