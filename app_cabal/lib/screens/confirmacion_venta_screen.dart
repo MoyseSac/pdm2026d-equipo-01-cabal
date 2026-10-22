@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../constants/app_routes.dart';
+import '../providers/tab_provider.dart';
 import '../providers/venta_provider.dart';
 import '../utils/moneda.dart';
 
@@ -52,8 +52,17 @@ class ConfirmacionVentaScreen extends ConsumerWidget {
                 SizedBox(
                   width: double.infinity,
                   child: OutlinedButton(
-                    onPressed: () => _volverAlCatalogo(context),
+                    onPressed: () =>
+                        _irAPestana(context, ref, Pestana.catalogo),
                     child: const Text('Volver al catálogo'),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton(
+                    onPressed: () => _irAPestana(context, ref, Pestana.ventas),
+                    child: const Text('Ver ventas'),
                   ),
                 ),
               ],
@@ -71,11 +80,10 @@ class ConfirmacionVentaScreen extends ConsumerWidget {
     notifier.limpiar();
   }
 
-  /// Desapila registrar venta y esta confirmacion hasta el catalogo, sin
-  /// crear una segunda copia del catalogo.
-  void _volverAlCatalogo(BuildContext context) {
-    Navigator.of(context).popUntil(
-      (route) => route.settings.name == AppRoutes.catalogo || route.isFirst,
-    );
+  /// Desapila registrar venta y esta confirmacion hasta la barra de
+  /// navegacion y muestra la pestana pedida.
+  void _irAPestana(BuildContext context, WidgetRef ref, Pestana pestana) {
+    ref.read(tabProvider.notifier).seleccionar(pestana);
+    Navigator.of(context).popUntil((route) => route.isFirst);
   }
 }

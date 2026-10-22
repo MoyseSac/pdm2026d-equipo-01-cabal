@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../constants/app_routes.dart';
+import '../providers/tab_provider.dart';
 import '../providers/venta_provider.dart';
 import '../providers/ventas_registradas_provider.dart';
 import '../utils/fecha.dart';
@@ -19,6 +20,9 @@ class VentasRegistradasScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('Ventas registradas')),
       body: ventas.when(
+        // Al releer, se conserva la lista visible (y su scroll) en vez de
+        // volver a mostrar el indicador de carga.
+        skipLoadingOnReload: true,
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, _) => Center(
           child: Padding(
@@ -43,7 +47,7 @@ class VentasRegistradasScreen extends ConsumerWidget {
           if (lista.isEmpty) {
             return _SinVentas(
               onRegistrarVenta: () =>
-                  Navigator.of(context).pushNamed(AppRoutes.registrarVenta),
+                  ref.read(tabProvider.notifier).seleccionar(Pestana.vender),
             );
           }
 

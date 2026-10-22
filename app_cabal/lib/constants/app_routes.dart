@@ -6,11 +6,10 @@ class AppRoutes {
   AppRoutes._();
 
   static const String login = '/';
+  static const String inicio = '/inicio';
   static const String catalogo = '/catalogo';
   static const String agregarProducto = '/agregar-producto';
   static const String registrarVenta = '/registrar-venta';
   static const String confirmacionVenta = '/confirmacion-venta';
-  static const String cierreDia = '/cierre-dia';
-  static const String ventasRegistradas = '/ventas-registradas';
   static const String detalleVenta = '/detalle-venta';
 }
