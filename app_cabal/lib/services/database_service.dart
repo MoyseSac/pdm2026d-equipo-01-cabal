@@ -23,7 +23,7 @@ class DatabaseService {
 
     return openDatabase(
       path,
-      version: 1,
+      version: 2,
       onConfigure: (db) async {
         await db.execute('PRAGMA foreign_keys = ON');
       },
@@ -32,7 +32,8 @@ class DatabaseService {
           CREATE TABLE producto (
             id TEXT PRIMARY KEY,
             nombre TEXT NOT NULL,
-            precio REAL NOT NULL
+            precio REAL NOT NULL,
+            eliminado_en TEXT
           )
         ''');
 
@@ -47,6 +48,7 @@ class DatabaseService {
           CREATE TABLE detalle_venta (
             venta_id TEXT NOT NULL,
             producto_id TEXT NOT NULL,
+            nombre_producto TEXT,
             cantidad INTEGER NOT NULL,
             precio_al_momento REAL NOT NULL,
 
@@ -59,6 +61,20 @@ class DatabaseService {
               REFERENCES producto(id)
           )
         ''');
+      },
+      onUpgrade: (db, oldVersion, newVersion) async {
+        if (oldVersion < 2) {
+          await db.execute('ALTER TABLE producto ADD COLUMN eliminado_en TEXT');
+          await db.execute(
+            'ALTER TABLE detalle_venta ADD COLUMN nombre_producto TEXT',
+          );
+          await db.execute('''
+            UPDATE detalle_venta
+            SET nombre_producto = (
+              SELECT nombre FROM producto WHERE producto.id = detalle_venta.producto_id
+            )
+          ''');
+        }
       },
     );
   }

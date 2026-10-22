@@ -2,11 +2,42 @@ import 'package:flutter/material.dart';
 import '../constants/app_routes.dart';
 import '../widgets/catalogo_vacio_widget.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../models/producto.dart';
 import '../providers/producto_provider.dart';
 import '../utils/moneda.dart';
 
 class CatalogoScreen extends ConsumerWidget {
   const CatalogoScreen({super.key});
+
+  Future<void> _confirmarEliminar(
+    BuildContext context,
+    WidgetRef ref,
+    Producto producto,
+  ) async {
+    final confirmado = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Eliminar producto'),
+        content: Text(
+          '¿Eliminar "${producto.nombre}"? Las ventas ya registradas se conservan.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Eliminar'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmado == true) {
+      await ref.read(productoProvider.notifier).eliminarProducto(producto);
+    }
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -69,14 +100,32 @@ class CatalogoScreen extends ConsumerWidget {
                                 Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(
-                                      producto.nombre,
-                                      maxLines: 2,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: const TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.bold,
-                                      ),
+                                    Row(
+                                      children: [
+                                        Expanded(
+                                          child: Text(
+                                            producto.nombre,
+                                            maxLines: 2,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: const TextStyle(
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ),
+                                        IconButton(
+                                          tooltip: 'Eliminar producto',
+                                          visualDensity: VisualDensity.compact,
+                                          icon: const Icon(
+                                            Icons.delete_outline,
+                                          ),
+                                          onPressed: () => _confirmarEliminar(
+                                            context,
+                                            ref,
+                                            producto,
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                     const SizedBox(height: 4),
                                     Text(

@@ -81,9 +81,11 @@ void main() {
       final db = await DatabaseService.instance.database;
       final detalles = await db.query('detalle_venta', orderBy: 'producto_id');
       expect(detalles, hasLength(3));
-      expect(detalles.map((d) => d['venta_id']).toSet(), {
-        'v1',
-      }, reason: 'todos los detalles pertenecen a la venta');
+      expect(
+        detalles.map((d) => d['venta_id']).toSet(),
+        {'v1'},
+        reason: 'todos los detalles pertenecen a la venta',
+      );
       expect(detalles[0]['producto_id'], 'p1');
       expect(detalles[0]['cantidad'], 2);
       expect(detalles[0]['precio_al_momento'], 10.5);
