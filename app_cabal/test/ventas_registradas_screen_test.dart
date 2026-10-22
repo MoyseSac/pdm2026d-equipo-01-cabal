@@ -70,7 +70,12 @@ Future<void> _abrirVentas(
   );
   await tester.tap(find.text('Ingresar (placeholder)'));
   await tester.pumpAndSettle();
-  await tester.tap(find.byTooltip('Ventas registradas'));
+  await tester.tap(
+    find.descendant(
+      of: find.byType(NavigationBar),
+      matching: find.text('Ventas'),
+    ),
+  );
   await tester.pumpAndSettle();
 }
 
@@ -102,6 +107,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.widgetWithText(AppBar, 'Registrar venta'), findsOneWidget);
+    expect(find.text('Aún no hay ventas registradas'), findsNothing);
   });
 
   testWidgets('lista las ventas con fecha, cantidad de productos y total', (
@@ -178,23 +184,33 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('15/10/2026 21:05'), findsOneWidget);
-    expect(servicio.lecturas, 2);
+    expect(servicio.lecturas, 3);
   });
 
-  testWidgets('al volver a abrir la pantalla se leen de nuevo las ventas', (
+  testWidgets('al volver a la pestaña Ventas se leen de nuevo las ventas', (
     tester,
   ) async {
     final servicio = _FakeVentaService([_antigua]);
     await _abrirVentas(tester, servicio);
-    expect(servicio.lecturas, 1);
+    expect(servicio.lecturas, 2);
 
-    await tester.pageBack();
+    await tester.tap(
+      find.descendant(
+        of: find.byType(NavigationBar),
+        matching: find.text('Catálogo'),
+      ),
+    );
     await tester.pumpAndSettle();
     servicio.lista.insert(0, _reciente);
-    await tester.tap(find.byTooltip('Ventas registradas'));
+    await tester.tap(
+      find.descendant(
+        of: find.byType(NavigationBar),
+        matching: find.text('Ventas'),
+      ),
+    );
     await tester.pumpAndSettle();
 
-    expect(servicio.lecturas, 2);
+    expect(servicio.lecturas, 3);
     expect(find.text('15/10/2026 21:05'), findsOneWidget);
   });
 }

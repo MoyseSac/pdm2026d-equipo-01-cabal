@@ -2,12 +2,9 @@ import 'package:flutter/material.dart';
 
 import 'constants/app_routes.dart';
 import 'screens/login_screen.dart';
-import 'screens/catalogo_screen.dart';
+import 'screens/home_shell.dart';
 import 'screens/agregar_producto_screen.dart';
-import 'screens/registrar_venta_screen.dart';
 import 'screens/confirmacion_venta_screen.dart';
-import 'screens/cierre_dia_screen.dart';
-import 'screens/ventas_registradas_screen.dart';
 import 'screens/detalle_venta_screen.dart';
 
 /// Configuracion principal de la app: tema, pantalla inicial y rutas.
@@ -25,14 +22,10 @@ class CabalApp extends StatelessWidget {
       initialRoute: AppRoutes.login,
       routes: {
         AppRoutes.login: (context) => const LoginScreen(),
-        AppRoutes.catalogo: (context) => const CatalogoScreen(),
+        AppRoutes.inicio: (context) => const HomeShell(),
         AppRoutes.agregarProducto: (context) => const AgregarProductoScreen(),
-        AppRoutes.registrarVenta: (context) => const RegistrarVentaScreen(),
         AppRoutes.confirmacionVenta: (context) =>
             const ConfirmacionVentaScreen(),
-        AppRoutes.cierreDia: (context) => const CierreDiaScreen(),
-        AppRoutes.ventasRegistradas: (context) =>
-            const VentasRegistradasScreen(),
         AppRoutes.detalleVenta: (context) => const DetalleVentaScreen(),
       },
       // No se necesita configuracion extra para el boton de retroceso:

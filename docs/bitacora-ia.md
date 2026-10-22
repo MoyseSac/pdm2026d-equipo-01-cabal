@@ -27,3 +27,19 @@
 **Qué rechacé o corregí:** Se decidió no actualizar Riverpod a la versión 3 ni reemplazar productoProvider, porque otras pantallas dependen de él. Se mantuvo el servicio SQLite existente, sin agregar funcionalidades nuevas ni modificar la base de datos.
 
 **Cómo lo verifiqué:** Ejecuté dart format, flutter analyze y flutter test. El análisis terminó sin errores, las cuatro pruebas del catálogo fueron aprobadas y la suite completa finalizó con 105 pruebas aprobadas.
+
+
+## 2026-10-22 · Daniel Ixcot · Claude · Navegación con pestañas y provider (Lab 4)
+
+**Qué pedí:** implementar la parte de navegación del laboratorio adaptada a Cabal: pestaña activa en un provider, pantallas en un IndexedStack y ninguna opción de la barra sin hacer nada.
+
+**Qué respondió:** propuso `tabProvider` (Notifier), un `HomeShell` con `NavigationBar` + `IndexedStack` (Catálogo, Vender, Ventas, Cierre) y una pantalla "Próximamente" para Cierre del día. Las pantallas de flujo (agregar producto, confirmación y detalle de venta) siguen como rutas encima del shell.
+
+**Qué acepté:** el diseño anterior, "Ver ventas" en la confirmación de venta como el "Ver todo" del laboratorio y quitar el icono de ventas del catálogo (ahora es pestaña).
+
+**Qué rechacé o corregí:**
+- Invalidar el catálogo al cambiar de pestaña: hacía perder el scroll; se dejó solo para Ventas, con `skipLoadingOnReload` para conservar la lista visible.
+- El botón "Probar registrar venta" del catálogo quedaba tapado por el botón flotante y es redundante con la pestaña Vender; se eliminó.
+- Se restauró `venta_service_test.dart`, que `dart format` local cambiaba distinto al CI.
+
+**Cómo lo verifiqué:** `flutter analyze` sin observaciones, `flutter test` completo en verde (incluye `navegacion_test.dart`: cambio de pestañas, scroll conservado y navegación desde el provider).

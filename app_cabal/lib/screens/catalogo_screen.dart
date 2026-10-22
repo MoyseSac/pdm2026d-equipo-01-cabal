@@ -5,6 +5,7 @@ import '../constants/app_routes.dart';
 import '../models/producto.dart';
 import '../providers/catalogo_provider.dart';
 import '../providers/producto_provider.dart';
+import '../providers/tab_provider.dart';
 import '../utils/moneda.dart';
 import '../widgets/catalogo_vacio_widget.dart';
 
@@ -46,6 +47,9 @@ class CatalogoScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final catalogo = ref.watch(catalogoProductosProvider);
 
+    void irAVender() =>
+        ref.read(tabProvider.notifier).seleccionar(Pestana.vender);
+
     Future<void> abrirAgregarProducto() async {
       final result = await Navigator.of(
         context,
@@ -64,17 +68,7 @@ class CatalogoScreen extends ConsumerWidget {
     }
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Catálogo'),
-        actions: [
-          IconButton(
-            tooltip: 'Ventas registradas',
-            icon: const Icon(Icons.receipt_long),
-            onPressed: () =>
-                Navigator.of(context).pushNamed(AppRoutes.ventasRegistradas),
-          ),
-        ],
-      ),
+      appBar: AppBar(title: const Text('Catálogo')),
 
       // Manejo de los cuatro estados del catálogo.
       body: catalogo.when(
@@ -140,9 +134,7 @@ class CatalogoScreen extends ConsumerWidget {
 
                     return Card(
                       child: InkWell(
-                        onTap: () => Navigator.of(
-                          context,
-                        ).pushNamed(AppRoutes.registrarVenta),
+                        onTap: irAVender,
                         child: Padding(
                           padding: const EdgeInsets.all(8),
                           child: Column(
@@ -205,14 +197,6 @@ class CatalogoScreen extends ConsumerWidget {
                       ),
                     );
                   },
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: OutlinedButton(
-                  onPressed: () =>
-                      Navigator.of(context).pushNamed(AppRoutes.registrarVenta),
-                  child: const Text('Probar registrar venta'),
                 ),
               ),
             ],
