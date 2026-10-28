@@ -26,7 +26,10 @@ class _FakeProductoService extends ProductoService {
 
 class _FakeVentaService extends VentaService {
   @override
-  Future<List<Venta>> obtenerVentas() async => [
+  Future<List<Venta>> obtenerVentas({
+    DateTime? desde,
+    DateTime? hastaExclusivo,
+  }) async => [
     Venta(
       id: 'v1',
       fechaHora: DateTime(2026, 10, 15, 21, 5),
@@ -52,13 +55,16 @@ Future<ProviderContainer> _abrirApp(WidgetTester tester) async {
       ventaServiceProvider.overrideWithValue(_FakeVentaService()),
     ],
   );
+
   addTearDown(container.dispose);
 
   await tester.pumpWidget(
     UncontrolledProviderScope(container: container, child: const CabalApp()),
   );
+
   await tester.tap(find.text('Ingresar (placeholder)'));
   await tester.pumpAndSettle();
+
   return container;
 }
 
@@ -75,20 +81,24 @@ void main() {
 
     await tester.tap(_destino('Vender'));
     await tester.pumpAndSettle();
+
     expect(find.widgetWithText(AppBar, 'Registrar venta'), findsOneWidget);
     expect(container.read(tabProvider), Pestana.vender);
 
     await tester.tap(_destino('Ventas'));
     await tester.pumpAndSettle();
+
     expect(find.widgetWithText(AppBar, 'Ventas registradas'), findsOneWidget);
 
     await tester.tap(_destino('Cierre'));
     await tester.pumpAndSettle();
+
     expect(find.widgetWithText(AppBar, 'Cierre del día'), findsOneWidget);
     expect(find.text('Próximamente'), findsOneWidget);
 
     await tester.tap(_destino('Catálogo'));
     await tester.pumpAndSettle();
+
     expect(find.widgetWithText(AppBar, 'Catálogo'), findsOneWidget);
   });
 
@@ -101,17 +111,21 @@ void main() {
     );
     await tester.drag(grid, const Offset(0, -600));
     await tester.pumpAndSettle();
+
     double offset() => tester
         .state<ScrollableState>(
           find.descendant(of: grid, matching: find.byType(Scrollable)),
         )
         .position
         .pixels;
+
     final antes = offset();
+
     expect(antes, greaterThan(0));
 
     await tester.tap(_destino('Ventas'));
     await tester.pumpAndSettle();
+
     await tester.tap(_destino('Catálogo'));
     await tester.pumpAndSettle();
 
@@ -123,15 +137,19 @@ void main() {
   ) async {
     final container = await _abrirApp(tester);
 
-    // Tocar un producto del catálogo lleva a la pestaña Vender.
+    // Tocar un producto del catálogo lleva a Vender.
     await tester.tap(find.text('Producto 00'));
     await tester.pumpAndSettle();
+
     expect(container.read(tabProvider), Pestana.vender);
+
     expect(find.widgetWithText(AppBar, 'Registrar venta'), findsOneWidget);
 
-    // Cambiar el provider desde código también cambia la pantalla.
+    // Cambiar el provider también cambia la pantalla.
     container.read(tabProvider.notifier).seleccionar(Pestana.ventas);
+
     await tester.pumpAndSettle();
+
     expect(find.widgetWithText(AppBar, 'Ventas registradas'), findsOneWidget);
   });
 }
