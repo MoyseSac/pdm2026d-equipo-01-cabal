@@ -3,7 +3,7 @@
 ## Qué cambia
 <!-- Una o dos frases. El "por qué" importa más que el "qué". -->
 
-Cierra #<!-- número del issue: al hacer merge, GitHub lo cierra solo -->
+Closes #<!-- número del issue. Debe decir "Closes" en inglés: "Cierra" no lo reconoce GitHub y el issue no se cierra al hacer merge -->
 
 ## Cómo probarlo
 1.
