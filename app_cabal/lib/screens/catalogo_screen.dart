@@ -6,7 +6,9 @@ import '../models/producto.dart';
 import '../providers/catalogo_provider.dart';
 import '../providers/producto_provider.dart';
 import '../providers/tab_provider.dart';
+import '../providers/venta_provider.dart';
 import '../utils/moneda.dart';
+import '../widgets/cantidad_producto_sheet.dart';
 import '../widgets/catalogo_vacio_widget.dart';
 
 class CatalogoScreen extends ConsumerStatefulWidget {
@@ -83,12 +85,43 @@ class _CatalogoScreenState extends ConsumerState<CatalogoScreen> {
     ref.invalidate(catalogoProductosProvider);
   }
 
+  /// Pide la cantidad en una hoja y agrega el producto a la venta en curso
+  /// sin salir del catalogo. El aviso ofrece ir a la venta si se quiere.
+  Future<void> _agregarALaVenta(Producto producto) async {
+    final yaEnVenta = ref
+        .read(ventaProvider)
+        .detalles
+        .where((d) => d.producto.id == producto.id)
+        .fold<int>(0, (suma, d) => suma + d.cantidad);
+
+    final cantidad = await mostrarCantidadProducto(
+      context,
+      producto,
+      yaEnVenta: yaEnVenta,
+    );
+    if (cantidad == null || !mounted) return;
+
+    if (!ref.read(ventaProvider.notifier).agregarProducto(producto, cantidad)) {
+      return;
+    }
+
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text('$cantidad × ${producto.nombre} agregado a la venta'),
+          action: SnackBarAction(
+            label: 'Ver venta',
+            onPressed: () =>
+                ref.read(tabProvider.notifier).seleccionar(Pestana.vender),
+          ),
+        ),
+      );
+  }
+
   @override
   Widget build(BuildContext context) {
     final catalogo = ref.watch(catalogoProductosProvider);
-
-    void irAVender() =>
-        ref.read(tabProvider.notifier).seleccionar(Pestana.vender);
 
     Future<void> abrirAgregarProducto() async {
       final result = await Navigator.of(
@@ -192,7 +225,7 @@ class _CatalogoScreenState extends ConsumerState<CatalogoScreen> {
                 ),
                 child: Card(
                   child: ListTile(
-                    onTap: irAVender,
+                    onTap: () => _agregarALaVenta(producto),
                     leading: Container(
                       width: 48,
                       height: 48,
