@@ -11,6 +11,8 @@ class VentaService {
   VentaService({DatabaseService? databaseService})
     : _databaseService = databaseService ?? DatabaseService.instance;
 
+  /// Registra una venta junto con todos sus detalles.
+  /// Se utiliza una transaccion para evitar registros incompletos.
   Future<void> registrarVenta(Venta venta) async {
     final db = await _databaseService.database;
 
@@ -32,14 +34,40 @@ class VentaService {
     });
   }
 
-  /// Devuelve todas las ventas guardadas, de la mas reciente a la mas
-  /// antigua, cada una con sus detalles (producto, cantidad y precio al
-  /// momento de la venta).
-  Future<List<Venta>> obtenerVentas() async {
+  /// Obtiene las ventas registradas.
+  ///
+  /// Si no se recibe un rango, devuelve todas las ventas.
+  /// Si existe un rango, consulta únicamente las ventas
+  /// comprendidas entre [desde] (inclusivo) y
+  /// [hastaExclusivo] (exclusivo).
+  ///
+  /// Las fechas se almacenan como texto ISO 8601.
+  Future<List<Venta>> obtenerVentas({
+    DateTime? desde,
+    DateTime? hastaExclusivo,
+  }) async {
     final db = await _databaseService.database;
 
+    final condiciones = <String>[];
+    final argumentos = <Object?>[];
+
+    if (desde != null) {
+      condiciones.add('fecha_hora >= ?');
+      argumentos.add(desde.toIso8601String());
+    }
+
+    if (hastaExclusivo != null) {
+      condiciones.add('fecha_hora < ?');
+      argumentos.add(hastaExclusivo.toIso8601String());
+    }
+
+    final where = condiciones.isEmpty ? null : condiciones.join(' AND ');
+
+    // Filtra las ventas directamente en SQLite.
     final filasVenta = await db.query(
       'venta',
+      where: where,
+      whereArgs: argumentos.isEmpty ? null : argumentos,
       orderBy: 'fecha_hora DESC, id DESC',
     );
 
@@ -47,20 +75,45 @@ class VentaService {
       return [];
     }
 
-    final filasDetalle = await db.rawQuery('''
-      SELECT d.venta_id, d.cantidad, d.precio_al_momento,
-             p.id AS producto_id, COALESCE(d.nombre_producto, p.nombre) AS nombre,
-             p.precio
-      FROM detalle_venta d
-      JOIN producto p ON p.id = d.producto_id
-      ORDER BY nombre ASC
-    ''');
+    // Filtra también los detalles mediante la fecha
+    // de su venta correspondiente.
+    final condicionesDetalle = <String>[];
 
+    if (desde != null) {
+      condicionesDetalle.add('v.fecha_hora >= ?');
+    }
+
+    if (hastaExclusivo != null) {
+      condicionesDetalle.add('v.fecha_hora < ?');
+    }
+
+    final whereDetalle = condicionesDetalle.isEmpty
+        ? ''
+        : 'WHERE ${condicionesDetalle.join(' AND ')}';
+
+    final filasDetalle = await db.rawQuery('''
+      SELECT
+        d.venta_id,
+        d.cantidad,
+        d.precio_al_momento,
+        p.id AS producto_id,
+        COALESCE(d.nombre_producto, p.nombre) AS nombre,
+        p.precio
+      FROM detalle_venta d
+      JOIN venta v ON v.id = d.venta_id
+      JOIN producto p ON p.id = d.producto_id
+      $whereDetalle
+      ORDER BY nombre ASC
+      ''', argumentos);
+
+    // Agrupa los detalles según el identificador de la venta.
     final detallesPorVenta = <String, List<DetalleVenta>>{};
 
     for (final fila in filasDetalle) {
+      final ventaId = fila['venta_id'] as String;
+
       detallesPorVenta
-          .putIfAbsent(fila['venta_id'] as String, () => [])
+          .putIfAbsent(ventaId, () => [])
           .add(
             DetalleVenta(
               producto: Producto(
@@ -74,6 +127,7 @@ class VentaService {
           );
     }
 
+    // Construye los objetos Venta completos.
     return filasVenta.map((fila) {
       final id = fila['id'] as String;
 
@@ -85,6 +139,8 @@ class VentaService {
     }).toList();
   }
 
+  /// Obtiene una venta específica por su identificador.
+  /// Conserva la lógica original del proyecto.
   Future<Venta?> obtenerVenta(String id) async {
     final db = await _databaseService.database;
 
@@ -108,6 +164,7 @@ class VentaService {
         where: 'id = ?',
         whereArgs: [fila['producto_id']],
       );
+
       final producto = productos.first;
 
       detalles.add(

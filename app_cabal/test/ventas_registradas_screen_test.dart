@@ -27,10 +27,29 @@ class _FakeVentaService extends VentaService {
   _FakeVentaService(this.lista, {this.fallar = false});
 
   @override
-  Future<List<Venta>> obtenerVentas() async {
+  Future<List<Venta>> obtenerVentas({
+    DateTime? desde,
+    DateTime? hastaExclusivo,
+  }) async {
     lecturas++;
-    if (fallar) throw Exception('fallo simulado');
-    return lista;
+
+    if (fallar) {
+      throw Exception('fallo simulado');
+    }
+
+    return lista.where((venta) {
+      final fecha = venta.fechaHora;
+
+      if (desde != null && fecha.isBefore(desde)) {
+        return false;
+      }
+
+      if (hastaExclusivo != null && !fecha.isBefore(hastaExclusivo)) {
+        return false;
+      }
+
+      return true;
+    }).toList();
   }
 }
 

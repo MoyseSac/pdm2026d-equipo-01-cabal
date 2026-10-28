@@ -43,3 +43,83 @@
 - Se restauró `venta_service_test.dart`, que `dart format` local cambiaba distinto al CI.
 
 **Cómo lo verifiqué:** `flutter analyze` sin observaciones, `flutter test` completo en verde (incluye `navegacion_test.dart`: cambio de pestañas, scroll conservado y navegación desde el provider).
+
+
+## Laboratorio 4 — Filtro de ventas por período
+
+**Fecha:** 26 de octubre de 2026
+
+**Equipo:** Cabal — Pareja JULIAN Y LUIS
+**Funcionalidad:** Filtro reactivo de ventas registradas
+
+### 1. Objetivo
+
+Implementar un filtro de ventas por período utilizando Flutter, Riverpod y SQLite, permitiendo consultar automáticamente los registros correspondientes a Hoy, Últimos 7 días, Este mes y Todas.
+
+### 2. Uso de inteligencia artificial
+
+Se utilizó ChatGPT como herramienta de apoyo para diseñar la lógica del filtro, generar código de implementación, preparar pruebas automatizadas y analizar errores encontrados durante el desarrollo.
+
+La herramienta se utilizó principalmente para:
+
+- Diseñar la clase inmutable `VentasFiltro`.
+- Implementar `VentasFiltroNotifier` mediante Riverpod.
+- Calcular rangos de fechas a partir de una fecha proporcionada.
+- Modificar `VentaService.obtenerVentas()` para aceptar parámetros opcionales de fecha.
+- Conectar `ventasRegistradasProvider` al filtro mediante `ref.watch`.
+- Incorporar el selector de períodos a la pantalla.
+- Crear pruebas de widget y pruebas con SQLite real.
+
+### 3. Cambios realizados
+
+Se creó el archivo `ventas_filtro_provider.dart`, que contiene el enum `Periodo`, el modelo inmutable del filtro y el Notifier.
+
+Se modificó `venta_service.dart` para filtrar las consultas directamente en SQLite utilizando condiciones parametrizadas sobre la columna `fecha_hora`.
+
+Se actualizó `ventas_registradas_provider.dart` para observar el filtro y ejecutar automáticamente nuevas consultas cuando cambia el período.
+
+Se modificó `ventas_registradas_screen.dart` para agregar el selector de períodos y los estados vacíos correspondientes.
+
+### 4. Errores encontrados y correcciones
+
+**Error 1: incompatibilidad de métodos sobrescritos**
+
+Al ejecutar `flutter analyze`, apareció un error `invalid_override` porque las clases falsas utilizadas en las pruebas conservaban la firma anterior de `obtenerVentas()`.
+
+Se corrigieron los métodos sobrescritos para aceptar los parámetros opcionales `desde` y `hastaExclusivo`.
+
+**Error 2: filtro fuera del área visible**
+
+Durante las pruebas de widget, Flutter no podía seleccionar el filtro «Este mes» porque se encontraba fuera del área visible del selector horizontal.
+
+Se corrigió utilizando `tester.ensureVisible()` antes de seleccionar el filtro, en lugar de ocultar la advertencia con `warnIfMissed: false`.
+
+### 5. Propuestas descartadas o ajustadas
+
+Se descartó utilizar un botón manual de recarga para aplicar filtros, debido a que el laboratorio solicita actualización reactiva mediante `ref.watch`.
+
+Se evitó filtrar todas las ventas únicamente en memoria, utilizando en su lugar consultas SQL con rangos de fechas.
+
+Se mantuvo el registro histórico de ventas sin implementar su eliminación física, debido a las implicaciones sobre la información contable. El borrado con Deshacer quedó asignado al trabajo del Trío B, sujeto a la aceptación de esta distribución por el docente.
+
+### 6. Pruebas y validación
+
+Se implementaron cuatro pruebas de widget para comprobar la actualización automática de la lista, los estados vacíos y el botón Reintentar.
+
+Se implementaron nueve pruebas adicionales para comprobar consultas reales con SQLite y el cálculo de períodos, incluyendo los límites de fechas.
+
+Se ejecutaron los comandos:
+
+`dart format`
+
+`flutter analyze`
+
+`flutter test`
+
+Después de corregir los errores detectados, las comprobaciones finalizaron satisfactoriamente.
+
+### 7. Conclusión
+
+El uso de IA facilitó la generación inicial de código y la identificación de errores, pero fue necesario revisar, ajustar y validar las propuestas mediante las herramientas de Flutter.
+
+La implementación final permite consultar ventas por período sin recarga manual y mantiene el comportamiento de las funciones existentes.
