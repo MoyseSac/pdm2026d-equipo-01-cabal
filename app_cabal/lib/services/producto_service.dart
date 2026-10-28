@@ -68,4 +68,17 @@ class ProductoService {
       whereArgs: [producto.id],
     );
   }
+
+  /// Deshace un borrado: el producto vuelve al catalogo con el mismo id,
+  /// nombre y precio, sin tocar las ventas que lo mencionan.
+  Future<void> restaurarProducto(Producto producto) async {
+    final db = await _databaseService.database;
+
+    await db.update(
+      'producto',
+      {'eliminado_en': null},
+      where: 'id = ?',
+      whereArgs: [producto.id],
+    );
+  }
 }

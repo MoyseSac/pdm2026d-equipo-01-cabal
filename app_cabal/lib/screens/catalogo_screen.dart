@@ -9,42 +9,82 @@ import '../providers/tab_provider.dart';
 import '../utils/moneda.dart';
 import '../widgets/catalogo_vacio_widget.dart';
 
-class CatalogoScreen extends ConsumerWidget {
+class CatalogoScreen extends ConsumerStatefulWidget {
   const CatalogoScreen({super.key});
 
-  Future<void> _confirmarEliminar(
-    BuildContext context,
-    WidgetRef ref,
-    Producto producto,
-  ) async {
-    final confirmado = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Eliminar producto'),
-        content: Text(
-          '¿Eliminar "${producto.nombre}"? Las ventas ya registradas se conservan.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancelar'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Eliminar'),
-          ),
-        ],
-      ),
-    );
+  @override
+  ConsumerState<CatalogoScreen> createState() => _CatalogoScreenState();
+}
 
-    if (confirmado == true) {
+class _CatalogoScreenState extends ConsumerState<CatalogoScreen> {
+  /// Productos ya borrados que aun pueden venir en la lista cargada. Un
+  /// Dismissible descartado debe salir del arbol de inmediato, asi que la
+  /// fila se oculta aqui sin esperar a que se vuelva a leer la base.
+  final Set<String> _ocultos = {};
+
+  /// Borra el producto en la base ANTES de que la fila desaparezca. Si falla,
+  /// devuelve false: la fila vuelve a su lugar y se avisa del error.
+  Future<bool> _borrar(Producto producto) async {
+    try {
       await ref.read(productoProvider.notifier).eliminarProducto(producto);
-      ref.invalidate(catalogoProductosProvider);
+      return true;
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            const SnackBar(
+              content: Text(
+                'No se pudo eliminar el producto. Intenta de nuevo.',
+              ),
+            ),
+          );
+      }
+      return false;
     }
   }
 
+  /// La fila ya salio de la pantalla: se oculta y se ofrece deshacer.
+  void _alDescartar(Producto producto) {
+    setState(() => _ocultos.add(producto.id));
+    ref.invalidate(catalogoProductosProvider);
+
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: const Text('Producto eliminado'),
+          action: SnackBarAction(
+            label: 'Deshacer',
+            onPressed: () => _restaurar(producto),
+          ),
+        ),
+      );
+  }
+
+  Future<void> _restaurar(Producto producto) async {
+    try {
+      await ref.read(productoProvider.notifier).restaurarProducto(producto);
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'No se pudo restaurar el producto. Intenta de nuevo.',
+            ),
+          ),
+        );
+      }
+      return;
+    }
+
+    if (!mounted) return;
+    setState(() => _ocultos.remove(producto.id));
+    ref.invalidate(catalogoProductosProvider);
+  }
+
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final catalogo = ref.watch(catalogoProductosProvider);
 
     void irAVender() =>
@@ -72,6 +112,10 @@ class CatalogoScreen extends ConsumerWidget {
 
       // Manejo de los cuatro estados del catálogo.
       body: catalogo.when(
+        // Al volver a leer con datos ya cargados (borrar o deshacer) no se
+        // reemplaza la lista por el indicador de carga.
+        skipLoadingOnReload: catalogo.hasValue,
+
         // ESTADO 1: CARGANDO
         loading: () => const Center(
           child: Column(
@@ -112,94 +156,76 @@ class CatalogoScreen extends ConsumerWidget {
         ),
 
         // ESTADOS 3 Y 4: VACÍO O DATOS
-        data: (productos) {
+        data: (lista) {
+          final productos = lista
+              .where((producto) => !_ocultos.contains(producto.id))
+              .toList();
+
+          // También es el estado vacío cuando se borran todos los productos.
           if (productos.isEmpty) {
             return CatalogoVacioWidget(onAgregarProducto: abrirAgregarProducto);
           }
 
-          return Column(
-            children: [
-              Expanded(
-                child: GridView.builder(
-                  padding: const EdgeInsets.all(12),
-                  gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                    maxCrossAxisExtent: 260,
-                    mainAxisExtent: 215,
-                    crossAxisSpacing: 12,
-                    mainAxisSpacing: 12,
-                  ),
-                  itemCount: productos.length,
-                  itemBuilder: (context, index) {
-                    final producto = productos[index];
+          return ListView.builder(
+            padding: const EdgeInsets.all(12),
+            itemCount: productos.length,
+            itemBuilder: (context, index) {
+              final producto = productos[index];
 
-                    return Card(
-                      child: InkWell(
-                        onTap: irAVender,
-                        child: Padding(
-                          padding: const EdgeInsets.all(8),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Container(
-                                height: 80,
-                                width: double.infinity,
-                                decoration: BoxDecoration(
-                                  color: Colors.grey[300],
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: const Icon(
-                                  Icons.image_not_supported,
-                                  color: Colors.grey,
-                                ),
-                              ),
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    children: [
-                                      Expanded(
-                                        child: Text(
-                                          producto.nombre,
-                                          maxLines: 2,
-                                          overflow: TextOverflow.ellipsis,
-                                          style: const TextStyle(
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                      ),
-                                      IconButton(
-                                        tooltip: 'Eliminar producto',
-                                        visualDensity: VisualDensity.compact,
-                                        icon: const Icon(Icons.delete_outline),
-                                        onPressed: () => _confirmarEliminar(
-                                          context,
-                                          ref,
-                                          producto,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    formatearQuetzales(producto.precio),
-                                    style: const TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.green,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    );
-                  },
+              // La key es el id del producto, nunca el indice: al borrar una
+              // fila las demas conservan su estado en lugar de heredar el de
+              // la fila anterior.
+              return Dismissible(
+                key: ValueKey(producto.id),
+                direction: DismissDirection.endToStart,
+                confirmDismiss: (_) => _borrar(producto),
+                onDismissed: (_) => _alDescartar(producto),
+                background: Container(
+                  alignment: Alignment.centerRight,
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  margin: const EdgeInsets.symmetric(vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.red,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(Icons.delete, color: Colors.white),
                 ),
-              ),
-            ],
+                child: Card(
+                  child: ListTile(
+                    onTap: irAVender,
+                    leading: Container(
+                      width: 48,
+                      height: 48,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[300],
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(
+                        Icons.image_not_supported,
+                        color: Colors.grey,
+                      ),
+                    ),
+                    title: Text(
+                      producto.nombre,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    trailing: Text(
+                      formatearQuetzales(producto.precio),
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.green,
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            },
           );
         },
       ),
