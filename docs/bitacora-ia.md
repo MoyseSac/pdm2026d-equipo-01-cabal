@@ -45,6 +45,22 @@
 **Cómo lo verifiqué:** `flutter analyze` sin observaciones, `flutter test` completo en verde (incluye `navegacion_test.dart`: cambio de pestañas, scroll conservado y navegación desde el provider).
 
 
+## 2026-10-28 · Moisés Sac · Claude Code · Agregar a la venta desde el catálogo
+
+**Qué pedí:** analizar el flujo en que tocar un producto del catálogo llevaba directo a la pestaña Vender, y proponer alternativas con un selector de cantidad con + y -.
+
+**Qué respondió:** observó que el toque solo cambiaba de pestaña sin pasar el producto. Propuso cuatro opciones (hoja inferior, stepper en la fila, diálogo, agregar 1 directo) y recomendó la hoja inferior con aviso "Ver venta" y un badge en la pestaña Vender. Después la implementó, con pruebas.
+
+**Qué acepté:** la hoja inferior de cantidad (`cantidad_producto_sheet.dart`), el aviso con la acción "Ver venta", el badge de unidades y las cinco pruebas nuevas. Se reutilizó `agregarProducto(producto, cantidad)` de `ventaProvider`, sin cambios en el provider.
+
+**Qué rechacé o corregí:**
+- Se descartó el stepper dentro de la fila (choca con deslizar para borrar y duplica la pestaña Vender) y el diálogo centrado (peor alcance con el pulgar).
+- Una de las pruebas nuevas falló al inicio porque `find.byTooltip` devuelve el `Tooltip` y no el `IconButton`; se corrigió buscando el `IconButton` ancestro.
+- La prueba de `navegacion_test.dart` que daba por hecho que tocar un producto lleva a Vender se reescribió, porque ese comportamiento cambió a propósito.
+
+**Cómo lo verifiqué:** `dart format`, `flutter analyze` sin observaciones y `flutter test` completo en verde. Además probé el funcionamiento manualmente en la app.
+
+
 ## Laboratorio 4 — Filtro de ventas por período
 
 **Fecha:** 26 de octubre de 2026

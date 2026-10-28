@@ -137,15 +137,11 @@ void main() {
   ) async {
     final container = await _abrirApp(tester);
 
-    // Tocar un producto del catálogo lleva a Vender.
-    await tester.tap(find.text('Producto 00'));
+    container.read(tabProvider.notifier).seleccionar(Pestana.vender);
     await tester.pumpAndSettle();
-
-    expect(container.read(tabProvider), Pestana.vender);
 
     expect(find.widgetWithText(AppBar, 'Registrar venta'), findsOneWidget);
 
-    // Cambiar el provider también cambia la pantalla.
     container.read(tabProvider.notifier).seleccionar(Pestana.ventas);
 
     await tester.pumpAndSettle();

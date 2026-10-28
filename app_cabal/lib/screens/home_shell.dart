@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../providers/tab_provider.dart';
+import '../providers/venta_provider.dart';
 import '../providers/ventas_registradas_provider.dart';
 import 'catalogo_screen.dart';
 import 'proximamente_screen.dart';
@@ -17,6 +18,11 @@ class HomeShell extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final actual = ref.watch(tabProvider);
+    final unidadesEnVenta = ref.watch(
+      ventaProvider.select(
+        (v) => v.detalles.fold<int>(0, (suma, d) => suma + d.cantidad),
+      ),
+    );
 
     // Las pestanas siguen montadas aunque no se vean, asi que las ventas se
     // vuelven a leer al entrar a ella (ej. una venta recien registrada).
@@ -40,23 +46,31 @@ class HomeShell extends ConsumerWidget {
         selectedIndex: actual.index,
         onDestinationSelected: (indice) =>
             ref.read(tabProvider.notifier).seleccionar(Pestana.values[indice]),
-        destinations: const [
-          NavigationDestination(
+        destinations: [
+          const NavigationDestination(
             icon: Icon(Icons.storefront_outlined),
             selectedIcon: Icon(Icons.storefront),
             label: 'Catálogo',
           ),
           NavigationDestination(
-            icon: Icon(Icons.point_of_sale_outlined),
-            selectedIcon: Icon(Icons.point_of_sale),
+            icon: Badge(
+              isLabelVisible: unidadesEnVenta > 0,
+              label: Text('$unidadesEnVenta'),
+              child: const Icon(Icons.point_of_sale_outlined),
+            ),
+            selectedIcon: Badge(
+              isLabelVisible: unidadesEnVenta > 0,
+              label: Text('$unidadesEnVenta'),
+              child: const Icon(Icons.point_of_sale),
+            ),
             label: 'Vender',
           ),
-          NavigationDestination(
+          const NavigationDestination(
             icon: Icon(Icons.receipt_long_outlined),
             selectedIcon: Icon(Icons.receipt_long),
             label: 'Ventas',
           ),
-          NavigationDestination(
+          const NavigationDestination(
             icon: Icon(Icons.event_available_outlined),
             selectedIcon: Icon(Icons.event_available),
             label: 'Cierre',
