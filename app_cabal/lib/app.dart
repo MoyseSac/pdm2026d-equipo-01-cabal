@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'constants/app_routes.dart';
+import 'models/producto.dart';
 import 'screens/login_screen.dart';
 import 'screens/home_shell.dart';
 import 'screens/agregar_producto_screen.dart';
@@ -24,6 +25,11 @@ class CabalApp extends StatelessWidget {
         AppRoutes.login: (context) => const LoginScreen(),
         AppRoutes.inicio: (context) => const HomeShell(),
         AppRoutes.agregarProducto: (context) => const AgregarProductoScreen(),
+        // El producto a editar llega en arguments; el builder tiene context,
+        // asi la pantalla lo recibe por constructor y no lee la ruta ella.
+        AppRoutes.editarProducto: (context) => AgregarProductoScreen(
+          producto: ModalRoute.of(context)!.settings.arguments as Producto,
+        ),
         AppRoutes.confirmacionVenta: (context) =>
             const ConfirmacionVentaScreen(),
         AppRoutes.detalleVenta: (context) => const DetalleVentaScreen(),
