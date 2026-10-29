@@ -244,6 +244,8 @@ class _CatalogoScreenState extends ConsumerState<CatalogoScreen> {
                 child: Card(
                   child: ListTile(
                     onTap: () => _agregarALaVenta(producto),
+                    // Atajo para quien lo descubra; el icono es la via visible.
+                    onLongPress: () => _editarProducto(producto),
                     leading: Container(
                       width: 48,
                       height: 48,
