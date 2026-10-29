@@ -234,8 +234,11 @@ reemplazan la ejecución manual pero ayudan a diagnosticar si algo falla:
 | VEN-35 | `test/registrar_venta_integracion_test.dart` (320×568, 360×640 y 412×915) |
 
 El **precio al momento** (que una venta conserve su precio aunque el producto
-cambie después) no se puede probar por la interfaz porque todavía no existe una
-pantalla de edición de productos; se verifica con `test/venta_service_test.dart`.
+cambie después) no se pudo probar por la interfaz en esta ejecución porque aún no
+existía la edición de productos; se verifica con `test/venta_service_test.dart`.
+Ahora que el catálogo permite editar, puede comprobarse a mano: registrar una
+venta, editar el precio del producto y revisar que el detalle de la venta
+conserve el precio anterior.
 
 ## Defectos encontrados
 
