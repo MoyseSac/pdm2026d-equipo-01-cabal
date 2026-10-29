@@ -6,6 +6,7 @@ import '../models/imagen_producto.dart';
 import '../models/producto.dart';
 import '../providers/imagen_producto_provider.dart';
 import '../services/imagen_producto_service.dart';
+import '../services/producto_service.dart';
 import '../validators/producto_validator.dart';
 import '../widgets/producto_imagen_widget.dart';
 
@@ -178,7 +179,11 @@ class _AgregarProductoScreenState extends ConsumerState<AgregarProductoScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error al guardar: $e'),
+            content: Text(
+              e is NombreRepetidoException
+                  ? e.toString()
+                  : 'Error al guardar: $e',
+            ),
             backgroundColor: Colors.red,
           ),
         );

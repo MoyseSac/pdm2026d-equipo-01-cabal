@@ -13,6 +13,12 @@ final catalogoProductosProvider = FutureProvider.autoDispose<List<Producto>>((
   return productoService.obtenerProductos();
 });
 
+final productosArchivadosProvider = FutureProvider.autoDispose<List<Producto>>((
+  ref,
+) {
+  return ref.watch(productoServiceProvider).obtenerArchivados();
+});
+
 /// La misma lista para quien solo la necesita ya cargada (registrar venta).
 final productoProvider = Provider.autoDispose<List<Producto>>((ref) {
   return ref.watch(catalogoProductosProvider).value ?? const [];

@@ -33,6 +33,9 @@ class _FakeProductoService extends ProductoService {
   }
 
   @override
+  Future<int> ventasDeProducto(String productoId) async => 0;
+
+  @override
   Future<void> eliminarProducto(Producto producto) async {
     eliminados.add(producto.id);
   }

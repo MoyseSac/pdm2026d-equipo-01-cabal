@@ -8,6 +8,7 @@ import '../providers/producto_provider.dart';
 import '../providers/tab_provider.dart';
 import '../providers/venta_provider.dart';
 import '../utils/moneda.dart';
+import '../widgets/archivados_sheet.dart';
 import '../widgets/cantidad_producto_sheet.dart';
 import '../widgets/catalogo_vacio_widget.dart';
 import '../widgets/producto_imagen_widget.dart';
@@ -29,7 +30,14 @@ class _CatalogoScreenState extends ConsumerState<CatalogoScreen> {
   /// devuelve false: la fila vuelve a su lugar y se avisa del error.
   Future<bool> _borrar(Producto producto) async {
     try {
-      await ref.read(productoServiceProvider).eliminarProducto(producto);
+      final servicio = ref.read(productoServiceProvider);
+      final ventas = await servicio.ventasDeProducto(producto.id);
+      if (ventas > 0) {
+        // En uso: no se borra. La fila vuelve a su lugar y se ofrece archivar.
+        if (mounted) await _ofrecerArchivar(producto, ventas);
+        return false;
+      }
+      await servicio.eliminarProducto(producto);
       return true;
     } catch (_) {
       if (mounted) {
@@ -45,6 +53,39 @@ class _CatalogoScreenState extends ConsumerState<CatalogoScreen> {
       }
       return false;
     }
+  }
+
+  Future<void> _ofrecerArchivar(Producto producto, int ventas) async {
+    final archivar = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('No se puede borrar'),
+        content: Text(
+          '${producto.nombre} aparece en $ventas '
+          '${ventas == 1 ? 'venta' : 'ventas'}. '
+          'Archívalo para dejar de verlo sin perder tu historial.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancelar'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Archivar'),
+          ),
+        ],
+      ),
+    );
+    if (archivar != true || !mounted) return;
+
+    await ref.read(productoServiceProvider).archivarProducto(producto);
+    ref.invalidate(catalogoProductosProvider);
+
+    if (!mounted) return;
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(const SnackBar(content: Text('Producto archivado')));
   }
 
   /// La fila ya salio de la pantalla: se oculta y se ofrece deshacer.
@@ -160,7 +201,16 @@ class _CatalogoScreenState extends ConsumerState<CatalogoScreen> {
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Catálogo')),
+      appBar: AppBar(
+        title: const Text('Catálogo'),
+        actions: [
+          IconButton(
+            tooltip: 'Archivados',
+            icon: const Icon(Icons.inventory_2_outlined),
+            onPressed: () => mostrarArchivados(context),
+          ),
+        ],
+      ),
 
       // Manejo de los cuatro estados del catálogo.
       body: catalogo.when(
