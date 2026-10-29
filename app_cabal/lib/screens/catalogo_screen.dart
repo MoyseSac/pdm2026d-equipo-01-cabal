@@ -10,6 +10,7 @@ import '../providers/venta_provider.dart';
 import '../utils/moneda.dart';
 import '../widgets/cantidad_producto_sheet.dart';
 import '../widgets/catalogo_vacio_widget.dart';
+import '../widgets/producto_imagen_widget.dart';
 
 class CatalogoScreen extends ConsumerStatefulWidget {
   const CatalogoScreen({super.key});
@@ -246,17 +247,8 @@ class _CatalogoScreenState extends ConsumerState<CatalogoScreen> {
                     onTap: () => _agregarALaVenta(producto),
                     // Atajo para quien lo descubra; el icono es la via visible.
                     onLongPress: () => _editarProducto(producto),
-                    leading: Container(
-                      width: 48,
-                      height: 48,
-                      decoration: BoxDecoration(
-                        color: Colors.grey[300],
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: const Icon(
-                        Icons.image_not_supported,
-                        color: Colors.grey,
-                      ),
+                    leading: ProductoImagenWidget(
+                      imagen: producto.imagenProducto,
                     ),
                     title: Text(
                       producto.nombre,
