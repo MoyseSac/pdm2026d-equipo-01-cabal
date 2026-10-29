@@ -119,6 +119,24 @@ class _CatalogoScreenState extends ConsumerState<CatalogoScreen> {
       );
   }
 
+  /// Abre el formulario con el producto. Se invalida siempre al volver porque
+  /// el catalogo lee el servicio directo y no se entera de la edicion solo.
+  Future<void> _editarProducto(Producto producto) async {
+    final result = await Navigator.of(
+      context,
+    ).pushNamed(AppRoutes.editarProducto, arguments: producto);
+
+    if (!mounted) return;
+
+    ref.invalidate(catalogoProductosProvider);
+
+    if (result == true) {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(const SnackBar(content: Text('Producto actualizado')));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final catalogo = ref.watch(catalogoProductosProvider);
@@ -226,6 +244,8 @@ class _CatalogoScreenState extends ConsumerState<CatalogoScreen> {
                 child: Card(
                   child: ListTile(
                     onTap: () => _agregarALaVenta(producto),
+                    // Atajo para quien lo descubra; el icono es la via visible.
+                    onLongPress: () => _editarProducto(producto),
                     leading: Container(
                       width: 48,
                       height: 48,
@@ -247,13 +267,23 @@ class _CatalogoScreenState extends ConsumerState<CatalogoScreen> {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    trailing: Text(
-                      formatearQuetzales(producto.precio),
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.green,
-                      ),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          formatearQuetzales(producto.precio),
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.green,
+                          ),
+                        ),
+                        IconButton(
+                          tooltip: 'Editar producto',
+                          icon: const Icon(Icons.edit),
+                          onPressed: () => _editarProducto(producto),
+                        ),
+                      ],
                     ),
                   ),
                 ),

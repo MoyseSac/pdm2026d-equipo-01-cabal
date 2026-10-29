@@ -126,13 +126,15 @@ Detectadas al leer el código; no son parte del criterio de aceptación, pero
 conviene verificarlas al ejecutar el plan:
 
 - **Mensaje "Producto agregado":** el Catálogo muestra el SnackBar solo si
-  la pantalla de alta devuelve `true`, pero `AgregarProductoScreen` hace
-  `Navigator.pop()` sin resultado. En AGR-V01 probablemente **no** aparezca
-  el mensaje. Si se espera confirmación visual, es un defecto a corregir.
+  la pantalla de alta devuelve `true`. Antes `AgregarProductoScreen` hacía
+  `Navigator.pop()` sin resultado y el mensaje no aparecía; ahora hace
+  `pop(true)` al guardar, así que en AGR-V01 debe aparecer.
 - **Valores especiales de precio:** `double.parse` acepta textos como `NaN`,
   `Infinity` o `1e2`, y el validador actual no los rechaza explícitamente
   (`NaN <= 0` es falso). Probar `NaN`, `Infinity` y `1e2` como casos
   exploratorios; lo esperado según las reglas es `Ingresa un precio válido.`
 - **Edición de producto:** el criterio de este plan cubre el alta. La edición
-  (`editarProducto` existe en el provider) no tiene pantalla todavía, por lo
-  que no se incluye.
+  ya tiene interfaz (icono de editar en cada producto o mantener presionada la
+  fila) y se cubre con `test/catalogo_editar_test.dart`; para probarla a mano:
+  editar nombre y precio, guardar, y ver la fila actualizada con el aviso
+  "Producto actualizado".

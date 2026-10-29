@@ -5,8 +5,12 @@ import '../models/producto.dart';
 import '../providers/producto_provider.dart';
 import '../validators/producto_validator.dart';
 
+/// Formulario de producto. Sin [producto] agrega uno nuevo; con [producto]
+/// edita ese mismo (conserva su id) y arranca con sus valores.
 class AgregarProductoScreen extends ConsumerStatefulWidget {
-  const AgregarProductoScreen({super.key});
+  const AgregarProductoScreen({super.key, this.producto});
+
+  final Producto? producto;
 
   @override
   ConsumerState<AgregarProductoScreen> createState() =>
@@ -19,12 +23,18 @@ class _AgregarProductoScreenState extends ConsumerState<AgregarProductoScreen> {
   late final TextEditingController _precioController;
   bool _isLoading = false;
 
+  bool get _esEdicion => widget.producto != null;
+
   @override
   void initState() {
     super.initState();
     _formKey = GlobalKey<FormState>();
-    _nombreController = TextEditingController();
-    _precioController = TextEditingController();
+    final producto = widget.producto;
+    _nombreController = TextEditingController(text: producto?.nombre);
+    // Siempre 2 decimales: 10.0 se mostraria "10.0" y 10.5 como "10.5".
+    _precioController = TextEditingController(
+      text: producto?.precio.toStringAsFixed(2),
+    );
   }
 
   @override
@@ -47,16 +57,26 @@ class _AgregarProductoScreenState extends ConsumerState<AgregarProductoScreen> {
       final nombre = _nombreController.text.trim();
       final precio = double.parse(_precioController.text.trim());
 
-      final nuevoProducto = Producto(
-        id: DateTime.now().millisecondsSinceEpoch.toString(),
-        nombre: nombre,
-        precio: precio,
-      );
+      final notifier = ref.read(productoProvider.notifier);
+      final existente = widget.producto;
 
-      await ref.read(productoProvider.notifier).agregarProducto(nuevoProducto);
+      if (existente == null) {
+        await notifier.agregarProducto(
+          Producto(
+            id: DateTime.now().millisecondsSinceEpoch.toString(),
+            nombre: nombre,
+            precio: precio,
+          ),
+        );
+      } else {
+        // Se conserva el id: otro id insertaria un producto nuevo.
+        await notifier.editarProducto(
+          existente.copyWith(nombre: nombre, precio: precio),
+        );
+      }
 
       if (mounted) {
-        Navigator.of(context).pop();
+        Navigator.of(context).pop(true);
       }
     } catch (e) {
       if (mounted) {
@@ -79,7 +99,9 @@ class _AgregarProductoScreenState extends ConsumerState<AgregarProductoScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Agregar producto')),
+      appBar: AppBar(
+        title: Text(_esEdicion ? 'Editar producto' : 'Agregar producto'),
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Form(
@@ -119,7 +141,9 @@ class _AgregarProductoScreenState extends ConsumerState<AgregarProductoScreen> {
                           width: 20,
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
-                      : const Text('Guardar producto'),
+                      : Text(
+                          _esEdicion ? 'Guardar cambios' : 'Guardar producto',
+                        ),
                 ),
               ),
             ],
