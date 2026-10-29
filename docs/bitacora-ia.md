@@ -139,3 +139,18 @@ Después de corregir los errores detectados, las comprobaciones finalizaron sati
 El uso de IA facilitó la generación inicial de código y la identificación de errores, pero fue necesario revisar, ajustar y validar las propuestas mediante las herramientas de Flutter.
 
 La implementación final permite consultar ventas por período sin recarga manual y mantiene el comportamiento de las funciones existentes.
+
+
+## 2026-10-29 · Moisés Sac · Claude Code · Imagen opcional en los productos
+
+**Qué pedí:** analizar cómo darle imagen a los productos, que hoy solo tienen nombre y precio. Mi duda era entre iconos, fotos propias o una galería, sabiendo que un mismo producto tiene muchas variantes (Coca-Cola en lata, en botella, retornable, de 2 L y de 3 L). Después pedí implementar el plan  y que los commits se hicieran por pasos.
+
+**Qué respondió:** recomendó foto propia opcional, o icono de categoría, o un icono genérico si no hay nada, y descartó la galería predefinida porque no puede cubrir las variantes ni las marcas locales. Las variantes ya se distinguen por el nombre, así que la imagen es una ayuda visual y no la identidad del producto. Después implementó la base de datos en versión 3, el selector en el formulario, el widget del catálogo, 18 pruebas nuevas y la documentación. El trabajo de código lo hizo un subagente y la IA revisó el resultado.
+
+**Qué acepté:** la decisión de no hacer galería y el diseño donde foto e icono son una sola elección, para que un producto no quede con ambos. También acepté guardar solo el nombre del archivo y no la ruta, la migración sin relleno de los productos existentes y el borrado de la foto anterior solo después de que el guardado tuvo éxito.
+
+**Qué rechacé o corregí:**
+- Cambié la lista de iconos que propuso. Quité café, cerveza y snack, y reemplacé "Carnes" por "Embutidos" (con su etiqueta coherente). Quedaron 15 iconos en vez de 18.
+- La funcionalidad queda fuera de M2: no se modificó `docs/alcance_m2.md`.
+
+**Cómo lo verifiqué:** `flutter analyze` sin observaciones y `flutter test` con 175 pruebas aprobadas (eran 157), después de mis cambios a la lista de iconos. Revisé que cada commit intermedio compilara por separado. La IA probó la migración y el selector de galería en el emulador de Android con una base v2 real, y además rompió el código a propósito en tres sitios para confirmar que las pruebas fallaban. No se pudo verificar en iOS ni macOS (sin Xcode) ni "Tomar foto" con una cámara real.

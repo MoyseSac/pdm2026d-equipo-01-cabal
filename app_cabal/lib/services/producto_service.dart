@@ -14,6 +14,8 @@ class ProductoService {
       'id': producto.id,
       'nombre': producto.nombre,
       'precio': producto.precio,
+      'imagen': producto.imagen,
+      'icono': producto.icono,
     };
   }
 
@@ -22,6 +24,8 @@ class ProductoService {
       id: map['id'] as String,
       nombre: map['nombre'] as String,
       precio: (map['precio'] as num).toDouble(),
+      imagen: map['imagen'] as String?,
+      icono: map['icono'] as String?,
     );
   }
 

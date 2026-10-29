@@ -66,5 +66,9 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Cabal usa tus fotos para que elijas la imagen de un producto.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Cabal usa la cámara para tomar la foto de un producto.</string>
 </dict>
 </plist>

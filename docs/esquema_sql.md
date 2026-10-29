@@ -34,7 +34,10 @@ Representa los productos disponibles en el catálogo.
 CREATE TABLE producto (
     id TEXT PRIMARY KEY,
     nombre TEXT NOT NULL,
-    precio REAL NOT NULL
+    precio REAL NOT NULL,
+    eliminado_en TEXT,
+    imagen TEXT,
+    icono TEXT
 );
 ```
 
@@ -45,6 +48,16 @@ CREATE TABLE producto (
 | id | id | TEXT |
 | nombre | nombre | TEXT |
 | precio | precio | REAL |
+| imagen | imagen | TEXT (nullable) |
+| icono | icono | TEXT (nullable) |
+
+`eliminado_en` no tiene atributo en el modelo: guarda la fecha del borrado
+lógico y el catálogo solo muestra los productos donde es `NULL`.
+
+`imagen` guarda solo el nombre del archivo de la foto, no la ruta completa.
+`icono` guarda una clave del registro fijo de iconos
+(`app_cabal/lib/constants/iconos_producto.dart`). Un producto tiene foto, o
+icono, o ninguno de los dos, nunca ambos. Ver `docs/imagen_producto.md`.
 
 ---
 
@@ -180,6 +193,8 @@ Producto
 id PK
 nombre
 precio
+imagen
+icono
     │
     │ 1
     │
@@ -200,6 +215,18 @@ Venta
 id PK
 fecha_hora
 ```
+
+## Versiones del esquema
+
+La base se abre con `version: 3` en
+`app_cabal/lib/services/database_service.dart`. Una instalación nueva crea
+las tablas completas; una base anterior se actualiza en `onUpgrade`.
+
+| Versión | Cambio |
+|---|---|
+| 1 | Tablas `producto`, `venta` y `detalle_venta`. |
+| 2 | `producto.eliminado_en` y `detalle_venta.nombre_producto`, con el nombre copiado a las ventas existentes. |
+| 3 | `producto.imagen` y `producto.icono`, ambas nullable. Los productos existentes quedan sin imagen; no se rellena nada. |
 
 ## Alcance
 

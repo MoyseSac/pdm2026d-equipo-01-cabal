@@ -19,6 +19,8 @@ El modelo contiene los siguientes campos:
 - `id`
 - `nombre`
 - `precio`
+- `imagen` (opcional)
+- `icono` (opcional)
 
 El campo `id` es manejado internamente por la aplicación y no debe ser ingresado manualmente por el tendero.
 
@@ -26,6 +28,16 @@ Los campos que el tendero debe completar son:
 
 - Nombre
 - Precio
+
+## Imagen del producto
+
+La imagen es opcional y no tiene validación: nunca impide guardar. El tendero elige una de tres opciones:
+
+- Ninguna: el catálogo muestra un icono genérico.
+- Un icono del registro fijo (Bebida, Pan, Limpieza, etc.).
+- Una foto propia, elegida de la galería o tomada con la cámara.
+
+Elegir una opción reemplaza la anterior, así que un producto nunca guarda foto e icono a la vez. Si la foto no se puede cargar, se muestra un aviso y el formulario sigue disponible para guardar. Ver `docs/imagen_producto.md`.
 
 ## Validación del nombre
 
@@ -137,6 +149,8 @@ Al presionar el botón para guardar:
 3. Si existe algún error, el producto no se guarda.
 4. El mensaje correspondiente debe mostrarse debajo del campo inválido.
 5. Si todos los campos son válidos, el formulario puede continuar con la operación de agregar o editar el producto.
+
+La imagen no participa en estos pasos.
 
 Estas reglas deben utilizarse tanto al agregar un producto nuevo como al editar uno existente.
 

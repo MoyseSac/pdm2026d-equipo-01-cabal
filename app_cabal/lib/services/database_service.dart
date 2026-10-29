@@ -23,7 +23,7 @@ class DatabaseService {
 
     return openDatabase(
       path,
-      version: 2,
+      version: 3,
       onConfigure: (db) async {
         await db.execute('PRAGMA foreign_keys = ON');
       },
@@ -33,7 +33,9 @@ class DatabaseService {
             id TEXT PRIMARY KEY,
             nombre TEXT NOT NULL,
             precio REAL NOT NULL,
-            eliminado_en TEXT
+            eliminado_en TEXT,
+            imagen TEXT,
+            icono TEXT
           )
         ''');
 
@@ -74,6 +76,10 @@ class DatabaseService {
               SELECT nombre FROM producto WHERE producto.id = detalle_venta.producto_id
             )
           ''');
+        }
+        if (oldVersion < 3) {
+          await db.execute('ALTER TABLE producto ADD COLUMN imagen TEXT');
+          await db.execute('ALTER TABLE producto ADD COLUMN icono TEXT');
         }
       },
     );
