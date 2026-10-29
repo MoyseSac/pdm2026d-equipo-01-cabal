@@ -8,10 +8,10 @@ import '../providers/producto_provider.dart';
 import '../providers/tab_provider.dart';
 import '../providers/venta_provider.dart';
 import '../utils/moneda.dart';
-import '../widgets/archivados_sheet.dart';
 import '../widgets/cantidad_producto_sheet.dart';
 import '../widgets/catalogo_vacio_widget.dart';
 import '../widgets/producto_imagen_widget.dart';
+import 'archivados_screen.dart';
 
 class CatalogoScreen extends ConsumerStatefulWidget {
   const CatalogoScreen({super.key});
@@ -207,7 +207,9 @@ class _CatalogoScreenState extends ConsumerState<CatalogoScreen> {
           IconButton(
             tooltip: 'Archivados',
             icon: const Icon(Icons.inventory_2_outlined),
-            onPressed: () => mostrarArchivados(context),
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(builder: (_) => const ArchivadosScreen()),
+            ),
           ),
         ],
       ),

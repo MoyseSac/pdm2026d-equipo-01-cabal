@@ -1,5 +1,6 @@
 import 'package:app_cabal/models/producto.dart';
 import 'package:app_cabal/providers/producto_provider.dart';
+import 'package:app_cabal/screens/archivados_screen.dart';
 import 'package:app_cabal/screens/catalogo_screen.dart';
 import 'package:app_cabal/services/producto_service.dart';
 import 'package:flutter/material.dart';
@@ -108,20 +109,22 @@ void main() {
     });
   });
 
-  testWidgets('los archivados se ven aparte y se pueden restaurar', (
-    tester,
-  ) async {
-    final servicio = _FakeProductoService()..archivados.add('p1');
-    await _abrir(tester, servicio);
-    expect(find.text('Coca Cola'), findsNothing);
+  testWidgets(
+    'los archivados se ven en su propia pantalla y se pueden restaurar',
+    (tester) async {
+      final servicio = _FakeProductoService()..archivados.add('p1');
+      await _abrir(tester, servicio);
+      expect(find.text('Coca Cola'), findsNothing);
 
-    await tester.tap(find.byTooltip('Archivados'));
-    await tester.pumpAndSettle();
-    expect(find.text('Coca Cola'), findsOneWidget);
+      await tester.tap(find.byTooltip('Archivados'));
+      await tester.pumpAndSettle();
+      expect(find.byType(ArchivadosScreen), findsOneWidget);
+      expect(find.text('Coca Cola'), findsOneWidget);
 
-    await tester.tap(find.text('Restaurar'));
-    await tester.pumpAndSettle();
+      await tester.tap(find.text('Restaurar'));
+      await tester.pumpAndSettle();
 
-    expect(servicio.archivados, isEmpty);
-  });
+      expect(servicio.archivados, isEmpty);
+    },
+  );
 }
