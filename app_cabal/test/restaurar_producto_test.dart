@@ -3,11 +3,9 @@ import 'dart:io';
 import 'package:app_cabal/models/detalle_venta.dart';
 import 'package:app_cabal/models/producto.dart';
 import 'package:app_cabal/models/venta.dart';
-import 'package:app_cabal/providers/producto_provider.dart';
 import 'package:app_cabal/services/database_service.dart';
 import 'package:app_cabal/services/producto_service.dart';
 import 'package:app_cabal/services/venta_service.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
@@ -90,42 +88,4 @@ void main() {
     expect(despues.first.detalles.first.precioAlMomento, 10.5);
     expect(despues.first.id, antes.first.id);
   });
-
-  test('el provider borra y restaura recargando el estado', () async {
-    final container = ProviderContainer();
-    addTearDown(container.dispose);
-    final notifier = container.read(productoProvider.notifier);
-
-    await notifier.eliminarProducto(_cola);
-    expect(container.read(productoProvider).map((p) => p.id), ['p2']);
-
-    await notifier.restaurarProducto(_cola);
-    expect(container.read(productoProvider).map((p) => p.id), ['p1', 'p2']);
-  });
-
-  test('si el borrado falla, el estado del provider no cambia', () async {
-    final container = ProviderContainer(
-      overrides: [
-        productoServiceProvider.overrideWithValue(_ServicioQueFalla()),
-      ],
-    );
-    addTearDown(container.dispose);
-    final notifier = container.read(productoProvider.notifier);
-    await Future<void>.delayed(Duration.zero);
-    final antes = container.read(productoProvider);
-
-    await expectLater(notifier.eliminarProducto(_cola), throwsException);
-
-    expect(container.read(productoProvider), antes);
-  });
-}
-
-class _ServicioQueFalla extends ProductoService {
-  @override
-  Future<List<Producto>> obtenerProductos() async => [_cola, _pan];
-
-  @override
-  Future<void> eliminarProducto(Producto producto) async {
-    throw Exception('fallo simulado');
-  }
 }

@@ -29,7 +29,7 @@ class _CatalogoScreenState extends ConsumerState<CatalogoScreen> {
   /// devuelve false: la fila vuelve a su lugar y se avisa del error.
   Future<bool> _borrar(Producto producto) async {
     try {
-      await ref.read(productoProvider.notifier).eliminarProducto(producto);
+      await ref.read(productoServiceProvider).eliminarProducto(producto);
       return true;
     } catch (_) {
       if (mounted) {
@@ -67,7 +67,7 @@ class _CatalogoScreenState extends ConsumerState<CatalogoScreen> {
 
   Future<void> _restaurar(Producto producto) async {
     try {
-      await ref.read(productoProvider.notifier).restaurarProducto(producto);
+      await ref.read(productoServiceProvider).restaurarProducto(producto);
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

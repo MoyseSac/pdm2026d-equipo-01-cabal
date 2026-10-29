@@ -5,7 +5,6 @@ import '../constants/iconos_producto.dart';
 import '../models/imagen_producto.dart';
 import '../models/producto.dart';
 import '../providers/imagen_producto_provider.dart';
-import '../providers/producto_provider.dart';
 import '../services/imagen_producto_service.dart';
 import '../validators/producto_validator.dart';
 import '../widgets/producto_imagen_widget.dart';
@@ -13,9 +12,16 @@ import '../widgets/producto_imagen_widget.dart';
 /// Formulario de producto. Sin [producto] agrega uno nuevo; con [producto]
 /// edita ese mismo (conserva su id) y arranca con sus valores.
 class AgregarProductoScreen extends ConsumerStatefulWidget {
-  const AgregarProductoScreen({super.key, this.producto});
+  const AgregarProductoScreen({
+    super.key,
+    this.producto,
+    required this.onGuardar,
+  });
 
   final Producto? producto;
+
+  /// Guarda el producto ya armado. La pantalla no sabe si va a SQL ni a donde.
+  final Future<void> Function(Producto producto) onGuardar;
 
   @override
   ConsumerState<AgregarProductoScreen> createState() =>
@@ -133,11 +139,10 @@ class _AgregarProductoScreenState extends ConsumerState<AgregarProductoScreen> {
       final nombre = _nombreController.text.trim();
       final precio = double.parse(_precioController.text.trim());
 
-      final notifier = ref.read(productoProvider.notifier);
       final existente = widget.producto;
 
       if (existente == null) {
-        await notifier.agregarProducto(
+        await widget.onGuardar(
           Producto(
             id: DateTime.now().millisecondsSinceEpoch.toString(),
             nombre: nombre,
@@ -148,7 +153,7 @@ class _AgregarProductoScreenState extends ConsumerState<AgregarProductoScreen> {
         );
       } else {
         // Se conserva el id: otro id insertaria un producto nuevo.
-        await notifier.editarProducto(
+        await widget.onGuardar(
           existente.copyWith(
             nombre: nombre,
             precio: precio,
