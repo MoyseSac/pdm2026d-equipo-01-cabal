@@ -3,6 +3,14 @@ import 'package:sqflite/sqflite.dart';
 import '../models/producto.dart';
 import 'database_service.dart';
 
+/// Ya hay otro producto del catalogo con ese nombre.
+class NombreRepetidoException implements Exception {
+  const NombreRepetidoException();
+
+  @override
+  String toString() => 'Ya tienes un producto con ese nombre.';
+}
+
 class ProductoService {
   final DatabaseService _databaseService;
 
@@ -32,11 +40,23 @@ class ProductoService {
   Future<void> crearProducto(Producto producto) async {
     final db = await _databaseService.database;
 
-    await db.insert(
-      'producto',
-      _toMap(producto),
-      conflictAlgorithm: ConflictAlgorithm.abort,
+    await _sinNombreRepetido(
+      () => db.insert(
+        'producto',
+        _toMap(producto),
+        conflictAlgorithm: ConflictAlgorithm.abort,
+      ),
     );
+  }
+
+  /// Convierte el error UNIQUE de SQLite en uno que el tendero entienda.
+  Future<T> _sinNombreRepetido<T>(Future<T> Function() accion) async {
+    try {
+      return await accion();
+    } on DatabaseException catch (e) {
+      if (e.isUniqueConstraintError()) throw const NombreRepetidoException();
+      rethrow;
+    }
   }
 
   Future<List<Producto>> obtenerProductos() async {
@@ -44,21 +64,69 @@ class ProductoService {
 
     final resultado = await db.query(
       'producto',
-      where: 'eliminado_en IS NULL',
+      where: 'eliminado_en IS NULL AND archivado_en IS NULL',
       orderBy: 'nombre ASC',
     );
 
     return resultado.map(_fromMap).toList();
   }
 
-  Future<void> actualizarProducto(Producto producto) async {
+  Future<List<Producto>> obtenerArchivados() async {
+    final db = await _databaseService.database;
+
+    final resultado = await db.query(
+      'producto',
+      where: 'eliminado_en IS NULL AND archivado_en IS NOT NULL',
+      orderBy: 'nombre ASC',
+    );
+
+    return resultado.map(_fromMap).toList();
+  }
+
+  /// En cuantas ventas aparece el producto. Si es mayor que 0 no se borra.
+  Future<int> ventasDeProducto(String productoId) async {
+    final db = await _databaseService.database;
+
+    final resultado = await db.rawQuery(
+      'SELECT COUNT(*) AS n FROM detalle_venta WHERE producto_id = ?',
+      [productoId],
+    );
+
+    return Sqflite.firstIntValue(resultado) ?? 0;
+  }
+
+  Future<void> archivarProducto(Producto producto) async {
     final db = await _databaseService.database;
 
     await db.update(
       'producto',
-      _toMap(producto),
+      {'archivado_en': DateTime.now().toIso8601String()},
       where: 'id = ?',
       whereArgs: [producto.id],
+    );
+  }
+
+  Future<void> desarchivarProducto(Producto producto) async {
+    final db = await _databaseService.database;
+
+    await db.update(
+      'producto',
+      {'archivado_en': null},
+      where: 'id = ?',
+      whereArgs: [producto.id],
+    );
+  }
+
+  Future<void> actualizarProducto(Producto producto) async {
+    final db = await _databaseService.database;
+
+    await _sinNombreRepetido(
+      () => db.update(
+        'producto',
+        _toMap(producto),
+        where: 'id = ?',
+        whereArgs: [producto.id],
+      ),
     );
   }
 
@@ -78,11 +146,13 @@ class ProductoService {
   Future<void> restaurarProducto(Producto producto) async {
     final db = await _databaseService.database;
 
-    await db.update(
-      'producto',
-      {'eliminado_en': null},
-      where: 'id = ?',
-      whereArgs: [producto.id],
+    await _sinNombreRepetido(
+      () => db.update(
+        'producto',
+        {'eliminado_en': null},
+        where: 'id = ?',
+        whereArgs: [producto.id],
+      ),
     );
   }
 }

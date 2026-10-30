@@ -2,6 +2,7 @@ import 'package:app_cabal/constants/app_routes.dart';
 import 'package:app_cabal/models/producto.dart';
 import 'package:app_cabal/providers/producto_provider.dart';
 import 'package:app_cabal/screens/agregar_producto_screen.dart';
+import 'package:app_cabal/widgets/formulario_producto_conectado.dart';
 import 'package:app_cabal/screens/catalogo_screen.dart';
 import 'package:app_cabal/services/producto_service.dart';
 import 'package:flutter/material.dart';
@@ -32,6 +33,9 @@ class _FakeProductoService extends ProductoService {
   }
 
   @override
+  Future<int> ventasDeProducto(String productoId) async => 0;
+
+  @override
   Future<void> eliminarProducto(Producto producto) async {
     eliminados.add(producto.id);
   }
@@ -48,7 +52,7 @@ Future<void> _abrir(WidgetTester tester, _FakeProductoService servicio) async {
       child: MaterialApp(
         home: const CatalogoScreen(),
         routes: {
-          AppRoutes.editarProducto: (context) => AgregarProductoScreen(
+          AppRoutes.editarProducto: (context) => FormularioProductoConectado(
             producto: ModalRoute.of(context)!.settings.arguments as Producto,
           ),
         },

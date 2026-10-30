@@ -27,6 +27,9 @@ class _FakeProductoService extends ProductoService {
       _productos.where((p) => !eliminados.contains(p.id)).toList();
 
   @override
+  Future<int> ventasDeProducto(String productoId) async => 0;
+
+  @override
   Future<void> eliminarProducto(Producto producto) async {
     if (fallarEliminar) throw Exception('fallo simulado al borrar');
     eliminados.add(producto.id);
