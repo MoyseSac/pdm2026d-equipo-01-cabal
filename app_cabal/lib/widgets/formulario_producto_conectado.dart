@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/producto.dart';
 import '../providers/catalogo_provider.dart';
+import '../providers/imagen_producto_provider.dart';
 import '../providers/producto_provider.dart';
 import '../screens/agregar_producto_screen.dart';
 
@@ -17,6 +18,7 @@ class FormularioProductoConectado extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return AgregarProductoScreen(
       producto: producto,
+      imagenes: ref.read(imagenProductoServiceProvider),
       onGuardar: (guardado) async {
         final servicio = ref.read(productoServiceProvider);
         if (producto == null) {

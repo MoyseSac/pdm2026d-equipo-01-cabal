@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../constants/iconos_producto.dart';
 import '../models/imagen_producto.dart';
 import '../models/producto.dart';
-import '../providers/imagen_producto_provider.dart';
 import '../services/imagen_producto_service.dart';
 import '../services/producto_service.dart';
 import '../validators/producto_validator.dart';
@@ -12,11 +10,12 @@ import '../widgets/producto_imagen_widget.dart';
 
 /// Formulario de producto. Sin [producto] agrega uno nuevo; con [producto]
 /// edita ese mismo (conserva su id) y arranca con sus valores.
-class AgregarProductoScreen extends ConsumerStatefulWidget {
+class AgregarProductoScreen extends StatefulWidget {
   const AgregarProductoScreen({
     super.key,
     this.producto,
     required this.onGuardar,
+    required this.imagenes,
   });
 
   final Producto? producto;
@@ -24,12 +23,15 @@ class AgregarProductoScreen extends ConsumerStatefulWidget {
   /// Guarda el producto ya armado. La pantalla no sabe si va a SQL ni a donde.
   final Future<void> Function(Producto producto) onGuardar;
 
+  /// Elige y borra las fotos. Llega de fuera para que la pantalla no busque
+  /// nada en ningun provider.
+  final ImagenProductoService imagenes;
+
   @override
-  ConsumerState<AgregarProductoScreen> createState() =>
-      _AgregarProductoScreenState();
+  State<AgregarProductoScreen> createState() => _AgregarProductoScreenState();
 }
 
-class _AgregarProductoScreenState extends ConsumerState<AgregarProductoScreen> {
+class _AgregarProductoScreenState extends State<AgregarProductoScreen> {
   late final GlobalKey<FormState> _formKey;
   late final TextEditingController _nombreController;
   late final TextEditingController _precioController;
@@ -54,7 +56,7 @@ class _AgregarProductoScreenState extends ConsumerState<AgregarProductoScreen> {
     _precioController = TextEditingController(
       text: producto?.precio.toStringAsFixed(2),
     );
-    _imagenes = ref.read(imagenProductoServiceProvider);
+    _imagenes = widget.imagenes;
     _imagen = producto?.imagenProducto ?? const SinImagen();
   }
 
