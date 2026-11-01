@@ -154,17 +154,18 @@ void main() {
       expect(find.widgetWithText(TextFormField, 'Pan dulce'), findsOneWidget);
     });
 
-    testWidgets('tocar la fila sigue abriendo la hoja de cantidad', (
-      tester,
-    ) async {
-      await _abrir(tester, _FakeProductoService([_cola]));
+    testWidgets(
+      'tocar el registro abre la hoja de cantidad, no el formulario',
+      (tester) async {
+        await _abrir(tester, _FakeProductoService([_cola]));
 
-      await tester.tap(find.text('Coca Cola'));
-      await tester.pumpAndSettle();
+        await tester.tap(find.text('Coca Cola'));
+        await tester.pumpAndSettle();
 
-      expect(find.byType(BottomSheet), findsOneWidget);
-      expect(find.byType(AgregarProductoScreen), findsNothing);
-    });
+        expect(find.byType(BottomSheet), findsOneWidget);
+        expect(find.byType(AgregarProductoScreen), findsNothing);
+      },
+    );
 
     testWidgets('deslizar la fila sigue borrando el producto', (tester) async {
       final servicio = _FakeProductoService([_cola, _pan]);
