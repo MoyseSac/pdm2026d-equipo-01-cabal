@@ -2,6 +2,7 @@ import 'package:app_cabal/constants/app_routes.dart';
 import 'package:app_cabal/models/producto.dart';
 import 'package:app_cabal/providers/producto_provider.dart';
 import 'package:app_cabal/screens/agregar_producto_screen.dart';
+import 'package:app_cabal/widgets/formulario_producto_conectado.dart';
 import 'package:app_cabal/screens/catalogo_screen.dart';
 import 'package:app_cabal/services/producto_service.dart';
 import 'package:flutter/material.dart';
@@ -32,6 +33,9 @@ class _FakeProductoService extends ProductoService {
   }
 
   @override
+  Future<int> ventasDeProducto(String productoId) async => 0;
+
+  @override
   Future<void> eliminarProducto(Producto producto) async {
     eliminados.add(producto.id);
   }
@@ -48,7 +52,7 @@ Future<void> _abrir(WidgetTester tester, _FakeProductoService servicio) async {
       child: MaterialApp(
         home: const CatalogoScreen(),
         routes: {
-          AppRoutes.editarProducto: (context) => AgregarProductoScreen(
+          AppRoutes.editarProducto: (context) => FormularioProductoConectado(
             producto: ModalRoute.of(context)!.settings.arguments as Producto,
           ),
         },
@@ -150,17 +154,18 @@ void main() {
       expect(find.widgetWithText(TextFormField, 'Pan dulce'), findsOneWidget);
     });
 
-    testWidgets('tocar la fila sigue abriendo la hoja de cantidad', (
-      tester,
-    ) async {
-      await _abrir(tester, _FakeProductoService([_cola]));
+    testWidgets(
+      'tocar el registro abre la hoja de cantidad, no el formulario',
+      (tester) async {
+        await _abrir(tester, _FakeProductoService([_cola]));
 
-      await tester.tap(find.text('Coca Cola'));
-      await tester.pumpAndSettle();
+        await tester.tap(find.text('Coca Cola'));
+        await tester.pumpAndSettle();
 
-      expect(find.byType(BottomSheet), findsOneWidget);
-      expect(find.byType(AgregarProductoScreen), findsNothing);
-    });
+        expect(find.byType(BottomSheet), findsOneWidget);
+        expect(find.byType(AgregarProductoScreen), findsNothing);
+      },
+    );
 
     testWidgets('deslizar la fila sigue borrando el producto', (tester) async {
       final servicio = _FakeProductoService([_cola, _pan]);

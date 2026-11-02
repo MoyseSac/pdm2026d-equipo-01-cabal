@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../constants/app_routes.dart';
 import '../models/detalle_venta.dart';
 import '../models/producto.dart';
-import '../providers/producto_provider.dart';
+import '../providers/catalogo_provider.dart';
 import '../providers/venta_provider.dart';
 import '../utils/moneda.dart';
 import '../validators/cantidad_validator.dart';
