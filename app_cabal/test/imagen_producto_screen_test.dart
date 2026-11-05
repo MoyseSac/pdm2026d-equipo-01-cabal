@@ -5,7 +5,7 @@ import 'package:app_cabal/constants/iconos_producto.dart';
 import 'package:app_cabal/models/producto.dart';
 import 'package:app_cabal/providers/imagen_producto_provider.dart';
 import 'package:app_cabal/providers/producto_provider.dart';
-import 'package:app_cabal/screens/agregar_producto_screen.dart';
+import 'package:app_cabal/widgets/formulario_producto_conectado.dart';
 import 'package:app_cabal/screens/catalogo_screen.dart';
 import 'package:app_cabal/services/imagen_producto_service.dart';
 import 'package:app_cabal/services/producto_service.dart';
@@ -88,8 +88,9 @@ Future<void> _abrir(
       child: MaterialApp(
         home: const CatalogoScreen(),
         routes: {
-          AppRoutes.agregarProducto: (context) => const AgregarProductoScreen(),
-          AppRoutes.editarProducto: (context) => AgregarProductoScreen(
+          AppRoutes.agregarProducto: (context) =>
+              const FormularioProductoConectado(),
+          AppRoutes.editarProducto: (context) => FormularioProductoConectado(
             producto: ModalRoute.of(context)!.settings.arguments as Producto,
           ),
         },

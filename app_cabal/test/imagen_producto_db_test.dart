@@ -69,7 +69,7 @@ void main() {
     carpeta.deleteSync(recursive: true);
   });
 
-  test('una base v2 pasa a v3 sin perder productos y sin imagen', () async {
+  test('una base v2 migra sin perder productos y sin imagen', () async {
     await _crearBaseV2(ruta);
 
     final productos = await ProductoService().obtenerProductos();
@@ -79,7 +79,7 @@ void main() {
     expect(productos.map((p) => p.imagen), [null, null]);
     expect(productos.map((p) => p.icono), [null, null]);
     final db = await DatabaseService.instance.database;
-    expect(await db.getVersion(), 3);
+    expect(await db.getVersion(), 4);
   });
 
   test('tras migrar se puede guardar un icono en un producto viejo', () async {

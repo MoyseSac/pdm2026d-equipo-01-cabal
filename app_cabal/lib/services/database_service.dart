@@ -23,7 +23,7 @@ class DatabaseService {
 
     return openDatabase(
       path,
-      version: 3,
+      version: 4,
       onConfigure: (db) async {
         await db.execute('PRAGMA foreign_keys = ON');
       },
@@ -35,9 +35,11 @@ class DatabaseService {
             precio REAL NOT NULL,
             eliminado_en TEXT,
             imagen TEXT,
-            icono TEXT
+            icono TEXT,
+            archivado_en TEXT
           )
         ''');
+        await db.execute(_indiceNombreUnico);
 
         await db.execute('''
           CREATE TABLE venta (
@@ -81,8 +83,50 @@ class DatabaseService {
           await db.execute('ALTER TABLE producto ADD COLUMN imagen TEXT');
           await db.execute('ALTER TABLE producto ADD COLUMN icono TEXT');
         }
+        if (oldVersion < 4) {
+          await db.execute('ALTER TABLE producto ADD COLUMN archivado_en TEXT');
+          await _renombrarNombresRepetidos(db);
+          await db.execute(_indiceNombreUnico);
+        }
       },
     );
+  }
+
+  /// Un nombre no se repite entre los productos del catalogo, sin importar
+  /// mayusculas. Los borrados quedan fuera para poder reusar su nombre.
+  static const _indiceNombreUnico = '''
+    CREATE UNIQUE INDEX idx_producto_nombre
+    ON producto(nombre COLLATE NOCASE)
+    WHERE eliminado_en IS NULL
+  ''';
+
+  /// Antes de crear el indice unico, un telefono con nombres repetidos los
+  /// conserva todos: el segundo pasa a "Nombre (2)", el tercero a "(3)".
+  Future<void> _renombrarNombresRepetidos(Database db) async {
+    final filas = await db.query(
+      'producto',
+      columns: ['id', 'nombre'],
+      where: 'eliminado_en IS NULL',
+      orderBy: 'rowid ASC',
+    );
+    final usados = <String>{};
+    for (final fila in filas) {
+      final base = fila['nombre'] as String;
+      var nombre = base;
+      var n = 2;
+      while (!usados.add(nombre.toLowerCase())) {
+        nombre = '$base ($n)';
+        n++;
+      }
+      if (nombre != base) {
+        await db.update(
+          'producto',
+          {'nombre': nombre},
+          where: 'id = ?',
+          whereArgs: [fila['id']],
+        );
+      }
+    }
   }
 
   Future<void> close() async {

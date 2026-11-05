@@ -155,6 +155,41 @@ La implementación final permite consultar ventas por período sin recarga manua
 
 **Cómo lo verifiqué:** `flutter analyze` sin observaciones y `flutter test` con 175 pruebas aprobadas (eran 157), después de mis cambios a la lista de iconos. Revisé que cada commit intermedio compilara por separado. La IA probó la migración y el selector de galería en el emulador de Android con una base v2 real, y además rompió el código a propósito en tres sitios para confirmar que las pruebas fallaban. No se pudo verificar en iOS ni macOS (sin Xcode) ni "Tomar foto" con una cámara real.
 
+## 2026-10-31 · Daniel Ixcot · Claude Code · CRUD de producto y migración v4 (laboratorio S16)
+
+**Qué pedí:** revisar el PDF del laboratorio S16 y decirme sobre qué entidad hacer el CRUD (producto o venta), qué se debía hacer y cómo, antes de tocar código. Después pedí implementarlo siguiendo la rúbrica, criterio por criterio.
+
+**Qué respondió:** recomendó Producto y descartó Venta, porque la venta es un historial que no se edita ni se borra. Producto ya tenía lista, agregar, editar y borrar con Deshacer, y `detalle_venta` apunta a él, así que sirve para la regla de "en uso". Propuso un plan y lo implementó en cuatro partes: el formulario sin providers y una sola lista que se refresca con `invalidate`; la regla de borrado con archivar y nombre único con mensaje humano; la migración v4 con su prueba; y la pantalla de archivados.
+
+**Qué acepté:** elegir Producto, el plan en ese orden y la migración v4 como bloque nuevo `oldVersion < 4`, sin tocar las versiones 2 y 3. También acepté renombrar los nombres repetidos ("Pan (2)") antes de crear el índice único, para que la migración no falle en teléfonos que ya tienen repetidos, y usar un índice único que ignora mayúsculas y los productos borrados.
+
+**Qué rechacé o corregí:**
+- Interrumpí dos veces a la IA cuando iba a ejecutar un comando grande de una sola vez, y le pedí que explicara primero qué iba a hacer. Después trabajó en pasos más pequeños.
+- Pedí que Archivados fuera una pantalla propia y no un bottom sheet. La IA lo cambió y borró el sheet.
+- La IA dejó incompleto un commit (solo borraba el sheet y faltaban la pantalla nueva y sus ajustes). Lo detecté revisando qué faltaba por commitear y lo corregí.
+- Un primer intento invalidaba la lista al borrar y desmontaba la fila antes de mostrar el aviso y el Deshacer; la IA lo corrigió y dejó la invalidación solo al descartar.
+- `dart format` reformateó `venta_service_test.dart`, que el CI espera con su formato original; se revirtió.
+- La IA ajustó pruebas existentes: la versión esperada de la base pasó de 3 a 4 y dos servicios falsos ahora devuelven 0 en `ventasDeProducto`.
+
+**Cómo lo verifiqué:** `flutter analyze` sin observaciones. Pasan las pruebas nuevas: migración v3 a v4 con datos y nombres repetidos, reglas del servicio sobre una base real y pantalla del catálogo (borrar en uso, archivar, restaurar). En mi máquina `venta_provider_test.dart` falla con `UNIQUE constraint failed: producto.id`, también sin mis cambios, y sospecho de un archivo `cabal.db` viejo en `.dart_tool` que no pude borrar; no está confirmado, se confirma con el CI. Falta probarlo a mano en un emulador o dispositivo.
+
+## 2026-10-31 · Moisés Sac · Claude Code · Revisión del PR #91 y formulario de producto sin providers
+
+**Qué pedí:** analizar el PDF del laboratorio S16 y el PR #91 de Daniel contra la rúbrica, usando como referencia las retroalimentaciones de mis laboratorios anteriores, para que el grupo no perdiera puntos por proceso. Después pedí un borrador de comentario de revisión y que corrigiera el hallazgo sobre el formulario.
+
+**Qué respondió:** dijo que el código cubría bien las reglas de borrado, el nombre único y la migración v4 con su prueba, y que el riesgo estaba en el proceso. Listó varios hallazgos: la bitácora de Daniel no estaba en el PR, la casilla de emulador estaba sin marcar, tocar la fila abre la hoja de cantidad y no el formulario, el PR junta CRUD y migración, y `AgregarProductoScreen` seguía leyendo `imagenProductoServiceProvider` aunque la descripción decía que ya no conocía providers. Para este último hizo la corrección: el formulario pasó a `StatefulWidget`, recibe `imagenes` por constructor y `FormularioProductoConectado` es el único que lee el provider. Redactó el borrador del comentario.
+
+**Qué acepté:** solo dos cosas. Le hice saber a Daniel que faltaba su entrada de bitácora, y la subió en `78e085b`. Y acepté la corrección del formulario, un commit de dos archivos que comprobé con `grep`: el formulario ya no importa Riverpod ni `providers/`.
+
+**Qué rechacé o corregí:**
+- Propuso que Alexander actualizara `docs/esquema_sql.md`. Lo rechacé porque no es parte de la rúbrica de este lab.
+- Los demás hallazgos (tocar la fila, un PR en lugar de dos, emulador y capturas) no tomé decisión sobre ellos; quedaron como observaciones.
+- Su análisis partió de la rama en `33096b1`, antes de que Daniel subiera `78e085b`, así que su punto sobre la bitácora quedó obsoleto.
+- Al correr `dart format` antes de `flutter pub get`, reformateó 10 archivos que no había tocado. Se revirtieron y el commit quedó solo con los 2 archivos del cambio.
+- No dejé que la IA empujara a la rama de Daniel. Traje el commit con `git pull --ff-only` y `git cherry-pick`, sin `--force`.
+
+**Cómo lo verifiqué:** en un worktree aparte, `dart format --set-exit-if-changed` sin cambios, `flutter analyze` sin observaciones y `flutter test` con 195 pruebas aprobadas. CI en GitHub sobre `3b4b000`: verde. Prueba manual en emulador: la hice y todo siguió funcionando.
+
 ## 2026-11-04 · Moisés Sac · Claude Code · Animación de entrada, paleta y logo
 
 **Qué pedí:** explicarle que Cabal ya no tendrá usuario ni contraseña (el catedrático dijo que sería innecesario y que exigiría un servicio en la nube para registrar o reiniciar contraseñas, así que se usará la huella o el desbloqueo del teléfono) y preguntar qué opciones había para animar la entrada a la app. Después pedí tres propuestas de paleta de colores a partir del objetivo del README, un logo y más ideas con la paleta elegida. Por último pedí que la IA hiciera la animación mientras yo supervisaba, dejando el diseño y el plan registrados.
