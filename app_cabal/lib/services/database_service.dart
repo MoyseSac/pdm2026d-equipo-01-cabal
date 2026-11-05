@@ -23,7 +23,7 @@ class DatabaseService {
 
     return openDatabase(
       path,
-      version: 4,
+      version: 5,
       onConfigure: (db) async {
         await db.execute('PRAGMA foreign_keys = ON');
       },
@@ -65,6 +65,8 @@ class DatabaseService {
               REFERENCES producto(id)
           )
         ''');
+
+        await _crearTablasCierre(db);
       },
       onUpgrade: (db, oldVersion, newVersion) async {
         // Cada paso se puede repetir: una base con un user_version menor al
@@ -92,8 +94,48 @@ class DatabaseService {
           await _renombrarNombresRepetidos(db);
           await db.execute(_indiceNombreUnico);
         }
+        if (oldVersion < 5) {
+          await _crearTablasCierre(db);
+        }
       },
     );
+  }
+
+  /// Tablas del cierre del dia. Un cierre es una foto: por eso
+  /// `cierre_producto` copia el nombre y los montos, y no tiene llave foranea
+  /// hacia `producto` (el producto se puede archivar o borrar despues sin
+  /// tocar el cierre). El dinero va en centavos enteros.
+  ///
+  /// Todo usa IF NOT EXISTS para que se pueda repetir sin fallar.
+  Future<void> _crearTablasCierre(DatabaseExecutor db) async {
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS cierre (
+        id TEXT PRIMARY KEY,
+        dia TEXT NOT NULL,
+        cerrado_en TEXT NOT NULL,
+        numero_ventas INTEGER NOT NULL,
+        total_centavos INTEGER NOT NULL
+      )
+    ''');
+    await db.execute('''
+      CREATE UNIQUE INDEX IF NOT EXISTS idx_cierre_dia
+      ON cierre(dia)
+    ''');
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS cierre_producto (
+        cierre_id TEXT NOT NULL,
+        producto_id TEXT NOT NULL,
+        nombre_producto TEXT NOT NULL,
+        unidades INTEGER NOT NULL,
+        subtotal_centavos INTEGER NOT NULL,
+
+        PRIMARY KEY (cierre_id, producto_id),
+
+        FOREIGN KEY (cierre_id)
+          REFERENCES cierre(id)
+          ON DELETE CASCADE
+      )
+    ''');
   }
 
   /// Agrega la columna solo si la tabla todavia no la tiene.
