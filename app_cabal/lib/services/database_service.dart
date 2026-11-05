@@ -67,24 +67,28 @@ class DatabaseService {
         ''');
       },
       onUpgrade: (db, oldVersion, newVersion) async {
+        // Cada paso se puede repetir: una base con un user_version menor al
+        // que le corresponden sus columnas (por ejemplo, de una compilacion
+        // intermedia) no debe fallar por algo que ya existe.
         if (oldVersion < 2) {
-          await db.execute('ALTER TABLE producto ADD COLUMN eliminado_en TEXT');
-          await db.execute(
-            'ALTER TABLE detalle_venta ADD COLUMN nombre_producto TEXT',
-          );
+          await _agregarColumna(db, 'producto', 'eliminado_en', 'TEXT');
+          await _agregarColumna(db, 'detalle_venta', 'nombre_producto', 'TEXT');
+          // Solo rellena los que no tienen nombre, para no pisar el nombre
+          // historico de una columna que ya existia.
           await db.execute('''
             UPDATE detalle_venta
             SET nombre_producto = (
               SELECT nombre FROM producto WHERE producto.id = detalle_venta.producto_id
             )
+            WHERE nombre_producto IS NULL
           ''');
         }
         if (oldVersion < 3) {
-          await db.execute('ALTER TABLE producto ADD COLUMN imagen TEXT');
-          await db.execute('ALTER TABLE producto ADD COLUMN icono TEXT');
+          await _agregarColumna(db, 'producto', 'imagen', 'TEXT');
+          await _agregarColumna(db, 'producto', 'icono', 'TEXT');
         }
         if (oldVersion < 4) {
-          await db.execute('ALTER TABLE producto ADD COLUMN archivado_en TEXT');
+          await _agregarColumna(db, 'producto', 'archivado_en', 'TEXT');
           await _renombrarNombresRepetidos(db);
           await db.execute(_indiceNombreUnico);
         }
@@ -92,10 +96,22 @@ class DatabaseService {
     );
   }
 
+  /// Agrega la columna solo si la tabla todavia no la tiene.
+  Future<void> _agregarColumna(
+    Database db,
+    String tabla,
+    String columna,
+    String tipo,
+  ) async {
+    final columnas = await db.rawQuery('PRAGMA table_info($tabla)');
+    if (columnas.any((c) => c['name'] == columna)) return;
+    await db.execute('ALTER TABLE $tabla ADD COLUMN $columna $tipo');
+  }
+
   /// Un nombre no se repite entre los productos del catalogo, sin importar
   /// mayusculas. Los borrados quedan fuera para poder reusar su nombre.
   static const _indiceNombreUnico = '''
-    CREATE UNIQUE INDEX idx_producto_nombre
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_producto_nombre
     ON producto(nombre COLLATE NOCASE)
     WHERE eliminado_en IS NULL
   ''';

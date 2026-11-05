@@ -225,3 +225,15 @@ La implementación final permite consultar ventas por período sin recarga manua
 **Qué rechacé o corregí:** la IA recomendaba abrir la rama nueva desde la del tema de color (#94). Pedí que fuera desde `main` y que primero se creara el issue. Como la rama local `main` estaba desactualizada, se hizo desde `origin/main`, que ya incluía el PR #95.
 
 **Cómo lo verifiqué:** `dart format`, `flutter analyze` sin observaciones y `flutter test` con 227 pruebas aprobadas (eran 226). Probé la app en mi dispositivo y todo funcionó: Vender muestra solo lo agregado y la venta vacía lleva de vuelta al Catálogo. El CI del PR #97 salió en verde. No se probó en iOS.
+
+## 2026-11-04 · Moisés Sac · Claude Code · Migración de la base repetible
+
+**Qué pedí:** una propuesta de cambios para que funcione el cierre del día. Decidí que el cierre fuera un registro guardado, con historial de cierres anteriores, lo que exige una migración nueva de la base.
+
+**Qué respondió:** en una sesión anterior me había salido el error "duplicate column name: archivado_en" al abrir la base en mi teléfono, y lo resolví reinstalando la app, sin arreglar la causa. Al querer trabajar el cierre, la IA señaló que ese error seguía pendiente y que había que arreglarlo antes: `onUpgrade` se detiene en el primer paso que falla, así que la versión 5 del cierre no correría en una base así. Recomendó hacerlo en su propio issue y lo hizo: comprueba con `PRAGMA table_info` antes de cada `ADD COLUMN`, usa `IF NOT EXISTS` en el índice único y rellena `nombre_producto` solo donde está vacío.
+
+**Qué acepté:** arreglar primero ese error, por separado del cierre; que el arreglo no cambie la versión de la base ni el resultado de las migraciones que ya corrían bien.
+
+**Qué rechacé o corregí:** nada explícito en esta sesión: acepté lo que propuso. Lo que la IA ajustó por su cuenta: el relleno de `nombre_producto` de la v2 pisaba nombres que ya existían, y lo limitó a los vacíos con una prueba aparte.
+
+**Cómo lo verifiqué:** `dart format`, `flutter analyze` sin observaciones y `flutter test` con 233 pruebas aprobadas (eran 227); el CI del PR salió en verde. Las pruebas nuevas, con una base v3 que ya tiene `archivado_en`, una v1 con columnas repetidas y una con el índice ya creado, fallaban antes del arreglo. En mi teléfono Android dejé una base en versión 3 con `archivado_en` ya presente: con el código anterior reproduje el error, y con el arreglo la app abrió sin desinstalarla y la base quedó en la versión 4. Las capturas de ambos pasos están en el PR. No se probó en iOS.
