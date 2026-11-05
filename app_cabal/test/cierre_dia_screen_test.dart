@@ -200,7 +200,14 @@ void main() {
     expect(find.text('1 unidad'), findsOneWidget);
     expect(find.text('Q2.50'), findsOneWidget);
 
+    // "Sin vender" sale colapsada: solo el conteo, hasta que se toca.
     expect(find.text('Sin vender (2)'), findsOneWidget);
+    expect(find.text('Leche'), findsNothing);
+    expect(find.text('Galleta'), findsNothing);
+
+    await tester.tap(find.text('Sin vender (2)'));
+    await tester.pumpAndSettle();
+
     expect(find.text('Leche'), findsOneWidget);
     expect(find.text('Galleta'), findsOneWidget);
 
@@ -220,6 +227,34 @@ void main() {
       find.text('Todo lo que tienes en el catálogo se vendió hoy.'),
       findsOneWidget,
     );
+  });
+
+  testWidgets('con muchos productos sin vender no llenan la pantalla', (
+    tester,
+  ) async {
+    await _abrir(
+      tester,
+      _FakeCierreService(
+        numeroVentas: 1,
+        total: 2.5,
+        productos: [
+          _pan,
+          for (var i = 0; i < 50; i++)
+            CierreProducto(
+              productoId: 'x$i',
+              nombre: 'Producto $i',
+              unidades: 0,
+              subtotal: 0,
+            ),
+        ],
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Sin vender (50)'), findsOneWidget);
+    expect(find.text('Producto 0'), findsNothing);
+    // El boton sigue a la vista sin desplazarse.
+    expect(find.text('Cerrar día'), findsOneWidget);
   });
 
   testWidgets('tocar Cerrar día guarda y la pantalla pasa a cerrado', (
@@ -279,6 +314,9 @@ void main() {
     // La foto no trae la galleta, aunque hoy el catalogo la tenga.
     expect(find.text('Día cerrado el 26/10/2026 17:00.'), findsOneWidget);
     expect(find.text('Sin vender (1)'), findsOneWidget);
+    await tester.tap(find.text('Sin vender (1)'));
+    await tester.pumpAndSettle();
+    expect(find.text('Leche'), findsOneWidget);
     expect(find.text('Galleta'), findsNothing);
     expect(find.text('Volver a cerrar'), findsNothing);
   });

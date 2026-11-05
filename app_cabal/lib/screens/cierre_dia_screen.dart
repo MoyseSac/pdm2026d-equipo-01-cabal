@@ -144,20 +144,34 @@ class _CierreConDatos extends StatelessWidget {
             ),
           ),
         const SizedBox(height: 16),
-        Text('Sin vender (${sinVender.length})', style: textos.titleMedium),
-        const SizedBox(height: 4),
-        if (sinVender.isEmpty)
+        if (sinVender.isEmpty) ...[
+          Text('Sin vender (0)', style: textos.titleMedium),
+          const SizedBox(height: 4),
           Text(
             'Todo lo que tienes en el catálogo se vendió hoy.',
             style: textos.bodyMedium?.copyWith(color: colores.onSurfaceVariant),
-          )
-        else
-          for (final producto in sinVender)
-            ListTile(
-              key: ValueKey('sin_vender_${producto.productoId}'),
-              contentPadding: EdgeInsets.zero,
-              title: Text(producto.nombre),
+          ),
+        ] else
+          // Colapsada: con muchos productos sin mover, la lista larga taparia
+          // lo importante (total y vendidos). Se despliega al tocarla.
+          ExpansionTile(
+            key: const ValueKey('sin_vender_seccion'),
+            tilePadding: EdgeInsets.zero,
+            shape: const Border(),
+            collapsedShape: const Border(),
+            title: Text(
+              'Sin vender (${sinVender.length})',
+              style: textos.titleMedium,
             ),
+            children: [
+              for (final producto in sinVender)
+                ListTile(
+                  key: ValueKey('sin_vender_${producto.productoId}'),
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(producto.nombre),
+                ),
+            ],
+          ),
       ],
     );
   }
