@@ -6,3 +6,10 @@ String formatearFechaHora(DateTime fecha) {
   return '${dos(fecha.day)}/${dos(fecha.month)}/${fecha.year} '
       '${dos(fecha.hour)}:${dos(fecha.minute)}';
 }
+
+/// Formatea solo la fecha como dd/mm/aaaa, por ejemplo 15/10/2026.
+String formatearFecha(DateTime fecha) {
+  String dos(int n) => n.toString().padLeft(2, '0');
+
+  return '${dos(fecha.day)}/${dos(fecha.month)}/${fecha.year}';
+}

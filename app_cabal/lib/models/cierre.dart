@@ -68,6 +68,10 @@ class CierreHoy {
   bool get hayVentasNuevas =>
       guardado != null && enVivo.numeroVentas > guardado!.numeroVentas;
 
+  /// Se puede (volver a) cerrar: hay ventas y el dia no esta cerrado, o se
+  /// vendio algo despues del cierre.
+  bool get puedeCerrar => hayVentas && (!cerrado || hayVentasNuevas);
+
   /// Si ya esta cerrado y nada cambio se muestra la foto guardada; si no, el
   /// calculo en vivo.
   Cierre get vista => cerrado && !hayVentasNuevas ? guardado! : enVivo;
