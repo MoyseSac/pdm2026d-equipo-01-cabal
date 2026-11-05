@@ -7,6 +7,7 @@ import 'screens/home_shell.dart';
 import 'widgets/formulario_producto_conectado.dart';
 import 'screens/confirmacion_venta_screen.dart';
 import 'screens/detalle_venta_screen.dart';
+import 'theme/tema_cabal.dart';
 
 /// Configuracion principal de la app: tema, pantalla inicial y rutas.
 /// El mapa de rutas vive aqui (no en constants/) porque necesita conocer
@@ -20,6 +21,7 @@ class CabalApp extends StatelessWidget {
     return MaterialApp(
       title: 'Cabal',
       debugShowCheckedModeBanner: false,
+      theme: temaCabal,
       initialRoute: AppRoutes.entrada,
       routes: {
         AppRoutes.entrada: (context) => const EntradaScreen(),
