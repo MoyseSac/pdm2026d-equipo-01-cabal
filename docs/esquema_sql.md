@@ -37,7 +37,8 @@ CREATE TABLE producto (
     precio REAL NOT NULL,
     eliminado_en TEXT,
     imagen TEXT,
-    icono TEXT
+    icono TEXT,
+    archivado_en TEXT
 );
 ```
 
@@ -53,6 +54,8 @@ CREATE TABLE producto (
 
 `eliminado_en` no tiene atributo en el modelo: guarda la fecha del borrado
 lógico y el catálogo solo muestra los productos donde es `NULL`.
+`archivado_en` guarda la fecha en que se archivó el producto; el catálogo
+activo muestra solo los que no están borrados ni archivados.
 
 `imagen` guarda solo el nombre del archivo de la foto, no la ruta completa.
 `icono` guarda una clave del registro fijo de iconos
@@ -120,6 +123,78 @@ detalle.
 
 ---
 
+## Tabla cierre
+
+Representa el cierre de un día: una foto de lo que se vendió, guardada para
+consultarla después aunque cambie el catálogo.
+
+```sql
+CREATE TABLE cierre (
+    id TEXT PRIMARY KEY,
+    dia TEXT NOT NULL,
+    cerrado_en TEXT NOT NULL,
+    numero_ventas INTEGER NOT NULL,
+    total_centavos INTEGER NOT NULL
+);
+
+CREATE UNIQUE INDEX idx_cierre_dia ON cierre(dia);
+```
+
+### Correspondencia con Cierre
+
+| Atributo Dart | Columna SQL | Tipo |
+|---|---|---|
+| id | id | TEXT |
+| dia | dia | TEXT, `aaaa-mm-dd` en hora local |
+| cerradoEn | cerrado_en | TEXT, ISO 8601 |
+| numeroVentas | numero_ventas | INTEGER |
+| total | total_centavos | INTEGER, centavos |
+
+El dinero va en **centavos enteros**; el modelo Dart lo expone como `double`
+dividiendo entre 100. El índice único deja un solo cierre por día: cerrar el
+mismo día otra vez reemplaza el anterior.
+
+---
+
+## Tabla cierre_producto
+
+Una fila por producto dentro de un cierre.
+
+```sql
+CREATE TABLE cierre_producto (
+    cierre_id TEXT NOT NULL,
+    producto_id TEXT NOT NULL,
+    nombre_producto TEXT NOT NULL,
+    unidades INTEGER NOT NULL,
+    subtotal_centavos INTEGER NOT NULL,
+
+    PRIMARY KEY (cierre_id, producto_id),
+
+    FOREIGN KEY (cierre_id)
+        REFERENCES cierre(id)
+        ON DELETE CASCADE
+);
+```
+
+### Correspondencia con CierreProducto
+
+| Atributo Dart | Columna SQL | Tipo |
+|---|---|---|
+| productoId | producto_id | TEXT |
+| nombre | nombre_producto | TEXT |
+| unidades | unidades | INTEGER |
+| subtotal | subtotal_centavos | INTEGER, centavos |
+
+`unidades = 0` significa que el producto estaba en el catálogo activo y no
+salió en las ventas del día ("sin vender"). Los archivados y borrados que no
+se vendieron no se guardan.
+
+`producto_id` **no** tiene llave foránea hacia `producto`: el cierre es una
+foto, y el producto se puede archivar o borrar después sin afectarla. Por la
+misma razón se copia el nombre, igual que `detalle_venta.nombre_producto`.
+
+---
+
 # Relaciones
 
 ## Venta y DetalleVenta
@@ -137,6 +212,25 @@ Cardinalidad:
 ```text
 Venta 1 → N DetalleVenta
 ```
+
+## Cierre y CierreProducto
+
+Un cierre contiene una fila por cada producto que se vendió o que estaba sin
+vender ese día.
+
+```text
+cierre.id → cierre_producto.cierre_id
+```
+
+Cardinalidad:
+
+```text
+Cierre 1 → N CierreProducto
+```
+
+`Cierre` no se relaciona con `venta` por llaves: se calcula agregando las
+ventas del día (`SUM(cantidad * CAST(ROUND(precio_al_momento * 100) AS
+INTEGER))` agrupado por `producto_id`) y se guarda el resultado.
 
 ## Producto y DetalleVenta
 
@@ -165,6 +259,8 @@ Producto 1 → 0..N DetalleVenta
 - `producto.id`
 - `venta.id`
 - `detalle_venta (venta_id, producto_id)`
+- `cierre.id`
+- `cierre_producto (cierre_id, producto_id)`
 
 La tabla `detalle_venta` utiliza una llave primaria compuesta porque un mismo
 producto se representa una sola vez dentro de una venta. La cantidad de
@@ -178,6 +274,9 @@ detalle_venta.venta_id
 
 detalle_venta.producto_id
     → producto.id
+
+cierre_producto.cierre_id
+    → cierre.id
 ```
 
 Estas llaves mantienen las relaciones definidas previamente en el diagrama
@@ -195,6 +294,7 @@ nombre
 precio
 imagen
 icono
+archivado_en
     │
     │ 1
     │
@@ -214,11 +314,33 @@ Venta
 -----
 id PK
 fecha_hora
+
+Cierre
+------
+id PK
+dia (único)
+cerrado_en
+numero_ventas
+total_centavos
+    │
+    │ 1
+    │
+    │ N
+    ▼
+CierreProducto
+--------------
+cierre_id PK, FK
+producto_id PK
+nombre_producto
+unidades
+subtotal_centavos
 ```
+
+`CierreProducto.producto_id` no es llave foránea (ver arriba).
 
 ## Versiones del esquema
 
-La base se abre con `version: 3` en
+La base se abre con `version: 5` en
 `app_cabal/lib/services/database_service.dart`. Una instalación nueva crea
 las tablas completas; una base anterior se actualiza en `onUpgrade`.
 
@@ -227,6 +349,11 @@ las tablas completas; una base anterior se actualiza en `onUpgrade`.
 | 1 | Tablas `producto`, `venta` y `detalle_venta`. |
 | 2 | `producto.eliminado_en` y `detalle_venta.nombre_producto`, con el nombre copiado a las ventas existentes. |
 | 3 | `producto.imagen` y `producto.icono`, ambas nullable. Los productos existentes quedan sin imagen; no se rellena nada. |
+| 4 | `producto.archivado_en` (nullable) e índice único `idx_producto_nombre` sobre el nombre, sin distinguir mayúsculas, entre los productos no borrados. Los nombres repetidos que ya existían se renombran antes de crear el índice. |
+| 5 | Tablas `cierre` y `cierre_producto` con el índice único `idx_cierre_dia`. No toca ninguna tabla anterior. |
+
+Cada paso de `onUpgrade` se puede repetir sin fallar (`IF NOT EXISTS`, o se
+comprueba con `PRAGMA table_info` antes de agregar una columna).
 
 ## Alcance
 
