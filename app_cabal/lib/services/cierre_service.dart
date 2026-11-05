@@ -52,7 +52,7 @@ class CierreService {
       JOIN producto p ON p.id = d.producto_id
       WHERE v.fecha_hora >= ? AND v.fecha_hora < ?
       GROUP BY d.producto_id
-      ORDER BY unidades DESC, nombre ASC
+      ORDER BY subtotal_centavos DESC, nombre ASC
       ''', rango);
 
     final productos = [
@@ -139,7 +139,7 @@ class CierreService {
       'cierre_producto',
       where: 'cierre_id = ?',
       whereArgs: [fila['id']],
-      orderBy: 'unidades DESC, nombre_producto ASC',
+      orderBy: 'subtotal_centavos DESC, nombre_producto ASC',
     );
 
     return Cierre(

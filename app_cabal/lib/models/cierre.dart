@@ -27,7 +27,7 @@ class Cierre {
   final int numeroVentas;
   final double total;
 
-  /// Productos que se vendieron ese dia, del que mas salio al que menos.
+  /// Productos que se vendieron ese dia, del que dejo mas dinero al que menos.
   final List<CierreProducto> productos;
 
   const Cierre({
@@ -40,6 +40,8 @@ class Cierre {
   });
 
   bool get guardado => id != null;
+
+  int get unidades => productos.fold(0, (suma, p) => suma + p.unidades);
 }
 
 /// Lo que necesita la pantalla del cierre de hoy: el calculo en vivo y, si
@@ -58,6 +60,16 @@ class CierreHoy {
   /// basta comparar cuantas hay.
   bool get hayVentasNuevas =>
       guardado != null && enVivo.numeroVentas > guardado!.numeroVentas;
+
+  /// Cuantas ventas se hicieron despues del cierre guardado.
+  int get ventasNuevas =>
+      hayVentasNuevas ? enVivo.numeroVentas - guardado!.numeroVentas : 0;
+
+  /// Cuanto se vendio despues del cierre guardado, calculado en centavos
+  /// para no arrastrar errores de decimales.
+  double get montoNuevo => hayVentasNuevas
+      ? ((enVivo.total * 100).round() - (guardado!.total * 100).round()) / 100
+      : 0;
 
   /// Se puede (volver a) cerrar: hay ventas y el dia no esta cerrado, o se
   /// vendio algo despues del cierre.
