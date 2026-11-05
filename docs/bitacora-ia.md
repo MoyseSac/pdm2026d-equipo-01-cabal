@@ -236,4 +236,4 @@ La implementación final permite consultar ventas por período sin recarga manua
 
 **Qué rechacé o corregí:** nada explícito en esta sesión: acepté lo que propuso. Lo que la IA ajustó por su cuenta: el relleno de `nombre_producto` de la v2 pisaba nombres que ya existían, y lo limitó a los vacíos con una prueba aparte.
 
-**Cómo lo verifiqué:** `dart format`, `flutter analyze` sin observaciones y `flutter test` con 233 pruebas aprobadas (eran 227). Las pruebas nuevas, con una base v3 que ya tiene `archivado_en`, una v1 con columnas repetidas y una con el índice ya creado, fallaban antes del arreglo. No lo probé todavía en mi teléfono ni en iOS.
+**Cómo lo verifiqué:** `dart format`, `flutter analyze` sin observaciones y `flutter test` con 233 pruebas aprobadas (eran 227). Las pruebas nuevas, con una base v3 que ya tiene `archivado_en`, una v1 con columnas repetidas y una con el índice ya creado, fallaban antes del arreglo. La probé en mi teléfono Android: con una base que dejé en versión 3 y que ya tenía `archivado_en`, la app abrió con el arreglo y la base quedó en la versión 4. No se probó en iOS.
