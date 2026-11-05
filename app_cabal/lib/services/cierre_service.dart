@@ -2,7 +2,6 @@ import 'package:sqflite/sqflite.dart';
 
 import '../models/cierre.dart';
 import 'database_service.dart';
-import 'producto_service.dart';
 
 /// Se intento cerrar un dia en el que no hubo ventas.
 class CierreSinVentasException implements Exception {
@@ -14,13 +13,9 @@ class CierreSinVentasException implements Exception {
 
 class CierreService {
   final DatabaseService _databaseService;
-  final ProductoService _productoService;
 
-  CierreService({
-    DatabaseService? databaseService,
-    ProductoService? productoService,
-  }) : _databaseService = databaseService ?? DatabaseService.instance,
-       _productoService = productoService ?? ProductoService();
+  CierreService({DatabaseService? databaseService})
+    : _databaseService = databaseService ?? DatabaseService.instance;
 
   /// Calcula el resumen del dia sin guardar nada.
   ///
@@ -60,35 +55,21 @@ class CierreService {
       ORDER BY unidades DESC, nombre ASC
       ''', rango);
 
-    final vendidos = filas.map(
-      (f) => CierreProducto(
-        productoId: f['producto_id'] as String,
-        nombre: f['nombre'] as String,
-        unidades: f['unidades'] as int,
-        subtotal: (f['subtotal_centavos'] as int) / 100,
-      ),
-    );
-    final idsVendidos = vendidos.map((p) => p.productoId).toSet();
-
-    // "Sin vender" parte del catalogo activo (sin archivados ni borrados),
-    // asi que un producto archivado que no se vendio nunca aparece aqui.
-    final catalogo = await _productoService.obtenerProductos();
-    final sinVender = catalogo
-        .where((p) => !idsVendidos.contains(p.id))
-        .map(
-          (p) => CierreProducto(
-            productoId: p.id,
-            nombre: p.nombre,
-            unidades: 0,
-            subtotal: 0,
-          ),
-        );
+    final productos = [
+      for (final f in filas)
+        CierreProducto(
+          productoId: f['producto_id'] as String,
+          nombre: f['nombre'] as String,
+          unidades: f['unidades'] as int,
+          subtotal: (f['subtotal_centavos'] as int) / 100,
+        ),
+    ];
 
     return Cierre(
       dia: inicio,
       numeroVentas: totales.single['numero_ventas'] as int,
       total: (totales.single['total_centavos'] as int) / 100,
-      productos: [...vendidos, ...sinVender],
+      productos: productos,
     );
   }
 
@@ -97,7 +78,7 @@ class CierreService {
   /// reciente.
   ///
   /// El calculo se hace antes de abrir la transaccion: dentro de ella solo se
-  /// puede usar `txn`, y [calcularDia] usa tambien el servicio de productos.
+  /// puede usar `txn`, no `db`.
   Future<Cierre> cerrarDia(DateTime dia, {DateTime? cerradoEn}) async {
     final resumen = await calcularDia(dia);
     if (resumen.numeroVentas == 0) throw const CierreSinVentasException();

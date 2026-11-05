@@ -97,7 +97,7 @@ void main() {
 
       expect(cierre.numeroVentas, 2);
       expect(cierre.total, 21.0);
-      expect(cierre.vendidos.single.unidades, 2);
+      expect(cierre.productos.single.unidades, 2);
     });
 
     test('acepta cualquier hora del dia como referencia', () async {
@@ -120,11 +120,11 @@ void main() {
 
       expect(cierre.numeroVentas, 2);
       expect(cierre.total, 55.0);
-      final cola = cierre.vendidos.firstWhere((p) => p.productoId == 'cola');
+      final cola = cierre.productos.firstWhere((p) => p.productoId == 'cola');
       expect(cola.unidades, 5);
       expect(cola.subtotal, 52.5);
       expect(
-        cierre.vendidos.where((p) => p.productoId == 'cola'),
+        cierre.productos.where((p) => p.productoId == 'cola'),
         hasLength(1),
       );
     });
@@ -137,7 +137,7 @@ void main() {
 
       final cierre = await servicio.calcularDia(_hoy);
 
-      expect(cierre.vendidos.map((p) => p.productoId), ['cola', 'pan']);
+      expect(cierre.productos.map((p) => p.productoId), ['cola', 'pan']);
     });
 
     test('el total en SQL coincide con totalDe: 0.10 + 0.20 + 0.30', () async {
@@ -175,7 +175,7 @@ void main() {
 
       // Sumar 0.1 treinta veces como double da 3.0000000000000018.
       expect(cierre.total, 3.0);
-      expect(cierre.vendidos.single.subtotal, 3.0);
+      expect(cierre.productos.single.subtotal, 3.0);
     });
 
     test('usa el precio al momento y no el precio actual', () async {
@@ -185,37 +185,7 @@ void main() {
 
       // El catalogo tiene el pan a 2.50, la venta lo guardo a 2.00.
       expect(cierre.total, 4.0);
-      expect(cierre.vendidos.single.subtotal, 4.0);
-    });
-
-    test('lo que no se vendio y esta activo sale como sin vender', () async {
-      await vender('v1', DateTime(2026, 10, 26, 9), [(_cola, 1, 10.5)]);
-
-      final cierre = await servicio.calcularDia(_hoy);
-
-      expect(cierre.vendidos.map((p) => p.productoId), ['cola']);
-      expect(cierre.sinVender.map((p) => p.productoId), ['leche', 'pan']);
-      expect(cierre.sinVender.every((p) => p.unidades == 0), isTrue);
-      expect(cierre.sinVender.every((p) => p.subtotal == 0), isTrue);
-    });
-
-    test('un producto vendido ayer pero no hoy esta sin vender', () async {
-      await vender('ayer', DateTime(2026, 10, 25, 9), [(_pan, 3, 2.5)]);
-      await vender('hoy', DateTime(2026, 10, 26, 9), [(_cola, 1, 10.5)]);
-
-      final cierre = await servicio.calcularDia(_hoy);
-
-      expect(cierre.sinVender.map((p) => p.productoId), contains('pan'));
-    });
-
-    test('un archivado o borrado sin ventas no sale en sin vender', () async {
-      await vender('v1', DateTime(2026, 10, 26, 9), [(_cola, 1, 10.5)]);
-      await productos.archivarProducto(_pan);
-      await productos.eliminarProducto(_leche);
-
-      final cierre = await servicio.calcularDia(_hoy);
-
-      expect(cierre.sinVender, isEmpty);
+      expect(cierre.productos.single.subtotal, 4.0);
     });
 
     test('vendido hoy y archivado o borrado despues sigue vendido', () async {
@@ -228,18 +198,16 @@ void main() {
 
       final cierre = await servicio.calcularDia(_hoy);
 
-      expect(cierre.vendidos.map((p) => p.nombre), ['Pan dulce', 'Leche']);
+      expect(cierre.productos.map((p) => p.nombre), ['Pan dulce', 'Leche']);
       expect(cierre.total, 14.0);
-      expect(cierre.sinVender.map((p) => p.productoId), ['cola']);
     });
 
-    test('un dia sin ventas: cero ventas y todo en sin vender', () async {
+    test('un dia sin ventas: cero ventas y sin productos', () async {
       final cierre = await servicio.calcularDia(_hoy);
 
       expect(cierre.numeroVentas, 0);
       expect(cierre.total, 0);
-      expect(cierre.vendidos, isEmpty);
-      expect(cierre.sinVender, hasLength(3));
+      expect(cierre.productos, isEmpty);
       expect(cierre.guardado, isFalse);
     });
 
@@ -271,11 +239,10 @@ void main() {
       expect(leido.cerradoEn, cerradoEn);
       expect(leido.numeroVentas, 1);
       expect(leido.total, 23.5);
-      expect(leido.vendidos.map((p) => (p.productoId, p.unidades)), [
+      expect(leido.productos.map((p) => (p.productoId, p.unidades)), [
         ('cola', 2),
         ('pan', 1),
       ]);
-      expect(leido.sinVender.map((p) => p.productoId), ['leche']);
     });
 
     test('guarda el dinero en centavos enteros', () async {
@@ -302,8 +269,8 @@ void main() {
       await servicio.cerrarDia(_hoy, cerradoEn: DateTime(2026, 10, 26, 21));
 
       expect(await contar('cierre'), 1);
-      // Tres productos del catalogo, una sola vez cada uno.
-      expect(await contar('cierre_producto'), 3);
+      // Cola y pan, una sola vez cada uno: la foto vieja se reemplazo.
+      expect(await contar('cierre_producto'), 2);
       final leido = (await servicio.obtenerCierre(_hoy))!;
       expect(leido.numeroVentas, 2);
       expect(leido.total, 20.5);
@@ -344,8 +311,8 @@ void main() {
 
       final leido = (await servicio.obtenerCierre(_hoy))!;
       expect(leido.total, 5.0);
-      expect(leido.vendidos.single.nombre, 'Pan dulce');
-      expect(leido.vendidos.single.subtotal, 5.0);
+      expect(leido.productos.single.nombre, 'Pan dulce');
+      expect(leido.productos.single.subtotal, 5.0);
     });
 
     test('archivar o borrar despues no cambia el cierre guardado', () async {
@@ -357,9 +324,7 @@ void main() {
       await productos.archivarProducto(_cola);
 
       final leido = (await servicio.obtenerCierre(_hoy))!;
-      expect(leido.vendidos.map((p) => p.productoId), ['pan']);
-      // El cierre conserva lo que se vio al cerrar, aunque ahora no esten.
-      expect(leido.sinVender.map((p) => p.productoId), ['cola', 'leche']);
+      expect(leido.productos.map((p) => p.productoId), ['pan']);
     });
   });
 

@@ -26,18 +26,6 @@ const _pan = CierreProducto(
   unidades: 1,
   subtotal: 2.5,
 );
-const _leche = CierreProducto(
-  productoId: 'leche',
-  nombre: 'Leche',
-  unidades: 0,
-  subtotal: 0,
-);
-const _galleta = CierreProducto(
-  productoId: 'galleta',
-  nombre: 'Galleta',
-  unidades: 0,
-  subtotal: 0,
-);
 
 /// Servicio falso con el estado del dia en memoria: lo que "se vendio" y, si
 /// ya se cerro, la foto guardada.
@@ -120,7 +108,7 @@ Future<ProviderContainer> _abrir(
 _FakeCierreService _conVentas() => _FakeCierreService(
   numeroVentas: 2,
   total: 34.0,
-  productos: const [_cola, _pan, _leche, _galleta],
+  productos: const [_cola, _pan],
 );
 
 void main() {
@@ -164,7 +152,7 @@ void main() {
   testWidgets('sin ventas hoy muestra el estado vacío y no deja cerrar', (
     tester,
   ) async {
-    await _abrir(tester, _FakeCierreService(productos: const [_leche]));
+    await _abrir(tester, _FakeCierreService());
     await tester.pumpAndSettle();
 
     expect(find.text('Hoy no hay ventas para cerrar'), findsOneWidget);
@@ -200,16 +188,8 @@ void main() {
     expect(find.text('1 unidad'), findsOneWidget);
     expect(find.text('Q2.50'), findsOneWidget);
 
-    // "Sin vender" sale colapsada: solo el conteo, hasta que se toca.
-    expect(find.text('Sin vender (2)'), findsOneWidget);
-    expect(find.text('Leche'), findsNothing);
-    expect(find.text('Galleta'), findsNothing);
-
-    await tester.tap(find.text('Sin vender (2)'));
-    await tester.pumpAndSettle();
-
-    expect(find.text('Leche'), findsOneWidget);
-    expect(find.text('Galleta'), findsOneWidget);
+    // El cierre de caja no lista lo que no se vendio.
+    expect(find.textContaining('Sin vender'), findsNothing);
 
     expect(find.text('Cerrar día'), findsOneWidget);
     expect(find.text('Volver a cerrar'), findsNothing);
@@ -223,38 +203,6 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('1 venta'), findsOneWidget);
-    expect(
-      find.text('Todo lo que tienes en el catálogo se vendió hoy.'),
-      findsOneWidget,
-    );
-  });
-
-  testWidgets('con muchos productos sin vender no llenan la pantalla', (
-    tester,
-  ) async {
-    await _abrir(
-      tester,
-      _FakeCierreService(
-        numeroVentas: 1,
-        total: 2.5,
-        productos: [
-          _pan,
-          for (var i = 0; i < 50; i++)
-            CierreProducto(
-              productoId: 'x$i',
-              nombre: 'Producto $i',
-              unidades: 0,
-              subtotal: 0,
-            ),
-        ],
-      ),
-    );
-    await tester.pumpAndSettle();
-
-    expect(find.text('Sin vender (50)'), findsOneWidget);
-    expect(find.text('Producto 0'), findsNothing);
-    // El boton sigue a la vista sin desplazarse.
-    expect(find.text('Cerrar día'), findsOneWidget);
   });
 
   testWidgets('tocar Cerrar día guarda y la pantalla pasa a cerrado', (
@@ -306,18 +254,16 @@ void main() {
       cerradoEn: DateTime(2026, 10, 26, 17),
       numeroVentas: 2,
       total: 34.0,
-      productos: const [_cola, _pan, _leche],
+      productos: const [_cola],
     );
     await _abrir(tester, servicio);
     await tester.pumpAndSettle();
 
-    // La foto no trae la galleta, aunque hoy el catalogo la tenga.
+    // Se ve lo guardado, no el calculo en vivo (que ademas trae el pan).
     expect(find.text('Día cerrado el 26/10/2026 17:00.'), findsOneWidget);
-    expect(find.text('Sin vender (1)'), findsOneWidget);
-    await tester.tap(find.text('Sin vender (1)'));
-    await tester.pumpAndSettle();
-    expect(find.text('Leche'), findsOneWidget);
-    expect(find.text('Galleta'), findsNothing);
+    expect(find.text('Vendidos (1)'), findsOneWidget);
+    expect(find.text('Coca Cola'), findsOneWidget);
+    expect(find.text('Pan dulce'), findsNothing);
     expect(find.text('Volver a cerrar'), findsNothing);
   });
 
@@ -326,14 +272,14 @@ void main() {
     final servicio = _FakeCierreService(
       numeroVentas: 3,
       total: 40.0,
-      productos: const [_cola, _pan, _leche],
+      productos: const [_cola, _pan],
       guardado: Cierre(
         id: 'c0',
         dia: DateTime(2026, 10, 26),
         cerradoEn: DateTime(2026, 10, 26, 17),
         numeroVentas: 2,
         total: 34.0,
-        productos: const [_cola, _pan, _leche],
+        productos: const [_cola, _pan],
       ),
     );
     await _abrir(tester, servicio);

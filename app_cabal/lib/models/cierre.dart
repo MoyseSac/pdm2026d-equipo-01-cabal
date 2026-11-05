@@ -1,7 +1,4 @@
-/// Un producto dentro de un cierre: cuanto se vendio de el ese dia.
-///
-/// [unidades] en cero significa que el producto estaba en el catalogo y no
-/// salio en ninguna venta del dia ("sin vender").
+/// Un producto vendido dentro de un cierre: cuanto salio de el ese dia.
 class CierreProducto {
   final String productoId;
 
@@ -17,8 +14,6 @@ class CierreProducto {
     required this.unidades,
     required this.subtotal,
   });
-
-  bool get vendido => unidades > 0;
 }
 
 /// Resumen de un dia de ventas. Si [id] y [cerradoEn] son nulos es solo el
@@ -31,6 +26,8 @@ class Cierre {
   final DateTime? cerradoEn;
   final int numeroVentas;
   final double total;
+
+  /// Productos que se vendieron ese dia, del que mas salio al que menos.
   final List<CierreProducto> productos;
 
   const Cierre({
@@ -43,12 +40,6 @@ class Cierre {
   });
 
   bool get guardado => id != null;
-
-  List<CierreProducto> get vendidos =>
-      productos.where((p) => p.vendido).toList();
-
-  List<CierreProducto> get sinVender =>
-      productos.where((p) => !p.vendido).toList();
 }
 
 /// Lo que necesita la pantalla del cierre de hoy: el calculo en vivo y, si

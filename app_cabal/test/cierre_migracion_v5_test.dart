@@ -241,7 +241,7 @@ void main() {
         'cierre_id': 'c1',
         'producto_id': 'borrado-hace-tiempo',
         'nombre_producto': 'Galleta',
-        'unidades': 0,
+        'unidades': 1,
         'subtotal_centavos': 0,
       });
 

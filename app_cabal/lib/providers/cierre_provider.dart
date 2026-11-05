@@ -2,11 +2,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/cierre.dart';
 import '../services/cierre_service.dart';
-import 'producto_provider.dart';
 import 'ventas_filtro_provider.dart';
 
 final cierreServiceProvider = Provider<CierreService>((ref) {
-  return CierreService(productoService: ref.watch(productoServiceProvider));
+  return CierreService();
 });
 
 /// El cierre de hoy: el calculo en vivo y, si ya se cerro, la foto guardada.

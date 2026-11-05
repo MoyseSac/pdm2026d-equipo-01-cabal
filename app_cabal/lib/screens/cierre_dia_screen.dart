@@ -96,9 +96,7 @@ class _CierreConDatos extends StatelessWidget {
   Widget build(BuildContext context) {
     final vista = hoy.vista;
     final textos = Theme.of(context).textTheme;
-    final colores = Theme.of(context).colorScheme;
-    final vendidos = vista.vendidos;
-    final sinVender = vista.sinVender;
+    final vendidos = vista.productos;
     final cerradoSinCambios = !hoy.puedeCerrar;
 
     return ListView(
@@ -142,35 +140,6 @@ class _CierreConDatos extends StatelessWidget {
               formatearQuetzales(producto.subtotal),
               style: const TextStyle(fontWeight: FontWeight.bold),
             ),
-          ),
-        const SizedBox(height: 16),
-        if (sinVender.isEmpty) ...[
-          Text('Sin vender (0)', style: textos.titleMedium),
-          const SizedBox(height: 4),
-          Text(
-            'Todo lo que tienes en el catálogo se vendió hoy.',
-            style: textos.bodyMedium?.copyWith(color: colores.onSurfaceVariant),
-          ),
-        ] else
-          // Colapsada: con muchos productos sin mover, la lista larga taparia
-          // lo importante (total y vendidos). Se despliega al tocarla.
-          ExpansionTile(
-            key: const ValueKey('sin_vender_seccion'),
-            tilePadding: EdgeInsets.zero,
-            shape: const Border(),
-            collapsedShape: const Border(),
-            title: Text(
-              'Sin vender (${sinVender.length})',
-              style: textos.titleMedium,
-            ),
-            children: [
-              for (final producto in sinVender)
-                ListTile(
-                  key: ValueKey('sin_vender_${producto.productoId}'),
-                  contentPadding: EdgeInsets.zero,
-                  title: Text(producto.nombre),
-                ),
-            ],
           ),
       ],
     );
