@@ -93,5 +93,4 @@ pruebas que usan `pumpAndSettle` esperan también la navegación.
   `MainActivity` a `FlutterFragmentActivity`, permiso `USE_BIOMETRIC`).
 - Pantalla de arranque nativa en marino (Android y iOS) para que no haya un
   destello blanco antes de la animación, y el ícono de la app con el logo.
-- `ThemeData` global con la paleta: hoy solo la pantalla de entrada la usa.
 - Volver a pedir autenticación al volver de segundo plano.
