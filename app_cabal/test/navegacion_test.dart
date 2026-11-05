@@ -1,11 +1,14 @@
 import 'package:app_cabal/app.dart';
+import 'package:app_cabal/models/cierre.dart';
 import 'package:app_cabal/models/detalle_venta.dart';
 import 'package:app_cabal/models/producto.dart';
 import 'package:app_cabal/models/venta.dart';
+import 'package:app_cabal/providers/cierre_provider.dart';
 import 'package:app_cabal/providers/producto_provider.dart';
 import 'package:app_cabal/providers/tab_provider.dart';
 import 'package:app_cabal/providers/venta_provider.dart';
 import 'package:app_cabal/screens/catalogo_screen.dart';
+import 'package:app_cabal/services/cierre_service.dart';
 import 'package:app_cabal/services/producto_service.dart';
 import 'package:app_cabal/services/venta_service.dart';
 import 'package:flutter/material.dart';
@@ -44,7 +47,35 @@ class _FakeVentaService extends VentaService {
   ];
 }
 
-Future<ProviderContainer> _abrirApp(WidgetTester tester) async {
+class _FakeCierreService extends CierreService {
+  int lecturas = 0;
+
+  @override
+  Future<Cierre> calcularDia(DateTime dia) async {
+    lecturas++;
+    return Cierre(
+      dia: dia,
+      numeroVentas: 1,
+      total: 5,
+      productos: const [
+        CierreProducto(
+          productoId: 'p1',
+          nombre: 'Producto 01',
+          unidades: 1,
+          subtotal: 5,
+        ),
+      ],
+    );
+  }
+
+  @override
+  Future<Cierre?> obtenerCierre(DateTime dia) async => null;
+}
+
+Future<ProviderContainer> _abrirApp(
+  WidgetTester tester, {
+  CierreService? cierre,
+}) async {
   tester.view.physicalSize = const Size(800, 1600);
   tester.view.devicePixelRatio = 2.0;
   addTearDown(tester.view.reset);
@@ -53,6 +84,7 @@ Future<ProviderContainer> _abrirApp(WidgetTester tester) async {
     overrides: [
       productoServiceProvider.overrideWithValue(_FakeProductoService()),
       ventaServiceProvider.overrideWithValue(_FakeVentaService()),
+      cierreServiceProvider.overrideWithValue(cierre ?? _FakeCierreService()),
     ],
   );
 
@@ -93,7 +125,8 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.widgetWithText(AppBar, 'Cierre del día'), findsOneWidget);
-    expect(find.text('Próximamente'), findsOneWidget);
+    expect(find.text('Total del día'), findsOneWidget);
+    expect(find.text('Cerrar día'), findsOneWidget);
 
     await tester.tap(_destino('Catálogo'));
     await tester.pumpAndSettle();
@@ -146,5 +179,23 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.widgetWithText(AppBar, 'Ventas registradas'), findsOneWidget);
+  });
+
+  testWidgets('al entrar a la pestaña Cierre se vuelve a leer el día', (
+    tester,
+  ) async {
+    final cierre = _FakeCierreService();
+    await _abrirApp(tester, cierre: cierre);
+    final alAbrir = cierre.lecturas;
+
+    await tester.tap(_destino('Cierre'));
+    await tester.pumpAndSettle();
+
+    expect(cierre.lecturas, alAbrir + 1);
+
+    await tester.tap(_destino('Ventas'));
+    await tester.pumpAndSettle();
+
+    expect(cierre.lecturas, alAbrir + 1);
   });
 }
