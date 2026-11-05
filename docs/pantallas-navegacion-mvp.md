@@ -12,8 +12,9 @@ Alcance basado en el flujo principal descrito en el README de Cabal:
 movieron y cuáles no."**
 
 Solo se incluyen pantallas correspondientes a lo que **sí entra en M1**:
-login (confirmado con Arquitectura por seguridad), catálogo mínimo (nombre
-y precio), registro de venta, vista de cierre del día. No se incluyen
+pantalla de entrada (sin usuario ni contraseña, ver
+[`diseno-pantalla-entrada.md`](diseno-pantalla-entrada.md)), catálogo mínimo
+(nombre y precio), registro de venta, vista de cierre del día. No se incluyen
 pantallas de control de existencias, alertas de stock, caducidad, fiado,
 compras a proveedores, multiusuario ni código de barras, por estar
 explícitamente fuera de alcance.
@@ -22,7 +23,7 @@ explícitamente fuera de alcance.
 
 | # | Pantalla | Descripción breve |
 |---|---|---|
-| 1 | Login | Ingreso del tendero a la app, por seguridad (confirmado con Arquitectura) |
+| 1 | Entrada | Logo y nombre de Cabal animados; pasa sola a inicio. No hay usuario ni contraseña porque exigirían un servicio en la nube para registrarlos o reiniciarlos. La huella o el desbloqueo del teléfono se agregará después (pendiente) |
 | 2 | Catálogo / Home | Lista de productos (nombre y precio) |
 | 3 | Catálogo vacío | Estado especial cuando no hay productos cargados todavía |
 | 4 | Agregar/editar producto | Formulario mínimo: nombre y precio |
@@ -34,7 +35,7 @@ explícitamente fuera de alcance.
 
 ```mermaid
 flowchart TD
-    L[Login] -->|Ingresa credenciales validas| A{"Hay productos en el catalogo?"}
+    L[Entrada] -->|Termina la animacion o toca la pantalla| A{"Hay productos en el catalogo?"}
     A -->|No| B[Catalogo vacio]
     A -->|Si| C[Catalogo / Home]
 
