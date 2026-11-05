@@ -79,10 +79,14 @@ void _pantalla(WidgetTester tester) {
 
 Finder _confirmar() => find.widgetWithText(ElevatedButton, 'Confirmar venta');
 
-Finder _producto(String nombre) => find.descendant(
-  of: find.byType(ListView).first,
-  matching: find.text(nombre),
-);
+/// Agrega un producto a la venta como lo hace el catalogo: por el provider.
+Future<void> _agregar(WidgetTester tester, Producto producto) async {
+  final container = ProviderScope.containerOf(
+    tester.element(find.byType(RegistrarVentaScreen, skipOffstage: false)),
+  );
+  container.read(ventaProvider.notifier).agregarProducto(producto, 1);
+  await tester.pump();
+}
 
 void main() {
   group('con servicio simulado', () {
@@ -103,8 +107,8 @@ void main() {
       _pantalla(tester);
       await _abrir(tester, overrides);
 
-      await tester.tap(_producto('Coca Cola'));
-      await tester.tap(_producto('Pan dulce'));
+      await _agregar(tester, _cola);
+      await _agregar(tester, _pan);
       await tester.pumpAndSettle();
       await tester.tap(_confirmar());
       await tester.pumpAndSettle();
@@ -116,10 +120,7 @@ void main() {
       // Al volver a la pantalla de venta la selección está limpia.
       await tester.pageBack();
       await tester.pumpAndSettle();
-      expect(
-        find.text('Toca un producto para agregarlo a la venta'),
-        findsOneWidget,
-      );
+      expect(find.text('La venta está vacía'), findsOneWidget);
       expect(tester.widget<ElevatedButton>(_confirmar()).onPressed, isNull);
     });
 
@@ -129,7 +130,7 @@ void main() {
       servicio.espera = Completer<void>();
       await _abrir(tester, overrides);
 
-      await tester.tap(_producto('Coca Cola'));
+      await _agregar(tester, _cola);
       await tester.pumpAndSettle();
       await tester.tap(_confirmar());
       await tester.pump();
@@ -159,7 +160,7 @@ void main() {
         servicio.fallar = true;
         await _abrir(tester, overrides);
 
-        await tester.tap(_producto('Coca Cola'));
+        await _agregar(tester, _cola);
         await tester.pumpAndSettle();
         await tester.tap(_confirmar());
         await tester.pumpAndSettle();
@@ -188,7 +189,7 @@ void main() {
       _pantalla(tester);
       await _abrir(tester, overrides);
 
-      await tester.tap(_producto('Coca Cola'));
+      await _agregar(tester, _cola);
       await tester.pumpAndSettle();
       await tester.enterText(find.byType(TextField), '0');
       await tester.pumpAndSettle();
@@ -203,7 +204,7 @@ void main() {
       _pantalla(tester);
       await _abrir(tester, overrides);
 
-      await tester.tap(_producto('Coca Cola'));
+      await _agregar(tester, _cola);
       await tester.pumpAndSettle();
       await tester.tap(_confirmar());
       await tester.pumpAndSettle();
@@ -214,10 +215,7 @@ void main() {
 
       expect(find.text('Registrar venta'), findsOneWidget);
       expect(find.text('Q0.00'), findsOneWidget);
-      expect(
-        find.text('Toca un producto para agregarlo a la venta'),
-        findsOneWidget,
-      );
+      expect(find.text('La venta está vacía'), findsOneWidget);
       expect(tester.widget<ElevatedButton>(_confirmar()).onPressed, isNull);
     });
 
@@ -227,7 +225,7 @@ void main() {
       _pantalla(tester);
       await _abrir(tester, overrides);
 
-      await tester.tap(_producto('Coca Cola'));
+      await _agregar(tester, _cola);
       await tester.pumpAndSettle();
       await tester.tap(_confirmar());
       await tester.pumpAndSettle();
@@ -235,7 +233,7 @@ void main() {
       await tester.tap(find.text('Nueva venta'));
       await tester.pumpAndSettle();
 
-      await tester.tap(_producto('Pan dulce'));
+      await _agregar(tester, _pan);
       await tester.pumpAndSettle();
       await tester.tap(_confirmar());
       await tester.pumpAndSettle();
@@ -250,7 +248,7 @@ void main() {
       _pantalla(tester);
       await _abrir(tester, overrides);
 
-      await tester.tap(_producto('Coca Cola'));
+      await _agregar(tester, _cola);
       await tester.pumpAndSettle();
       await tester.tap(_confirmar());
       await tester.pumpAndSettle();
@@ -274,7 +272,7 @@ void main() {
       servicio.espera = Completer<void>();
       await _abrir(tester, overrides);
 
-      await tester.tap(_producto('Coca Cola'));
+      await _agregar(tester, _cola);
       await tester.pumpAndSettle();
       await tester.tap(_confirmar());
       await tester.pump();
@@ -293,7 +291,7 @@ void main() {
       _pantalla(tester);
       await _abrir(tester, overrides);
 
-      await tester.tap(_producto('Coca Cola'));
+      await _agregar(tester, _cola);
       await tester.pumpAndSettle();
       await tester.tap(_confirmar());
       await tester.pumpAndSettle();
@@ -314,7 +312,7 @@ void main() {
       servicio.fallar = true;
       await _abrir(tester, overrides);
 
-      await tester.tap(_producto('Coca Cola'));
+      await _agregar(tester, _cola);
       await tester.pumpAndSettle();
       await tester.tap(_confirmar());
       await tester.pumpAndSettle();
@@ -336,8 +334,8 @@ void main() {
         addTearDown(tester.view.reset);
         await _abrir(tester, overrides);
 
-        await tester.tap(_producto('Coca Cola'));
-        await tester.tap(_producto('Pan dulce'));
+        await _agregar(tester, _cola);
+        await _agregar(tester, _pan);
         await tester.pumpAndSettle();
         expect(tester.takeException(), isNull);
 
@@ -389,8 +387,8 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      await tester.tap(_producto('Coca Cola'));
-      await tester.tap(_producto('Pan dulce'));
+      await _agregar(tester, _cola);
+      await _agregar(tester, _pan);
       await tester.pumpAndSettle();
       await tester.enterText(find.byType(TextField).first, '3');
       await tester.pumpAndSettle();

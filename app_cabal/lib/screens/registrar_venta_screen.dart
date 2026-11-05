@@ -3,15 +3,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../constants/app_routes.dart';
 import '../models/detalle_venta.dart';
-import '../models/producto.dart';
-import '../providers/catalogo_provider.dart';
+import '../providers/tab_provider.dart';
 import '../providers/venta_provider.dart';
 import '../utils/moneda.dart';
 import '../validators/cantidad_validator.dart';
 
-/// Pantalla de registrar venta. Permite seleccionar productos del
-/// catalogo, editar sus cantidades, ver subtotales y total, y confirmar la
-/// venta. La venta en curso y su guardado viven en ventaProvider.
+/// Pantalla de registrar venta. Muestra solo lo que ya se agrego a la venta
+/// desde el catalogo: permite editar cantidades, ver subtotales y total, y
+/// confirmar la venta. La venta en curso y su guardado viven en
+/// ventaProvider.
 class RegistrarVentaScreen extends ConsumerStatefulWidget {
   const RegistrarVentaScreen({super.key});
 
@@ -25,14 +25,6 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
   final Set<String> _invalidos = {};
 
   VentaNotifier get _venta => ref.read(ventaProvider.notifier);
-
-  /// Agrega el producto a la venta. Si ya estaba, no se duplica: se suma
-  /// uno a su cantidad.
-  void _seleccionar(Producto producto) {
-    if (_venta.agregarProducto(producto, 1)) {
-      setState(() => _invalidos.remove(producto.id));
-    }
-  }
 
   void _establecerCantidad(String productoId, int cantidad) {
     if (_venta.establecerCantidad(productoId, cantidad)) {
@@ -59,7 +51,6 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final productos = ref.watch(productoProvider);
     final venta = ref.watch(ventaProvider);
 
     // Mientras se guarda no se permite salir de la pantalla, para que el
@@ -68,60 +59,20 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
       canPop: !venta.guardando,
       child: Scaffold(
         appBar: AppBar(title: const Text('Registrar venta')),
-        body: productos.isEmpty
-            ? const _SinProductos()
-            : Column(
-                children: [
-                  Expanded(
-                    child: IgnorePointer(
-                      ignoring: venta.guardando,
-                      child: _listaProductos(productos),
-                    ),
-                  ),
-                  const Divider(height: 1),
-                  Expanded(
-                    child: IgnorePointer(
+        body: Column(
+          children: [
+            Expanded(
+              child: venta.detalles.isEmpty
+                  ? const _VentaVacia()
+                  : IgnorePointer(
                       ignoring: venta.guardando,
                       child: _ventaActual(venta.detalles),
                     ),
-                  ),
-                  _resumen(venta),
-                ],
-              ),
+            ),
+            _resumen(venta),
+          ],
+        ),
       ),
-    );
-  }
-
-  Widget _listaProductos(List<Producto> productos) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Padding(
-          padding: EdgeInsets.fromLTRB(16, 12, 16, 4),
-          child: Text(
-            'Productos',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-          ),
-        ),
-        Expanded(
-          child: ListView.builder(
-            itemCount: productos.length,
-            itemBuilder: (context, index) {
-              final producto = productos[index];
-              return ListTile(
-                title: Text(
-                  producto.nombre,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                subtitle: Text(formatearQuetzales(producto.precio)),
-                trailing: const Icon(Icons.add_circle_outline),
-                onTap: () => _seleccionar(producto),
-              );
-            },
-          ),
-        ),
-      ],
     );
   }
 
@@ -137,29 +88,19 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
           ),
         ),
         Expanded(
-          child: seleccion.isEmpty
-              ? Center(
-                  child: Text(
-                    'Toca un producto para agregarlo a la venta',
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                )
-              : ListView.builder(
-                  itemCount: seleccion.length,
-                  itemBuilder: (context, index) {
-                    final detalle = seleccion[index];
-                    return _FilaDetalle(
-                      key: ValueKey(detalle.producto.id),
-                      detalle: detalle,
-                      onCantidad: (c) =>
-                          _establecerCantidad(detalle.producto.id, c),
-                      onInvalida: () => _marcarInvalido(detalle.producto.id),
-                      onEliminar: () => _eliminar(detalle.producto.id),
-                    );
-                  },
-                ),
+          child: ListView.builder(
+            itemCount: seleccion.length,
+            itemBuilder: (context, index) {
+              final detalle = seleccion[index];
+              return _FilaDetalle(
+                key: ValueKey(detalle.producto.id),
+                detalle: detalle,
+                onCantidad: (c) => _establecerCantidad(detalle.producto.id, c),
+                onInvalida: () => _marcarInvalido(detalle.producto.id),
+                onEliminar: () => _eliminar(detalle.producto.id),
+              );
+            },
+          ),
         ),
       ],
     );
@@ -371,11 +312,12 @@ class _FilaDetalleState extends State<_FilaDetalle> {
   }
 }
 
-class _SinProductos extends StatelessWidget {
-  const _SinProductos();
+/// Estado de la venta sin productos: invita a agregarlos desde el catalogo.
+class _VentaVacia extends ConsumerWidget {
+  const _VentaVacia();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24),
@@ -389,13 +331,13 @@ class _SinProductos extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              'No hay productos registrados',
+              'La venta está vacía',
               style: Theme.of(context).textTheme.headlineSmall,
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
             Text(
-              'Agrega productos al catálogo para registrar ventas.',
+              'Agrega productos desde el catálogo.',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
@@ -404,9 +346,9 @@ class _SinProductos extends StatelessWidget {
             const SizedBox(height: 24),
             ElevatedButton.icon(
               onPressed: () =>
-                  Navigator.of(context).pushNamed(AppRoutes.agregarProducto),
-              icon: const Icon(Icons.add),
-              label: const Text('Agregar producto'),
+                  ref.read(tabProvider.notifier).seleccionar(Pestana.catalogo),
+              icon: const Icon(Icons.storefront_outlined),
+              label: const Text('Ir al catálogo'),
             ),
           ],
         ),
