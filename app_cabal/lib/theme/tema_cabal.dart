@@ -121,24 +121,10 @@ ThemeData _crearTema() {
     textButtonTheme: TextButtonThemeData(
       style: TextButton.styleFrom(foregroundColor: ColoresCabal.verdeOscuro),
     ),
-    inputDecorationTheme: const InputDecorationTheme(
-      border: OutlineInputBorder(
-        borderSide: BorderSide(color: ColoresCabal.borde),
-      ),
-      enabledBorder: OutlineInputBorder(
-        borderSide: BorderSide(color: ColoresCabal.borde),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderSide: BorderSide(color: ColoresCabal.verdeOscuro, width: 2),
-      ),
-      errorBorder: OutlineInputBorder(
-        borderSide: BorderSide(color: ColoresCabal.error),
-      ),
-      focusedErrorBorder: OutlineInputBorder(
-        borderSide: BorderSide(color: ColoresCabal.error, width: 2),
-      ),
-      floatingLabelStyle: TextStyle(color: ColoresCabal.verdeOscuro),
-    ),
+    // Los campos de texto no llevan tema propio: con este ColorScheme el borde
+    // sale de `outline`, el foco y la etiqueta de `primary` y los errores de
+    // `error`, que es lo que se busca. Un tema fijo pintaria la etiqueta de
+    // verde incluso en un campo con error.
     cardTheme: CardThemeData(
       color: blanco,
       elevation: 0,
