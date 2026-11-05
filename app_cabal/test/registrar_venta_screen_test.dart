@@ -1,6 +1,7 @@
 import 'package:app_cabal/models/detalle_venta.dart';
 import 'package:app_cabal/models/producto.dart';
 import 'package:app_cabal/providers/producto_provider.dart';
+import 'package:app_cabal/providers/tab_provider.dart';
 import 'package:app_cabal/providers/venta_provider.dart';
 import 'package:app_cabal/screens/registrar_venta_screen.dart';
 import 'package:app_cabal/services/producto_service.dart';
@@ -10,15 +11,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+/// Catalogo con tres productos; la pantalla de venta no debe listarlos.
 class _FakeProductoService extends ProductoService {
-  final List<Producto> items;
-  _FakeProductoService(this.items);
-
   @override
-  Future<List<Producto>> obtenerProductos() async => [...items];
+  Future<List<Producto>> obtenerProductos() async => const [_cola, _pan, _agua];
 }
 
-Future<void> _abrir(WidgetTester tester, List<Producto> productos) async {
+Future<void> _abrir(WidgetTester tester) async {
   tester.view.physicalSize = const Size(800, 1600);
   tester.view.devicePixelRatio = 2.0;
   addTearDown(tester.view.reset);
@@ -26,9 +25,7 @@ Future<void> _abrir(WidgetTester tester, List<Producto> productos) async {
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
-        productoServiceProvider.overrideWithValue(
-          _FakeProductoService(productos),
-        ),
+        productoServiceProvider.overrideWithValue(_FakeProductoService()),
       ],
       child: const MaterialApp(home: RegistrarVentaScreen()),
     ),
@@ -36,17 +33,25 @@ Future<void> _abrir(WidgetTester tester, List<Producto> productos) async {
   await tester.pumpAndSettle();
 }
 
+/// Agrega un producto a la venta como lo hace el catalogo: por el provider.
+Future<void> _agregar(
+  WidgetTester tester,
+  Producto producto, [
+  int cantidad = 1,
+]) async {
+  final container = ProviderScope.containerOf(
+    tester.element(find.byType(RegistrarVentaScreen)),
+  );
+  container.read(ventaProvider.notifier).agregarProducto(producto, cantidad);
+  await tester.pumpAndSettle();
+}
+
 const _cola = Producto(id: '1', nombre: 'Coca Cola', precio: 10.5);
 const _pan = Producto(id: '2', nombre: 'Pan dulce', precio: 2.5);
 const _agua = Producto(id: '3', nombre: 'Agua pura', precio: 8);
 
-Finder _enProductos(String texto) => find.descendant(
-  of: find.byType(ListView).first,
-  matching: find.text(texto),
-);
-
 Finder _enVenta(String texto) =>
-    find.descendant(of: find.byType(ListView).last, matching: find.text(texto));
+    find.descendant(of: find.byType(ListView), matching: find.text(texto));
 
 Finder _confirmar() => find.widgetWithText(ElevatedButton, 'Confirmar venta');
 
@@ -63,39 +68,56 @@ Finder _total(String texto) =>
 
 void main() {
   group('selección de productos', () {
-    testWidgets('sin productos muestra mensaje para agregar al catálogo', (
+    testWidgets('venta vacía muestra mensaje para agregar desde el catálogo', (
       tester,
     ) async {
-      await _abrir(tester, []);
+      await _abrir(tester);
 
-      expect(find.text('No hay productos registrados'), findsOneWidget);
+      expect(find.text('La venta está vacía'), findsOneWidget);
       expect(
-        find.textContaining('Agrega productos al catálogo'),
+        find.textContaining('Agrega productos desde el catálogo'),
         findsOneWidget,
       );
+      expect(find.text('Ir al catálogo'), findsOneWidget);
       expect(find.text('Venta actual'), findsNothing);
     });
 
-    testWidgets('muestra nombre y precio en quetzales de cada producto', (
+    testWidgets('Ir al catálogo cambia a la pestaña del catálogo', (
       tester,
     ) async {
-      await _abrir(tester, [_cola, _pan, _agua]);
+      await _abrir(tester);
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(RegistrarVentaScreen)),
+      );
+      container.read(tabProvider.notifier).seleccionar(Pestana.vender);
 
+      await tester.tap(find.text('Ir al catálogo'));
+      await tester.pump();
+
+      expect(container.read(tabProvider), Pestana.catalogo);
+    });
+
+    testWidgets('solo muestra los productos agregados, no todo el catálogo', (
+      tester,
+    ) async {
+      await _abrir(tester);
+      await _agregar(tester, _cola);
+
+      expect(find.text('Venta actual'), findsOneWidget);
+      expect(find.text('Productos'), findsNothing);
       expect(find.text('Coca Cola'), findsOneWidget);
-      expect(find.text('Q10.50'), findsOneWidget);
-      expect(find.text('Pan dulce'), findsOneWidget);
-      expect(find.text('Q2.50'), findsOneWidget);
-      expect(find.text('Agua pura'), findsOneWidget);
-      expect(find.text('Q8.00'), findsOneWidget);
+      expect(find.text('Pan dulce'), findsNothing);
+      expect(find.text('Agua pura'), findsNothing);
+      expect(find.text('La venta está vacía'), findsNothing);
     });
 
     testWidgets('seleccionar varios productos los agrega a la venta actual', (
       tester,
     ) async {
-      await _abrir(tester, [_cola, _pan, _agua]);
+      await _abrir(tester);
 
-      await tester.tap(_enProductos('Coca Cola'));
-      await tester.tap(_enProductos('Pan dulce'));
+      await _agregar(tester, _cola);
+      await _agregar(tester, _pan);
       await tester.pumpAndSettle();
 
       expect(_enVenta('Coca Cola'), findsOneWidget);
@@ -106,11 +128,11 @@ void main() {
     testWidgets('volver a seleccionar un producto actualiza su cantidad', (
       tester,
     ) async {
-      await _abrir(tester, [_cola, _pan]);
+      await _abrir(tester);
 
-      await tester.tap(_enProductos('Coca Cola'));
-      await tester.tap(_enProductos('Coca Cola'));
-      await tester.tap(_enProductos('Coca Cola'));
+      await _agregar(tester, _cola);
+      await _agregar(tester, _cola);
+      await _agregar(tester, _cola);
       await tester.pumpAndSettle();
 
       expect(_enVenta('Coca Cola'), findsOneWidget);
@@ -120,10 +142,10 @@ void main() {
     testWidgets('se puede eliminar un producto de la selección', (
       tester,
     ) async {
-      await _abrir(tester, [_cola, _pan]);
+      await _abrir(tester);
 
-      await tester.tap(_enProductos('Coca Cola'));
-      await tester.tap(_enProductos('Pan dulce'));
+      await _agregar(tester, _cola);
+      await _agregar(tester, _pan);
       await tester.pumpAndSettle();
 
       await tester.tap(find.byTooltip('Eliminar de la venta').first);
@@ -138,9 +160,9 @@ void main() {
     testWidgets('los botones +/- ajustan la cantidad y no bajan de 1', (
       tester,
     ) async {
-      await _abrir(tester, [_cola]);
+      await _abrir(tester);
 
-      await tester.tap(_enProductos('Coca Cola'));
+      await _agregar(tester, _cola);
       await tester.pumpAndSettle();
 
       final menos = find.widgetWithIcon(
@@ -159,8 +181,8 @@ void main() {
     });
 
     testWidgets('se puede escribir una cantidad válida', (tester) async {
-      await _abrir(tester, [_cola]);
-      await tester.tap(_enProductos('Coca Cola'));
+      await _abrir(tester);
+      await _agregar(tester, _cola);
       await tester.pumpAndSettle();
 
       await tester.enterText(_campoCantidad(0), '25');
@@ -180,8 +202,8 @@ void main() {
       testWidgets('cantidad "${caso.key}" muestra error y bloquea confirmar', (
         tester,
       ) async {
-        await _abrir(tester, [_cola]);
-        await tester.tap(_enProductos('Coca Cola'));
+        await _abrir(tester);
+        await _agregar(tester, _cola);
         await tester.pumpAndSettle();
 
         await tester.enterText(_campoCantidad(0), caso.key);
@@ -201,9 +223,9 @@ void main() {
     testWidgets('una cantidad inválida en un producto bloquea toda la venta', (
       tester,
     ) async {
-      await _abrir(tester, [_cola, _pan]);
-      await tester.tap(_enProductos('Coca Cola'));
-      await tester.tap(_enProductos('Pan dulce'));
+      await _abrir(tester);
+      await _agregar(tester, _cola);
+      await _agregar(tester, _pan);
       await tester.pumpAndSettle();
 
       await tester.enterText(_campoCantidad(1), '0');
@@ -219,11 +241,11 @@ void main() {
     testWidgets('confirmar está deshabilitado mientras la venta está vacía', (
       tester,
     ) async {
-      await _abrir(tester, [_cola]);
+      await _abrir(tester);
 
       expect(_confirmarHabilitado(tester), isFalse);
 
-      await tester.tap(_enProductos('Coca Cola'));
+      await _agregar(tester, _cola);
       await tester.pumpAndSettle();
       expect(_confirmarHabilitado(tester), isTrue);
 
@@ -235,7 +257,7 @@ void main() {
 
   group('subtotales y total', () {
     testWidgets('venta vacía muestra total Q0.00', (tester) async {
-      await _abrir(tester, [_cola]);
+      await _abrir(tester);
 
       expect(_total('Q0.00'), findsOneWidget);
     });
@@ -243,10 +265,10 @@ void main() {
     testWidgets('calcula subtotales y total con varios productos', (
       tester,
     ) async {
-      await _abrir(tester, [_cola, _pan, _agua]);
+      await _abrir(tester);
 
-      await tester.tap(_enProductos('Coca Cola'));
-      await tester.tap(_enProductos('Pan dulce'));
+      await _agregar(tester, _cola);
+      await _agregar(tester, _pan);
       await tester.pumpAndSettle();
       await tester.enterText(_campoCantidad(0), '2');
       await tester.enterText(_campoCantidad(1), '3');
@@ -260,13 +282,13 @@ void main() {
     testWidgets('el total se actualiza al agregar, modificar y eliminar', (
       tester,
     ) async {
-      await _abrir(tester, [_cola, _pan]);
+      await _abrir(tester);
 
-      await tester.tap(_enProductos('Coca Cola'));
+      await _agregar(tester, _cola);
       await tester.pumpAndSettle();
       expect(_total('Q10.50'), findsWidgets);
 
-      await tester.tap(_enProductos('Pan dulce'));
+      await _agregar(tester, _pan);
       await tester.pumpAndSettle();
       expect(_total('Q13.00'), findsOneWidget);
 
@@ -283,11 +305,11 @@ void main() {
       const a = Producto(id: 'a', nombre: 'A', precio: 0.1);
       const b = Producto(id: 'b', nombre: 'B', precio: 0.2);
       const c = Producto(id: 'c', nombre: 'C', precio: 0.3);
-      await _abrir(tester, [a, b, c]);
+      await _abrir(tester);
 
-      await tester.tap(_enProductos('A'));
-      await tester.tap(_enProductos('B'));
-      await tester.tap(_enProductos('C'));
+      await _agregar(tester, a);
+      await _agregar(tester, b);
+      await _agregar(tester, c);
       await tester.pumpAndSettle();
 
       expect(_total('Q0.60'), findsOneWidget);
