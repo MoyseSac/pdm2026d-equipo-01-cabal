@@ -64,7 +64,7 @@ Notas de la ejecución:
 | P1 | App corriendo desde la rama a probar (`flutter run` desde `app_cabal/`) en Android, o en Windows de escritorio con `sqflite_common_ffi` (ver nota de `evidencia-m2`). |
 | P2 | Instalación limpia (desinstalar o borrar datos) antes de empezar. |
 | P3 | Cargar estos productos desde "Agregar producto": `Coca Cola` Q10.50, `Pan dulce` Q2.50, `Agua pura` Q8.00, `Chicle` Q0.10, `Galleta` Q0.20, `Dulce` Q0.30, `Aceite` Q19.99. |
-| P4 | Flujo de entrada: Login (placeholder) → "Ingresar (placeholder)" → Catálogo → "Probar registrar venta" (o tocar una tarjeta de producto) → Registrar venta. |
+| P4 | Flujo de entrada: pantalla de entrada (animación de unos 2 s, o tocar la pantalla para saltarla) → Catálogo → "Probar registrar venta" (o tocar una tarjeta de producto) → Registrar venta. |
 
 ### Cómo verificar lo guardado
 

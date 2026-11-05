@@ -18,7 +18,7 @@ que se definió como criterio de aceptación, sin improvisar.
 |---|---|
 | P1 | App compilada y corriendo desde la rama del PR (`flutter run`) en emulador o dispositivo. |
 | P2 | Para las pruebas de catálogo vacío: instalación limpia (desinstalar la app o borrar datos) para que la base SQLite no tenga productos. |
-| P3 | Flujo de entrada: Login (placeholder) → botón "Ingresar" → Catálogo. |
+| P3 | Flujo de entrada: pantalla de entrada (animación de unos 2 s, o tocar la pantalla para saltarla) → Catálogo, sin botón intermedio. |
 
 ## Reglas de validación (referencia)
 

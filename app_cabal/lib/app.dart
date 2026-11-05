@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'constants/app_routes.dart';
 import 'models/producto.dart';
-import 'screens/login_screen.dart';
+import 'screens/entrada_screen.dart';
 import 'screens/home_shell.dart';
 import 'widgets/formulario_producto_conectado.dart';
 import 'screens/confirmacion_venta_screen.dart';
@@ -20,9 +20,9 @@ class CabalApp extends StatelessWidget {
     return MaterialApp(
       title: 'Cabal',
       debugShowCheckedModeBanner: false,
-      initialRoute: AppRoutes.login,
+      initialRoute: AppRoutes.entrada,
       routes: {
-        AppRoutes.login: (context) => const LoginScreen(),
+        AppRoutes.entrada: (context) => const EntradaScreen(),
         AppRoutes.inicio: (context) => const HomeShell(),
         AppRoutes.agregarProducto: (context) =>
             const FormularioProductoConectado(),

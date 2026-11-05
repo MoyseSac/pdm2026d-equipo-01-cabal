@@ -5,7 +5,7 @@
 class AppRoutes {
   AppRoutes._();
 
-  static const String login = '/';
+  static const String entrada = '/';
   static const String inicio = '/inicio';
   static const String catalogo = '/catalogo';
   static const String agregarProducto = '/agregar-producto';

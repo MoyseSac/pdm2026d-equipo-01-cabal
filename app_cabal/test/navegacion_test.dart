@@ -62,7 +62,6 @@ Future<ProviderContainer> _abrirApp(WidgetTester tester) async {
     UncontrolledProviderScope(container: container, child: const CabalApp()),
   );
 
-  await tester.tap(find.text('Ingresar (placeholder)'));
   await tester.pumpAndSettle();
 
   return container;
