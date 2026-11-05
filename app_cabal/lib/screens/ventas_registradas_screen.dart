@@ -50,10 +50,10 @@ class VentasRegistradasScreen extends ConsumerWidget {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.error_outline,
                         size: 48,
-                        color: Colors.redAccent,
+                        color: Theme.of(context).colorScheme.error,
                       ),
                       const SizedBox(height: 16),
                       const Text(
@@ -186,7 +186,11 @@ class _SinVentasPeriodo extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.filter_list_off, size: 64, color: Colors.grey[400]),
+            Icon(
+              Icons.filter_list_off,
+              size: 64,
+              color: Theme.of(context).colorScheme.outline,
+            ),
             const SizedBox(height: 16),
             Text(
               'No hay ventas en este período',
@@ -197,9 +201,9 @@ class _SinVentasPeriodo extends StatelessWidget {
             Text(
               'Prueba seleccionando otro período '
               'para consultar tus ventas.',
-              style: Theme.of(
-                context,
-              ).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
@@ -232,7 +236,7 @@ class _SinVentas extends StatelessWidget {
             Icon(
               Icons.receipt_long_outlined,
               size: 64,
-              color: Colors.grey[400],
+              color: Theme.of(context).colorScheme.outline,
             ),
             const SizedBox(height: 16),
             Text(
@@ -243,9 +247,9 @@ class _SinVentas extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               'Las ventas que registres aparecerán aquí.',
-              style: Theme.of(
-                context,
-              ).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),

@@ -19,28 +19,29 @@ class ProductoImagenWidget extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final colores = Theme.of(context).colorScheme;
     return Container(
       width: size,
       height: size,
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
-        color: Colors.grey[300],
+        color: colores.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(8),
       ),
       child: switch (imagen) {
         FotoElegida(:final archivo) => _foto(context, ref, archivo),
         IconoElegido(:final clave) => _icono(
           iconosProducto[clave]?.icono ?? iconoProductoGenerico,
-          Colors.blueGrey[700],
+          colores.onSurfaceVariant,
         ),
-        SinImagen() => _generico(),
+        SinImagen() => _generico(colores),
       },
     );
   }
 
   Widget _foto(BuildContext context, WidgetRef ref, String archivo) {
     final carpeta = ref.watch(carpetaImagenesProvider).valueOrNull;
-    if (carpeta == null) return _generico();
+    if (carpeta == null) return _generico(Theme.of(context).colorScheme);
 
     return Image.file(
       File(p.join(carpeta.path, archivo)),
@@ -48,12 +49,13 @@ class ProductoImagenWidget extends ConsumerWidget {
       height: size,
       fit: BoxFit.cover,
       cacheWidth: (size * MediaQuery.devicePixelRatioOf(context)).round(),
-      errorBuilder: (_, _, _) => _generico(),
+      errorBuilder: (_, _, _) => _generico(Theme.of(context).colorScheme),
     );
   }
 
-  Widget _generico() => _icono(iconoProductoGenerico, Colors.grey);
+  Widget _generico(ColorScheme colores) =>
+      _icono(iconoProductoGenerico, colores.onSurfaceVariant);
 
-  Widget _icono(IconData icono, Color? color) =>
+  Widget _icono(IconData icono, Color color) =>
       Icon(icono, color: color, size: size * 0.55);
 }

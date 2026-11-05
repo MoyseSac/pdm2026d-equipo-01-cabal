@@ -141,7 +141,9 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
               ? Center(
                   child: Text(
                     'Toca un producto para agregarlo a la venta',
-                    style: TextStyle(color: Colors.grey[600]),
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
                   ),
                 )
               : ListView.builder(
@@ -194,7 +196,7 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
               padding: const EdgeInsets.only(top: 8),
               child: Text(
                 venta.mensajeError!,
-                style: const TextStyle(color: Colors.red),
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
                 textAlign: TextAlign.center,
               ),
             ),
@@ -307,7 +309,9 @@ class _FilaDetalleState extends State<_FilaDetalle> {
                     ),
                     Text(
                       formatearQuetzales(detalle.precioAlMomento),
-                      style: TextStyle(color: Colors.grey[600]),
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
                     ),
                     Text(
                       'Subtotal: ${formatearQuetzales(subtotalDe(detalle))}',
@@ -332,8 +336,10 @@ class _FilaDetalleState extends State<_FilaDetalle> {
                     border: const OutlineInputBorder(),
                     enabledBorder: _error == null
                         ? null
-                        : const OutlineInputBorder(
-                            borderSide: BorderSide(color: Colors.red),
+                        : OutlineInputBorder(
+                            borderSide: BorderSide(
+                              color: Theme.of(context).colorScheme.error,
+                            ),
                           ),
                   ),
                   onChanged: _alEscribir,
@@ -354,7 +360,10 @@ class _FilaDetalleState extends State<_FilaDetalle> {
           if (_error != null)
             Text(
               _error!,
-              style: const TextStyle(color: Colors.red, fontSize: 12),
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.error,
+                fontSize: 12,
+              ),
             ),
         ],
       ),
@@ -376,7 +385,7 @@ class _SinProductos extends StatelessWidget {
             Icon(
               Icons.shopping_cart_outlined,
               size: 64,
-              color: Colors.grey[400],
+              color: Theme.of(context).colorScheme.outline,
             ),
             const SizedBox(height: 16),
             Text(
@@ -387,9 +396,9 @@ class _SinProductos extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               'Agrega productos al catálogo para registrar ventas.',
-              style: Theme.of(
-                context,
-              ).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),

@@ -186,7 +186,7 @@ class _AgregarProductoScreenState extends State<AgregarProductoScreen> {
                   ? e.toString()
                   : 'Error al guardar: $e',
             ),
-            backgroundColor: Colors.red,
+            backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
       }

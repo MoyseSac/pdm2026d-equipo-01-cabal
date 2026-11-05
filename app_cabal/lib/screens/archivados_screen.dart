@@ -49,7 +49,7 @@ class ArchivadosScreen extends ConsumerWidget {
                     Icon(
                       Icons.inventory_2_outlined,
                       size: 64,
-                      color: Colors.grey[400],
+                      color: Theme.of(context).colorScheme.outline,
                     ),
                     const SizedBox(height: 16),
                     const Text(

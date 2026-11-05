@@ -22,4 +22,25 @@ class ColoresCabal {
 
   /// Texto secundario sobre [fondoClaro] (contraste 6.23).
   static const Color textoSuave = Color(0xFF4B5F6B);
+
+  // Colores que la paleta aprobada no traia y que el tema necesita. Se
+  // eligieron con el mismo criterio: contraste calculado, no a ojo.
+
+  /// Errores y borrar. Blanco sobre este rojo da 6.54; sobre [fondoClaro], 6.11.
+  static const Color error = Color(0xFFB3261E);
+
+  /// Fondo suave verdoso (indicador de la barra de navegacion). Texto
+  /// [marino] encima da 13.49. No poner [verdeOscuro] encima: da 4.24.
+  static const Color mentaClaro = Color(0xFFD3F5E6);
+
+  /// Bordes de campos y botones, e iconos apagados. Contraste 3.51 sobre
+  /// [fondoClaro] y 3.76 sobre blanco (el minimo para elementos de interfaz es 3).
+  static const Color borde = Color(0xFF738884);
+
+  /// Borde decorativo de tarjetas y divisores. No lleva informacion, por eso
+  /// no necesita el contraste de [borde].
+  static const Color bordeSuave = Color(0xFFD5E0DD);
+
+  /// Fondo de la imagen generica de un producto. [textoSuave] encima da 5.50.
+  static const Color superficieTenue = Color(0xFFE3EBE8);
 }
