@@ -16,7 +16,11 @@ class ProximamenteScreen extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.construction, size: 64, color: Colors.grey[400]),
+              Icon(
+                Icons.construction,
+                size: 64,
+                color: Theme.of(context).colorScheme.outline,
+              ),
               const SizedBox(height: 16),
               Text(
                 'Próximamente',
@@ -26,9 +30,9 @@ class ProximamenteScreen extends StatelessWidget {
               const SizedBox(height: 8),
               Text(
                 'Esta sección todavía está en construcción.',
-                style: Theme.of(
-                  context,
-                ).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
                 textAlign: TextAlign.center,
               ),
             ],

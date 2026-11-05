@@ -65,14 +65,18 @@ class _CantidadProductoSheetState extends State<CantidadProductoSheet> {
             const SizedBox(height: 4),
             Text(
               formatearQuetzales(producto.precio),
-              style: TextStyle(color: Colors.grey[600]),
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
             ),
             if (widget.yaEnVenta > 0)
               Padding(
                 padding: const EdgeInsets.only(top: 4),
                 child: Text(
                   'Ya en la venta: ${widget.yaEnVenta}',
-                  style: TextStyle(color: Colors.grey[600]),
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
                 ),
               ),
             const SizedBox(height: 16),
