@@ -129,15 +129,16 @@ void main() {
       );
     });
 
-    test('los vendidos van de mas a menos unidades', () async {
+    test('los vendidos van de mayor a menor monto, no de unidades', () async {
       await vender('v1', DateTime(2026, 10, 26, 9), [
-        (_pan, 1, 2.5),
-        (_cola, 4, 10.5),
+        (_cola, 1, 10.5),
+        (_pan, 5, 2.5),
       ]);
 
       final cierre = await servicio.calcularDia(_hoy);
 
-      expect(cierre.productos.map((p) => p.productoId), ['cola', 'pan']);
+      // El pan salio mas veces (5), pero la cola dejo mas dinero.
+      expect(cierre.productos.map((p) => p.productoId), ['pan', 'cola']);
     });
 
     test('el total en SQL coincide con totalDe: 0.10 + 0.20 + 0.30', () async {
@@ -198,7 +199,7 @@ void main() {
 
       final cierre = await servicio.calcularDia(_hoy);
 
-      expect(cierre.productos.map((p) => p.nombre), ['Pan dulce', 'Leche']);
+      expect(cierre.productos.map((p) => p.nombre), ['Leche', 'Pan dulce']);
       expect(cierre.total, 14.0);
     });
 

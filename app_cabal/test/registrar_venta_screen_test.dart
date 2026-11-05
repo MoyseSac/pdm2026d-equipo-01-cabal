@@ -342,7 +342,10 @@ void main() {
       expect(formatearQuetzales(5), 'Q5.00');
       expect(formatearQuetzales(10.5), 'Q10.50');
       expect(formatearQuetzales(28.5), 'Q28.50');
-      expect(formatearQuetzales(1234.567), 'Q1234.57');
+      expect(formatearQuetzales(1234.567), 'Q1,234.57');
+      expect(formatearQuetzales(999.99), 'Q999.99');
+      expect(formatearQuetzales(1000), 'Q1,000.00');
+      expect(formatearQuetzales(1234567.5), 'Q1,234,567.50');
     });
 
     test('CantidadValidator sigue las reglas de negocio', () {

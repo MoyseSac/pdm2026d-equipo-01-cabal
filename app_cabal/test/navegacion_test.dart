@@ -125,7 +125,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.widgetWithText(AppBar, 'Cierre del día'), findsOneWidget);
-    expect(find.text('Total del día'), findsOneWidget);
+    expect(find.text('TOTAL DEL DÍA'), findsOneWidget);
     expect(find.text('Cerrar día'), findsOneWidget);
 
     await tester.tap(_destino('Catálogo'));
