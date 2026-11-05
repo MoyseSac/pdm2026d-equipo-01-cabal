@@ -22,6 +22,42 @@ class CierreDiaScreen extends ConsumerStatefulWidget {
 class _CierreDiaScreenState extends ConsumerState<CierreDiaScreen> {
   bool _cerrando = false;
 
+  /// Cerrar el dia guarda el cierre (y puede reemplazar uno anterior), asi que
+  /// primero se pide confirmacion: un toque sin querer no lo cierra.
+  Future<void> _pedirConfirmacion(CierreHoy hoy) async {
+    if (_cerrando) return;
+
+    final ventas = hoy.enVivo.numeroVentas;
+    final resumen =
+        'Se guardará el cierre de hoy con '
+        '${ventas == 1 ? '1 venta' : '$ventas ventas'} '
+        'y un total de ${formatearQuetzales(hoy.enVivo.total)}.';
+
+    final confirmado = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(
+          hoy.cerrado ? '¿Volver a cerrar el día?' : '¿Cerrar el día?',
+        ),
+        content: Text(
+          hoy.cerrado ? '$resumen Reemplaza el cierre anterior.' : resumen,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancelar'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Sí, cerrar'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmado == true && mounted) await _cerrar();
+  }
+
   Future<void> _cerrar() async {
     if (_cerrando) return;
     setState(() => _cerrando = true);
@@ -54,7 +90,7 @@ class _CierreDiaScreenState extends ConsumerState<CierreDiaScreen> {
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
                 child: FilledButton(
-                  onPressed: _cerrando ? null : _cerrar,
+                  onPressed: _cerrando ? null : () => _pedirConfirmacion(hoy),
                   child: _cerrando
                       ? const SizedBox(
                           width: 20,

@@ -105,6 +105,14 @@ Future<ProviderContainer> _abrir(
   return container;
 }
 
+/// Toca el boton y confirma en el dialogo.
+Future<void> _cerrarYConfirmar(WidgetTester tester, String boton) async {
+  await tester.tap(find.text(boton));
+  await tester.pumpAndSettle();
+  await tester.tap(find.text('Sí, cerrar'));
+  await tester.pumpAndSettle();
+}
+
 _FakeCierreService _conVentas() => _FakeCierreService(
   numeroVentas: 2,
   total: 34.0,
@@ -212,8 +220,7 @@ void main() {
     await _abrir(tester, servicio);
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Cerrar día'));
-    await tester.pumpAndSettle();
+    await _cerrarYConfirmar(tester, 'Cerrar día');
 
     expect(servicio.cierres, 1);
     expect(servicio.guardado, isNotNull);
@@ -223,6 +230,72 @@ void main() {
     expect(find.text('Q34.00'), findsOneWidget);
   });
 
+  testWidgets('tocar Cerrar día pide confirmar y no guarda hasta aceptar', (
+    tester,
+  ) async {
+    final servicio = _conVentas();
+    await _abrir(tester, servicio);
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Cerrar día'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('¿Cerrar el día?'), findsOneWidget);
+    expect(
+      find.text(
+        'Se guardará el cierre de hoy con 2 ventas y un total de Q34.00.',
+      ),
+      findsOneWidget,
+    );
+    expect(servicio.cierres, 0);
+  });
+
+  testWidgets('cancelar la confirmación no cierra el día', (tester) async {
+    final servicio = _conVentas();
+    await _abrir(tester, servicio);
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Cerrar día'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Cancelar'));
+    await tester.pumpAndSettle();
+
+    expect(servicio.cierres, 0);
+    expect(servicio.guardado, isNull);
+    expect(find.text('¿Cerrar el día?'), findsNothing);
+    expect(find.text('Cerrar día'), findsOneWidget);
+  });
+
+  testWidgets('volver a cerrar avisa que reemplaza el cierre anterior', (
+    tester,
+  ) async {
+    final servicio = _FakeCierreService(
+      numeroVentas: 3,
+      total: 40.0,
+      productos: const [_cola, _pan],
+      guardado: Cierre(
+        id: 'c0',
+        dia: DateTime(2026, 10, 26),
+        cerradoEn: DateTime(2026, 10, 26, 17),
+        numeroVentas: 2,
+        total: 34.0,
+        productos: const [_cola, _pan],
+      ),
+    );
+    await _abrir(tester, servicio);
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Volver a cerrar'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('¿Volver a cerrar el día?'), findsOneWidget);
+    expect(
+      find.textContaining('Reemplaza el cierre anterior.'),
+      findsOneWidget,
+    );
+    expect(servicio.cierres, 0);
+  });
+
   testWidgets('si falla al cerrar avisa y deja intentar de nuevo', (
     tester,
   ) async {
@@ -230,15 +303,13 @@ void main() {
     await _abrir(tester, servicio);
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Cerrar día'));
-    await tester.pumpAndSettle();
+    await _cerrarYConfirmar(tester, 'Cerrar día');
 
     expect(find.text(mensajeErrorCierre), findsOneWidget);
     expect(find.text('Cerrar día'), findsOneWidget);
 
     servicio.fallarAlCerrar = false;
-    await tester.tap(find.text('Cerrar día'));
-    await tester.pumpAndSettle();
+    await _cerrarYConfirmar(tester, 'Cerrar día');
 
     expect(servicio.cierres, 1);
     expect(find.text('Día cerrado el 26/10/2026 18:30.'), findsOneWidget);
@@ -293,8 +364,7 @@ void main() {
     expect(find.text('Q40.00'), findsOneWidget);
     expect(find.text('3 ventas'), findsOneWidget);
 
-    await tester.tap(find.text('Volver a cerrar'));
-    await tester.pumpAndSettle();
+    await _cerrarYConfirmar(tester, 'Volver a cerrar');
 
     expect(servicio.cierres, 1);
     expect(servicio.guardado!.numeroVentas, 3);
