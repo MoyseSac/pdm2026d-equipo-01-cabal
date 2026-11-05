@@ -7,7 +7,7 @@ import '../constants/colores_cabal.dart';
 /// [animacion] va de 0 a 1 (en la pantalla de entrada es el mismo
 /// controller que anima el logo). La letra i empieza en
 /// `inicio + i * escalon` y dura [duracionLetra], todo como fraccion de
-/// [animacion]. Con los valores por defecto la ultima letra termina en 0.92.
+/// [animacion]. Con los valores por defecto la ultima letra termina en 0.88.
 /// La ultima letra (la L) usa [colorUltima].
 class PalabraCabal extends StatelessWidget {
   const PalabraCabal({
@@ -16,9 +16,9 @@ class PalabraCabal extends StatelessWidget {
     this.tamano = 40,
     this.color = const Color(0xFFFFFFFF),
     this.colorUltima = ColoresCabal.menta,
-    this.inicio = 0.42,
+    this.inicio = 0.40,
     this.escalon = 0.07,
-    this.duracionLetra = 0.22,
+    this.duracionLetra = 0.20,
   });
 
   /// Palabra ya completa, sin animar.

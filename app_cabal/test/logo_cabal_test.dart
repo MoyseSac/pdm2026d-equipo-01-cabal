@@ -95,8 +95,8 @@ void main() {
     });
 
     testWidgets('las letras aparecen una despues de otra', (tester) async {
-      // Con los tiempos por defecto la C ocupa 0.42-0.64 y la L 0.70-0.92:
-      // en 0.60 la C ya va casi completa y la L todavia no empieza.
+      // Con los tiempos por defecto la C ocupa 0.40-0.60 y la L 0.68-0.88:
+      // en 0.60 la C ya esta completa y la L todavia no empieza.
       await tester.pumpWidget(
         _envolver(const PalabraCabal(animacion: AlwaysStoppedAnimation(0.6))),
       );

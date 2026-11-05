@@ -87,7 +87,6 @@ Future<void> _abrirVentas(
       child: const CabalApp(),
     ),
   );
-  await tester.tap(find.text('Ingresar (placeholder)'));
   await tester.pumpAndSettle();
   await tester.tap(
     find.descendant(
