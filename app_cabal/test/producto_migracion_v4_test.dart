@@ -90,10 +90,10 @@ void main() {
     carpeta.deleteSync(recursive: true);
   });
 
-  test('abrir una base v3 la sube a la version 4', () async {
+  test('abrir una base v3 la sube a la version actual (5)', () async {
     final db = await DatabaseService.instance.database;
 
-    expect(await db.getVersion(), 4);
+    expect(await db.getVersion(), 5);
   });
 
   test('los productos y sus datos siguen despues de migrar', () async {

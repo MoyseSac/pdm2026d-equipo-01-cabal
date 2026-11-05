@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../providers/cierre_provider.dart';
 import '../providers/tab_provider.dart';
 import '../providers/venta_provider.dart';
 import '../providers/ventas_registradas_provider.dart';
 import 'catalogo_screen.dart';
-import 'proximamente_screen.dart';
+import 'cierre_dia_screen.dart';
 import 'registrar_venta_screen.dart';
 import 'ventas_registradas_screen.dart';
 
@@ -24,11 +25,15 @@ class HomeShell extends ConsumerWidget {
       ),
     );
 
-    // Las pestanas siguen montadas aunque no se vean, asi que las ventas se
-    // vuelven a leer al entrar a ella (ej. una venta recien registrada).
+    // Las pestanas siguen montadas aunque no se vean, asi que las ventas y el
+    // cierre se vuelven a leer al entrar a ellas (ej. una venta recien
+    // registrada).
     ref.listen(tabProvider, (_, nueva) {
       if (nueva == Pestana.ventas) {
         ref.invalidate(ventasRegistradasProvider);
+      }
+      if (nueva == Pestana.cierre) {
+        ref.invalidate(cierreHoyProvider);
       }
     });
 
@@ -39,7 +44,7 @@ class HomeShell extends ConsumerWidget {
           CatalogoScreen(),
           RegistrarVentaScreen(),
           VentasRegistradasScreen(),
-          ProximamenteScreen(titulo: 'Cierre del día'),
+          CierreDiaScreen(),
         ],
       ),
       bottomNavigationBar: NavigationBar(

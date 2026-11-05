@@ -102,7 +102,7 @@ void main() {
 
     final db = await DatabaseService.instance.database;
 
-    expect(await db.getVersion(), 4);
+    expect(await db.getVersion(), 5);
     expect(await _columnas('producto'), contains('archivado_en'));
   });
 
@@ -132,7 +132,7 @@ void main() {
 
       final db = await DatabaseService.instance.database;
 
-      expect(await db.getVersion(), 4);
+      expect(await db.getVersion(), 5);
       expect(await _columnas('detalle_venta'), contains('nombre_producto'));
       expect(await _columnas('producto'), contains('archivado_en'));
     },
@@ -149,7 +149,7 @@ void main() {
 
     final db = await DatabaseService.instance.database;
 
-    expect(await db.getVersion(), 4);
+    expect(await db.getVersion(), 5);
     final indices = await db.rawQuery(
       "SELECT name FROM sqlite_master WHERE type = 'index' "
       "AND name = 'idx_producto_nombre'",
@@ -162,7 +162,7 @@ void main() {
 
     final db = await DatabaseService.instance.database;
 
-    expect(await db.getVersion(), 4);
+    expect(await db.getVersion(), 5);
     expect(
       await _columnas('producto'),
       containsAll(['eliminado_en', 'imagen', 'icono', 'archivado_en']),

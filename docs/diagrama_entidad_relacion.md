@@ -3,6 +3,7 @@
 erDiagram
     Producto ||--o{ DetalleVenta : "aparece en"
     Venta ||--|{ DetalleVenta : "contiene"
+    Cierre ||--|{ CierreProducto : "resume"
 
     Producto {
         String id
@@ -20,6 +21,22 @@ erDiagram
         Producto producto
         int cantidad
         double precioAlMomento
+    }
+
+    Cierre {
+        String id
+        DateTime dia
+        DateTime cerradoEn
+        int numeroVentas
+        double total
+        List productos
+    }
+
+    CierreProducto {
+        String productoId
+        String nombre
+        int unidades
+        double subtotal
     }
 ```
 
@@ -46,6 +63,20 @@ que puede aparecer en cero o muchos detalles de venta a lo largo del tiempo.
 La relación es:
 
 **Producto 1 → 0..N DetalleVenta**
+
+### Cierre y CierreProducto
+
+Un `Cierre` es una foto del día: contiene una `CierreProducto` por cada
+producto que se vendió ese día. Lo que no se vendió no se guarda.
+
+La relación es:
+
+**Cierre 1 → N CierreProducto**
+
+`CierreProducto` no referencia a `Producto`: guarda `productoId`, el nombre y
+los montos tal como estaban al cerrar, para que el cierre no cambie si después
+se edita, archiva o borra el producto. Tampoco se relaciona con `Venta`; el
+cierre se calcula agregando las ventas del día y se guarda el resultado.
 
 ## Función de DetalleVenta
 

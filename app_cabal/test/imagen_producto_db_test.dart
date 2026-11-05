@@ -79,7 +79,7 @@ void main() {
     expect(productos.map((p) => p.imagen), [null, null]);
     expect(productos.map((p) => p.icono), [null, null]);
     final db = await DatabaseService.instance.database;
-    expect(await db.getVersion(), 4);
+    expect(await db.getVersion(), 5);
   });
 
   test('tras migrar se puede guardar un icono en un producto viejo', () async {
