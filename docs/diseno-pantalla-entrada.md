@@ -81,8 +81,9 @@ pruebas que usan `pumpAndSettle` esperan también la navegación.
 - La barra de navegación toma el marino.
 - Los iconos de la barra de estado se vieron oscuros sobre el marino en ese
   emulador, aunque la app pide iconos claros (una prueba confirma que envía
-  `statusBarIconBrightness: light`). No se pudo verificar en un teléfono real.
-  Pendiente de revisar.
+  `statusBarIconBrightness: light`). En un teléfono real, el de Moisés, se ven
+  claros y legibles al abrir la app, así que se trata de un detalle del
+  emulador. No se anotó el modelo del teléfono.
 - Antes de la entrada se ve unos instantes la pantalla de arranque nativa de
   Android: blanca con el logo de Flutter. Ver "Pendiente".
 
