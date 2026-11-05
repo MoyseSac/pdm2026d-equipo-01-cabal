@@ -50,10 +50,10 @@ class VentasRegistradasScreen extends ConsumerWidget {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.error_outline,
                         size: 48,
-                        color: Colors.redAccent,
+                        color: Theme.of(context).colorScheme.error,
                       ),
                       const SizedBox(height: 16),
                       const Text(

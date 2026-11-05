@@ -24,7 +24,11 @@ class ConfirmacionVentaScreen extends ConsumerWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(Icons.check_circle, size: 64, color: Colors.green),
+                Icon(
+                  Icons.check_circle,
+                  size: 64,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
                 const SizedBox(height: 16),
                 Text(
                   'Venta registrada',

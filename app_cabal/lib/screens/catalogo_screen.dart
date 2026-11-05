@@ -239,7 +239,11 @@ class _CatalogoScreenState extends ConsumerState<CatalogoScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(Icons.error_outline, size: 64, color: Colors.red),
+                Icon(
+                  Icons.error_outline,
+                  size: 64,
+                  color: Theme.of(context).colorScheme.error,
+                ),
                 const SizedBox(height: 16),
                 const Text(
                   'No se pudieron cargar los productos.',
@@ -289,10 +293,13 @@ class _CatalogoScreenState extends ConsumerState<CatalogoScreen> {
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   margin: const EdgeInsets.symmetric(vertical: 4),
                   decoration: BoxDecoration(
-                    color: Colors.red,
+                    color: Theme.of(context).colorScheme.error,
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Icon(Icons.delete, color: Colors.white),
+                  child: Icon(
+                    Icons.delete,
+                    color: Theme.of(context).colorScheme.onError,
+                  ),
                 ),
                 child: Card(
                   child: ListTile(
@@ -316,10 +323,10 @@ class _CatalogoScreenState extends ConsumerState<CatalogoScreen> {
                       children: [
                         Text(
                           formatearQuetzales(producto.precio),
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
-                            color: Colors.green,
+                            color: Theme.of(context).colorScheme.onSurface,
                           ),
                         ),
                         IconButton(

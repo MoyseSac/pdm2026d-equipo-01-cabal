@@ -194,7 +194,7 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
               padding: const EdgeInsets.only(top: 8),
               child: Text(
                 venta.mensajeError!,
-                style: const TextStyle(color: Colors.red),
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
                 textAlign: TextAlign.center,
               ),
             ),
@@ -332,8 +332,10 @@ class _FilaDetalleState extends State<_FilaDetalle> {
                     border: const OutlineInputBorder(),
                     enabledBorder: _error == null
                         ? null
-                        : const OutlineInputBorder(
-                            borderSide: BorderSide(color: Colors.red),
+                        : OutlineInputBorder(
+                            borderSide: BorderSide(
+                              color: Theme.of(context).colorScheme.error,
+                            ),
                           ),
                   ),
                   onChanged: _alEscribir,
@@ -354,7 +356,10 @@ class _FilaDetalleState extends State<_FilaDetalle> {
           if (_error != null)
             Text(
               _error!,
-              style: const TextStyle(color: Colors.red, fontSize: 12),
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.error,
+                fontSize: 12,
+              ),
             ),
         ],
       ),
