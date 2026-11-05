@@ -158,7 +158,7 @@ mismo día otra vez reemplaza el anterior.
 
 ## Tabla cierre_producto
 
-Una fila por producto dentro de un cierre.
+Una fila por cada producto que se vendió ese día.
 
 ```sql
 CREATE TABLE cierre_producto (
@@ -185,9 +185,8 @@ CREATE TABLE cierre_producto (
 | unidades | unidades | INTEGER |
 | subtotal | subtotal_centavos | INTEGER, centavos |
 
-`unidades = 0` significa que el producto estaba en el catálogo activo y no
-salió en las ventas del día ("sin vender"). Los archivados y borrados que no
-se vendieron no se guardan.
+`unidades` siempre es mayor que cero: solo se guardan los productos que
+salieron en alguna venta del día. Lo que no se vendió no se guarda.
 
 `producto_id` **no** tiene llave foránea hacia `producto`: el cierre es una
 foto, y el producto se puede archivar o borrar después sin afectarla. Por la
@@ -215,8 +214,7 @@ Venta 1 → N DetalleVenta
 
 ## Cierre y CierreProducto
 
-Un cierre contiene una fila por cada producto que se vendió o que estaba sin
-vender ese día.
+Un cierre contiene una fila por cada producto que se vendió ese día.
 
 ```text
 cierre.id → cierre_producto.cierre_id

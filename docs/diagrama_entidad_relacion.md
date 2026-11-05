@@ -67,8 +67,7 @@ La relación es:
 ### Cierre y CierreProducto
 
 Un `Cierre` es una foto del día: contiene una `CierreProducto` por cada
-producto que se vendió ese día y por cada producto activo que no se vendió
-(`unidades = 0`).
+producto que se vendió ese día. Lo que no se vendió no se guarda.
 
 La relación es:
 
