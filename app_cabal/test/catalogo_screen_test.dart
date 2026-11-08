@@ -68,6 +68,48 @@ Future<void> _montarCatalogo(
 }
 
 void main() {
+  testWidgets('busca por nombre parcial ignorando tildes y espacios', (
+    tester,
+  ) async {
+    final servicio = _FakeProductoService(
+      productos: const [
+        Producto(id: '1', nombre: 'Café molido', precio: 10),
+        Producto(id: '2', nombre: 'Pan', precio: 2),
+      ],
+    );
+    await _montarCatalogo(tester, servicio);
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField), '  CAFE   mol  ');
+    await tester.pumpAndSettle();
+    expect(find.text('Café molido'), findsOneWidget);
+    expect(find.text('Pan'), findsNothing);
+    expect(servicio.lecturas, 1);
+    await tester.tap(find.byTooltip('Limpiar búsqueda'));
+    await tester.pumpAndSettle();
+    expect(find.text('Pan'), findsOneWidget);
+    expect(
+      tester.widget<TextField>(find.byType(TextField)).controller!.text,
+      isEmpty,
+    );
+  });
+
+  testWidgets('sin coincidencias permite recuperar el catálogo', (
+    tester,
+  ) async {
+    await _montarCatalogo(tester, _FakeProductoService());
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField), 'inexistente');
+    await tester.pumpAndSettle();
+    expect(
+      find.text('No encontramos productos con «inexistente»'),
+      findsOneWidget,
+    );
+    expect(find.text('Catálogo vacío'), findsNothing);
+    await tester.tap(find.text('Limpiar búsqueda'));
+    await tester.pumpAndSettle();
+    expect(find.text('Coca Cola'), findsOneWidget);
+  });
+
   // PRUEBA 1: ESTADO CARGANDO
   testWidgets('muestra cargando mientras espera productos', (tester) async {
     final pendiente = Completer<List<Producto>>();

@@ -8,6 +8,7 @@ import '../providers/producto_provider.dart';
 import '../providers/tab_provider.dart';
 import '../providers/venta_provider.dart';
 import '../utils/moneda.dart';
+import '../utils/busqueda.dart';
 import '../widgets/cantidad_producto_sheet.dart';
 import '../widgets/catalogo_vacio_widget.dart';
 import '../widgets/producto_imagen_widget.dart';
@@ -25,6 +26,26 @@ class _CatalogoScreenState extends ConsumerState<CatalogoScreen> {
   /// Dismissible descartado debe salir del arbol de inmediato, asi que la
   /// fila se oculta aqui sin esperar a que se vuelva a leer la base.
   final Set<String> _ocultos = {};
+  final _busquedaController = TextEditingController();
+  final _scrollController = ScrollController();
+  String _consulta = '';
+
+  void _buscar(String texto) {
+    setState(() => _consulta = texto);
+    if (_scrollController.hasClients) _scrollController.jumpTo(0);
+  }
+
+  void _limpiarBusqueda() {
+    _busquedaController.clear();
+    _buscar('');
+  }
+
+  @override
+  void dispose() {
+    _busquedaController.dispose();
+    _scrollController.dispose();
+    super.dispose();
+  }
 
   /// Borra el producto en la base ANTES de que la fila desaparezca. Si falla,
   /// devuelve false: la fila vuelve a su lugar y se avisa del error.
@@ -130,6 +151,7 @@ class _CatalogoScreenState extends ConsumerState<CatalogoScreen> {
   /// Pide la cantidad en una hoja y agrega el producto a la venta en curso
   /// sin salir del catalogo. El aviso ofrece ir a la venta si se quiere.
   Future<void> _agregarALaVenta(Producto producto) async {
+    FocusScope.of(context).unfocus();
     final yaEnVenta = ref
         .read(ventaProvider)
         .detalles
@@ -265,81 +287,143 @@ class _CatalogoScreenState extends ConsumerState<CatalogoScreen> {
 
         // ESTADOS 3 Y 4: VACÍO O DATOS
         data: (lista) {
-          final productos = lista
+          final activos = lista
               .where((producto) => !_ocultos.contains(producto.id))
               .toList();
 
           // También es el estado vacío cuando se borran todos los productos.
-          if (productos.isEmpty) {
+          if (activos.isEmpty) {
             return CatalogoVacioWidget(onAgregarProducto: abrirAgregarProducto);
           }
 
-          return ListView.builder(
-            padding: const EdgeInsets.all(12),
-            itemCount: productos.length,
-            itemBuilder: (context, index) {
-              final producto = productos[index];
+          final consulta = normalizarBusqueda(_consulta);
+          final productos = activos
+              .where(
+                (producto) =>
+                    normalizarBusqueda(producto.nombre).contains(consulta),
+              )
+              .toList();
 
-              // La key es el id del producto, nunca el indice: al borrar una
-              // fila las demas conservan su estado en lugar de heredar el de
-              // la fila anterior.
-              return Dismissible(
-                key: ValueKey(producto.id),
-                direction: DismissDirection.endToStart,
-                confirmDismiss: (_) => _borrar(producto),
-                onDismissed: (_) => _alDescartar(producto),
-                background: Container(
-                  alignment: Alignment.centerRight,
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  margin: const EdgeInsets.symmetric(vertical: 4),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.error,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(
-                    Icons.delete,
-                    color: Theme.of(context).colorScheme.onError,
+          return Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                child: TextField(
+                  controller: _busquedaController,
+                  onChanged: _buscar,
+                  textInputAction: TextInputAction.search,
+                  onSubmitted: (_) => FocusScope.of(context).unfocus(),
+                  decoration: InputDecoration(
+                    hintText: 'Buscar producto',
+                    prefixIcon: const Icon(Icons.search),
+                    suffixIcon: _consulta.isEmpty
+                        ? null
+                        : IconButton(
+                            tooltip: 'Limpiar búsqueda',
+                            icon: const Icon(Icons.close),
+                            onPressed: _limpiarBusqueda,
+                          ),
+                    border: const OutlineInputBorder(),
                   ),
                 ),
-                child: Card(
-                  child: ListTile(
-                    onTap: () => _agregarALaVenta(producto),
-                    // Atajo para quien lo descubra; el icono es la via visible.
-                    onLongPress: () => _editarProducto(producto),
-                    leading: ProductoImagenWidget(
-                      imagen: producto.imagenProducto,
-                    ),
-                    title: Text(
-                      producto.nombre,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          formatearQuetzales(producto.precio),
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Theme.of(context).colorScheme.onSurface,
+              ),
+              Expanded(
+                child: productos.isEmpty
+                    ? Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(24),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                'No encontramos productos con «${_consulta.trim()}»',
+                                textAlign: TextAlign.center,
+                              ),
+                              TextButton(
+                                onPressed: _limpiarBusqueda,
+                                child: const Text('Limpiar búsqueda'),
+                              ),
+                            ],
                           ),
                         ),
-                        IconButton(
-                          tooltip: 'Editar producto',
-                          icon: const Icon(Icons.edit),
-                          onPressed: () => _editarProducto(producto),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              );
-            },
+                      )
+                    : ListView.builder(
+                        controller: _scrollController,
+                        keyboardDismissBehavior:
+                            ScrollViewKeyboardDismissBehavior.onDrag,
+                        padding: const EdgeInsets.all(12),
+                        itemCount: productos.length,
+                        itemBuilder: (context, index) {
+                          final producto = productos[index];
+
+                          // La key es el id del producto, nunca el indice: al borrar una
+                          // fila las demas conservan su estado en lugar de heredar el de
+                          // la fila anterior.
+                          return Dismissible(
+                            key: ValueKey(producto.id),
+                            direction: DismissDirection.endToStart,
+                            confirmDismiss: (_) => _borrar(producto),
+                            onDismissed: (_) => _alDescartar(producto),
+                            background: Container(
+                              alignment: Alignment.centerRight,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                              ),
+                              margin: const EdgeInsets.symmetric(vertical: 4),
+                              decoration: BoxDecoration(
+                                color: Theme.of(context).colorScheme.error,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Icon(
+                                Icons.delete,
+                                color: Theme.of(context).colorScheme.onError,
+                              ),
+                            ),
+                            child: Card(
+                              child: ListTile(
+                                onTap: () => _agregarALaVenta(producto),
+                                // Atajo para quien lo descubra; el icono es la via visible.
+                                onLongPress: () => _editarProducto(producto),
+                                leading: ProductoImagenWidget(
+                                  imagen: producto.imagenProducto,
+                                ),
+                                title: Text(
+                                  producto.nombre,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                trailing: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(
+                                      formatearQuetzales(producto.precio),
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.onSurface,
+                                      ),
+                                    ),
+                                    IconButton(
+                                      tooltip: 'Editar producto',
+                                      icon: const Icon(Icons.edit),
+                                      onPressed: () =>
+                                          _editarProducto(producto),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+              ),
+            ],
           );
         },
       ),
