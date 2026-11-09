@@ -155,6 +155,23 @@ void main() {
     });
   });
 
+  testWidgets('eliminar desde el menú permite deshacer', (tester) async {
+    final servicio = _FakeProductoService([_cola, _pan]);
+    await _abrir(tester, servicio);
+
+    await tester.tap(find.byTooltip('Opciones de producto').first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Eliminar producto'));
+    await tester.pumpAndSettle();
+
+    expect(servicio.eliminados, {'p1'});
+    expect(find.text('Coca Cola'), findsNothing);
+    await tester.tap(find.text('Deshacer'));
+    await tester.pumpAndSettle();
+    expect(find.text('Coca Cola'), findsOneWidget);
+    expect(servicio.eliminados, isEmpty);
+  });
+
   group('deshacer', () {
     testWidgets('Deshacer devuelve la fila con los mismos datos', (
       tester,

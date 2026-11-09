@@ -41,12 +41,10 @@ Finder _hoja() => find.byType(BottomSheet);
 Finder _enHoja(Finder f) => find.descendant(of: _hoja(), matching: f);
 
 void main() {
-  testWidgets('tocar un producto abre la hoja y no cambia de pestaña', (
-    tester,
-  ) async {
+  testWidgets('el botón + abre la hoja y no cambia de pestaña', (tester) async {
     final container = await _abrirApp(tester);
 
-    await tester.tap(find.text('Leche'));
+    await tester.tap(find.byTooltip('Agregar a la venta').first);
     await tester.pumpAndSettle();
 
     expect(_hoja(), findsOneWidget);
