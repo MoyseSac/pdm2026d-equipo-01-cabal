@@ -263,4 +263,4 @@ Lo que la IA corrigió por su cuenta: el botón de cerrar quedaba tapado por el 
 
 **Qué rechacé o corregí:** la rama inicial llevaba el prefijo de la herramienta. Pedí seguir el formato del proyecto; se reemplazó por `feat/102-busqueda-productos`, vinculada al issue #102 y basada en `main`.
 
-**Cómo lo verifiqué:** 32 pruebas de catálogo, venta, edición y eliminación aprobadas y `flutter analyze` sin observaciones. Antes de subir se ejecutó la suite completa: 290 pruebas aprobadas. Se agregaron pruebas de filtro con tildes y espacios, limpiar, ausencia de coincidencias y agregar a la venta desde resultados filtrados. No se verificó manualmente en teléfono ni emulador.
+**Cómo lo verifiqué:** 32 pruebas de catálogo, venta, edición y eliminación aprobadas y `flutter analyze` sin observaciones. Antes de subir se ejecutó la suite completa: 290 pruebas aprobadas. Se agregaron pruebas de filtro con tildes y espacios, limpiar, ausencia de coincidencias y agregar a la venta desde resultados filtrados. Se verifico manualmente en emulador
