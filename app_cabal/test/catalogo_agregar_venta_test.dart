@@ -86,6 +86,9 @@ void main() {
     tester,
   ) async {
     final container = await _abrirApp(tester);
+    await tester.enterText(find.byType(TextField), 'lech');
+    await tester.pumpAndSettle();
+    expect(find.text('Pan'), findsNothing);
 
     await tester.tap(find.text('Leche'));
     await tester.pumpAndSettle();

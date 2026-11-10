@@ -251,3 +251,16 @@ La implementación final permite consultar ventas por período sin recarga manua
 Lo que la IA corrigió por su cuenta: el botón de cerrar quedaba tapado por el aviso de error al fallar, así que lo dejó en la parte inferior de la pantalla, donde el aviso aparece encima; y las pruebas de migraciones anteriores comprobaban la versión 4, así que las actualizó a 5 (cambia a propósito, no son migraciones nuevas). Al poner el separador de miles actualizó la prueba que fijaba el formato anterior.
 
 **Cómo lo verifiqué:** `dart format`, `flutter analyze` sin observaciones y `flutter test` con 288 pruebas aprobadas (eran 233). Las pruebas del servicio usan una base real e incluyen los límites del día, el precio al momento, productos archivados o borrados después de vender, y que 0.10 + 0.20 + 0.30 dé 0.60. Probé la pantalla y la migración en mi teléfono y todo funcionó; las capturas las subo al PR. No se probó en iOS.
+
+
+## 2026-11-08 · Moisés Sac · Codex · Búsqueda de productos en el catálogo (#102)
+
+**Qué pedí:** leer el README, analizar cómo buscar productos sin recorrer manualmente el catálogo e implementar la lupa, dejando la paginación para después. Después pedí usar una rama con el formato del proyecto y subir el cambio.
+
+**Qué respondió:** agregó una barra fija que filtra por nombre parcial sobre los productos activos ya cargados, ignora mayúsculas, tildes y espacios sobrantes, permite limpiar la consulta y distingue la ausencia de coincidencias del catálogo vacío. Conservó las acciones de cada producto y cierra el teclado al abrir la hoja de cantidad. No cambió la base ni agregó dependencias.
+
+**Qué acepté:** implementar la búsqueda; evaluar la paginación por separado.
+
+**Qué rechacé o corregí:** la rama inicial llevaba el prefijo de la herramienta. Pedí seguir el formato del proyecto; se reemplazó por `feat/102-busqueda-productos`, vinculada al issue #102 y basada en `main`.
+
+**Cómo lo verifiqué:** 32 pruebas de catálogo, venta, edición y eliminación aprobadas y `flutter analyze` sin observaciones. Antes de subir se ejecutó la suite completa: 290 pruebas aprobadas. Se agregaron pruebas de filtro con tildes y espacios, limpiar, ausencia de coincidencias y agregar a la venta desde resultados filtrados. Se verifico manualmente en emulador
