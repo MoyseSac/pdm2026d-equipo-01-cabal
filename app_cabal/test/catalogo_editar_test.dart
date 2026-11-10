@@ -64,35 +64,38 @@ Future<void> _abrir(WidgetTester tester, _FakeProductoService servicio) async {
 
 Finder _icono(String nombre) => find.descendant(
   of: find.ancestor(of: find.text(nombre), matching: find.byType(ListTile)),
-  matching: find.byTooltip('Editar producto'),
+  matching: find.byTooltip('Opciones de producto'),
 );
 
 Future<void> _abrirEdicionConIcono(WidgetTester tester, String nombre) async {
   await tester.tap(_icono(nombre));
   await tester.pumpAndSettle();
+  await tester.tap(find.text('Editar producto'));
+  await tester.pumpAndSettle();
 }
 
 void main() {
   group('Editar producto desde el catalogo', () {
-    testWidgets('cada producto muestra su icono de editar', (tester) async {
+    testWidgets('cada producto muestra su menú de opciones', (tester) async {
       await _abrir(tester, _FakeProductoService([_cola, _pan]));
 
-      expect(find.byTooltip('Editar producto'), findsNWidgets(2));
+      expect(find.byTooltip('Opciones de producto'), findsNWidgets(2));
     });
 
-    testWidgets('tocar el icono abre el formulario con los valores actuales', (
-      tester,
-    ) async {
-      await _abrir(tester, _FakeProductoService([_cola, _pan]));
+    testWidgets(
+      'editar desde el menú abre el formulario con los valores actuales',
+      (tester) async {
+        await _abrir(tester, _FakeProductoService([_cola, _pan]));
 
-      await _abrirEdicionConIcono(tester, 'Coca Cola');
+        await _abrirEdicionConIcono(tester, 'Coca Cola');
 
-      expect(find.text('Editar producto'), findsOneWidget);
-      expect(find.widgetWithText(TextFormField, 'Coca Cola'), findsOneWidget);
-      // El precio llega siempre con 2 decimales.
-      expect(find.widgetWithText(TextFormField, '10.50'), findsOneWidget);
-      expect(find.text('Guardar cambios'), findsOneWidget);
-    });
+        expect(find.text('Editar producto'), findsOneWidget);
+        expect(find.widgetWithText(TextFormField, 'Coca Cola'), findsOneWidget);
+        // El precio llega siempre con 2 decimales.
+        expect(find.widgetWithText(TextFormField, '10.50'), findsOneWidget);
+        expect(find.text('Guardar cambios'), findsOneWidget);
+      },
+    );
 
     testWidgets('guardar actualiza la fila, conserva el id y avisa', (
       tester,

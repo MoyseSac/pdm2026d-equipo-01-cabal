@@ -264,3 +264,16 @@ Lo que la IA corrigió por su cuenta: el botón de cerrar quedaba tapado por el 
 **Qué rechacé o corregí:** la rama inicial llevaba el prefijo de la herramienta. Pedí seguir el formato del proyecto; se reemplazó por `feat/102-busqueda-productos`, vinculada al issue #102 y basada en `main`.
 
 **Cómo lo verifiqué:** 32 pruebas de catálogo, venta, edición y eliminación aprobadas y `flutter analyze` sin observaciones. Antes de subir se ejecutó la suite completa: 290 pruebas aprobadas. Se agregaron pruebas de filtro con tildes y espacios, limpiar, ausencia de coincidencias y agregar a la venta desde resultados filtrados. Se verifico manualmente en emulador
+
+
+## 2026-11-08 · Moisés Sac · Codex · Rediseño de la fila de producto del catálogo
+
+**Qué pedí:** analizar la vista principal del catálogo para identificar mejoras de limpieza y consistencia visual con la skill ui-styling. Después pedí aplicar el rediseño de la fila de producto y preparar una rama con los commits, dejando la bitácora para revisión antes del push.
+
+**Qué respondió:** revisó el código de la pantalla, el tema y una captura guardada, y aclaró que la captura era anterior al buscador. Detectó que tocar la fila agrega a la venta, aunque la acción visible era editar. Propuso colocar el nombre sobre el precio junto a la imagen, mostrar un botón “+” para agregar a la venta y mover editar y eliminar a un menú secundario.
+
+**Qué acepté:** aplicar el rediseño de la fila. El nombre usa el estilo del tema con peso semibold y el precio aparece debajo con menor énfasis. El botón “+” abre la hoja de cantidad existente y el menú permite editar o eliminar. Se conservaron tocar la fila para agregar, mantener pulsado para editar y deslizar para eliminar.
+
+**Qué rechacé o corregí:** no hubo correcciones solicitadas durante la implementación. Las otras propuestas del análisis (buscador, espacio bajo la lista y estado vacío) quedaron fuera de este cambio. El borrado desde el menú reutiliza la validación de productos con ventas y la opción Deshacer.
+
+**Cómo lo verifiqué:** Codex ejecutó las pruebas de catálogo, agregar a la venta, edición, eliminación y productos en uso: 37 pruebas aprobadas. Actualizó las pruebas de edición para acceder desde el menú, comprobó el botón “+” y agregó una prueba de eliminar desde el menú y deshacer. Ejecutó `flutter analyze` sin observaciones y `git diff --check` sin errores. No se ejecutó la suite completa. Verifiqué visualmente todo el flujo desde la aplicación. Al revisar esta entrada, pedí corregir la ausencia de esa validación manual. El push queda pendiente.

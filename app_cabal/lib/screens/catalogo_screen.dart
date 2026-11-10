@@ -14,6 +14,8 @@ import '../widgets/catalogo_vacio_widget.dart';
 import '../widgets/producto_imagen_widget.dart';
 import 'archivados_screen.dart';
 
+enum _AccionProducto { editar, eliminar }
+
 class CatalogoScreen extends ConsumerStatefulWidget {
   const CatalogoScreen({super.key});
 
@@ -387,33 +389,79 @@ class _CatalogoScreenState extends ConsumerState<CatalogoScreen> {
                                 leading: ProductoImagenWidget(
                                   imagen: producto.imagenProducto,
                                 ),
+                                contentPadding: const EdgeInsets.fromLTRB(
+                                  12,
+                                  8,
+                                  4,
+                                  8,
+                                ),
                                 title: Text(
                                   producto.nombre,
                                   maxLines: 2,
                                   overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.bold,
+                                  style: Theme.of(context).textTheme.titleMedium
+                                      ?.copyWith(fontWeight: FontWeight.w600),
+                                ),
+                                subtitle: Padding(
+                                  padding: const EdgeInsets.only(top: 4),
+                                  child: Text(
+                                    formatearQuetzales(producto.precio),
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodyMedium
+                                        ?.copyWith(
+                                          fontWeight: FontWeight.w500,
+                                          color: Theme.of(
+                                            context,
+                                          ).colorScheme.onSurfaceVariant,
+                                        ),
                                   ),
                                 ),
                                 trailing: Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    Text(
-                                      formatearQuetzales(producto.precio),
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                        color: Theme.of(
-                                          context,
-                                        ).colorScheme.onSurface,
+                                    IconButton.filledTonal(
+                                      tooltip: 'Agregar a la venta',
+                                      constraints: const BoxConstraints(
+                                        minWidth: 48,
+                                        minHeight: 48,
                                       ),
-                                    ),
-                                    IconButton(
-                                      tooltip: 'Editar producto',
-                                      icon: const Icon(Icons.edit),
                                       onPressed: () =>
-                                          _editarProducto(producto),
+                                          _agregarALaVenta(producto),
+                                      icon: const Icon(Icons.add),
+                                    ),
+                                    PopupMenuButton<_AccionProducto>(
+                                      tooltip: 'Opciones de producto',
+                                      icon: const Icon(Icons.more_vert),
+                                      onSelected: (accion) async {
+                                        switch (accion) {
+                                          case _AccionProducto.editar:
+                                            await _editarProducto(producto);
+                                          case _AccionProducto.eliminar:
+                                            if (await _borrar(producto) &&
+                                                mounted) {
+                                              _alDescartar(producto);
+                                            }
+                                        }
+                                      },
+                                      itemBuilder: (_) => const [
+                                        PopupMenuItem(
+                                          value: _AccionProducto.editar,
+                                          child: ListTile(
+                                            leading: Icon(Icons.edit_outlined),
+                                            title: Text('Editar producto'),
+                                            contentPadding: EdgeInsets.zero,
+                                          ),
+                                        ),
+                                        PopupMenuItem(
+                                          value: _AccionProducto.eliminar,
+                                          child: ListTile(
+                                            leading: Icon(Icons.delete_outline),
+                                            title: Text('Eliminar producto'),
+                                            contentPadding: EdgeInsets.zero,
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ],
                                 ),
