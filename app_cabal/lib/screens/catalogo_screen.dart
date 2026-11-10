@@ -16,6 +16,19 @@ import 'archivados_screen.dart';
 
 enum _AccionProducto { editar, eliminar }
 
+// FAB de 56, margen inferior de 16 y separacion de 16 sobre el boton.
+const _espacioInferiorCatalogo = 88.0;
+
+SnackBar _avisoCatalogo({required Widget content, SnackBarAction? action}) {
+  // HomeShell muestra el aviso; su Scaffold no conoce el FAB del catalogo.
+  return SnackBar(
+    content: content,
+    action: action,
+    behavior: SnackBarBehavior.floating,
+    margin: const EdgeInsets.fromLTRB(12, 12, 12, _espacioInferiorCatalogo),
+  );
+}
+
 class CatalogoScreen extends ConsumerStatefulWidget {
   const CatalogoScreen({super.key});
 
@@ -67,8 +80,8 @@ class _CatalogoScreenState extends ConsumerState<CatalogoScreen> {
         ScaffoldMessenger.of(context)
           ..hideCurrentSnackBar()
           ..showSnackBar(
-            const SnackBar(
-              content: Text(
+            _avisoCatalogo(
+              content: const Text(
                 'No se pudo eliminar el producto. Intenta de nuevo.',
               ),
             ),
@@ -108,7 +121,7 @@ class _CatalogoScreenState extends ConsumerState<CatalogoScreen> {
     if (!mounted) return;
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
-      ..showSnackBar(const SnackBar(content: Text('Producto archivado')));
+      ..showSnackBar(_avisoCatalogo(content: const Text('Producto archivado')));
   }
 
   /// La fila ya salio de la pantalla: se oculta y se ofrece deshacer.
@@ -119,7 +132,7 @@ class _CatalogoScreenState extends ConsumerState<CatalogoScreen> {
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
-        SnackBar(
+        _avisoCatalogo(
           content: const Text('Producto eliminado'),
           action: SnackBarAction(
             label: 'Deshacer',
@@ -135,8 +148,8 @@ class _CatalogoScreenState extends ConsumerState<CatalogoScreen> {
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
+          _avisoCatalogo(
+            content: const Text(
               'No se pudo restaurar el producto. Intenta de nuevo.',
             ),
           ),
@@ -174,8 +187,12 @@ class _CatalogoScreenState extends ConsumerState<CatalogoScreen> {
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
-        SnackBar(
-          content: Text('$cantidad × ${producto.nombre} agregado a la venta'),
+        _avisoCatalogo(
+          content: Text(
+            '$cantidad × ${producto.nombre} agregado a la venta',
+            maxLines: 3,
+            overflow: TextOverflow.ellipsis,
+          ),
           action: SnackBarAction(
             label: 'Ver venta',
             onPressed: () =>
@@ -199,7 +216,9 @@ class _CatalogoScreenState extends ConsumerState<CatalogoScreen> {
     if (result == true) {
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
-        ..showSnackBar(const SnackBar(content: Text('Producto actualizado')));
+        ..showSnackBar(
+          _avisoCatalogo(content: const Text('Producto actualizado')),
+        );
     }
   }
 
@@ -218,9 +237,9 @@ class _CatalogoScreenState extends ConsumerState<CatalogoScreen> {
       ref.invalidate(catalogoProductosProvider);
 
       if (result == true) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Producto agregado')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          _avisoCatalogo(content: const Text('Producto agregado')),
+        );
       }
     }
 
@@ -353,7 +372,12 @@ class _CatalogoScreenState extends ConsumerState<CatalogoScreen> {
                         controller: _scrollController,
                         keyboardDismissBehavior:
                             ScrollViewKeyboardDismissBehavior.onDrag,
-                        padding: const EdgeInsets.all(12),
+                        padding: const EdgeInsets.fromLTRB(
+                          12,
+                          12,
+                          12,
+                          _espacioInferiorCatalogo,
+                        ),
                         itemCount: productos.length,
                         itemBuilder: (context, index) {
                           final producto = productos[index];
