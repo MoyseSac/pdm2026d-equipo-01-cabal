@@ -292,3 +292,15 @@ Lo que la IA corrigió por su cuenta: el botón de cerrar quedaba tapado por el 
 **Cómo lo verifiqué:** Codex ejecutó 43 pruebas de catálogo, agregar a la venta, edición, eliminación y navegación; todas aprobaron. Incluyen pantallas de 320 × 568 y 360 × 640, nombres largos, texto ampliado, teclado y acceso al último producto. `flutter analyze` terminó sin observaciones y `git diff --check` sin errores. No se ejecutó la suite completa. También realicé las pruebas manuales del ajuste desde la aplicación.
 
 Las pruebas automatizadas detectaron desbordamientos con texto ampliado en la hoja de cantidad y en la pantalla de venta; quedaron fuera del alcance. Para comprobar el aviso ampliado sin mezclar esos problemas, la prueba abre la hoja con escala normal, amplía el texto al mostrar el aviso y vuelve a escala normal antes de navegar.
+
+## 2026-11-10 · Moisés Sac · Codex · Buscador y alineaciones del catálogo
+
+**Qué pedí:** unificar el buscador y las alineaciones del catálogo, primero con un plan para revisión y después con la implementación.
+
+**Qué respondió:** estandarizó los márgenes exteriores del buscador y las tarjetas en 16 píxeles lógicos, con 16 entre el buscador y la primera tarjeta y 8 entre tarjetas. El buscador usa fondo blanco del tema, radio de 12 como las tarjetas, altura mínima de 56 que permite crecer con texto ampliado y relleno explícito. El borde verde identifica el foco y el botón de limpiar conserva un área mínima de 48. El estilo se aplica solo al catálogo para no afectar otros formularios.
+
+**Qué acepté:** el ajuste del buscador y las alineaciones, conservando la fila rediseñada, el espacio inferior de 88, los avisos sobre el botón flotante y las acciones existentes.
+
+**Qué rechacé o corregí:** no solicité cambios al ajuste después de probarlo en el emulador.
+
+**Cómo lo verifiqué:** se ejecutaron 51 pruebas focalizadas de catálogo, agregar a la venta, edición, eliminación, productos en uso y navegación; todas aprobaron. Incluyen alineación y adaptación del buscador en anchos de 320 y 360 con texto normal y al doble de tamaño, además de búsqueda con tildes y espacios, limpiar, teclado, acceso al último producto, avisos y Deshacer. `flutter analyze` terminó sin observaciones y `git diff --check` sin errores. También realicé la validación visual en el emulador y confirmé que el ajuste funciona correctamente. No se ejecutó la suite completa. Los desbordamientos ya documentados en cantidad y venta quedan como deuda separada.
