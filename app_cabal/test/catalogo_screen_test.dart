@@ -5,6 +5,7 @@ import 'package:app_cabal/models/producto.dart';
 import 'package:app_cabal/providers/producto_provider.dart';
 import 'package:app_cabal/screens/catalogo_screen.dart';
 import 'package:app_cabal/services/producto_service.dart';
+import 'package:app_cabal/theme/tema_cabal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -57,6 +58,7 @@ Future<void> _montarCatalogo(
     ProviderScope(
       overrides: [productoServiceProvider.overrideWithValue(servicio)],
       child: MaterialApp(
+        theme: temaCabal,
         home: const CatalogoScreen(),
         routes: {
           AppRoutes.agregarProducto: (_) =>
@@ -68,6 +70,50 @@ Future<void> _montarCatalogo(
 }
 
 void main() {
+  for (final ancho in [320.0, 360.0]) {
+    for (final escala in [1.0, 2.0]) {
+      testWidgets('buscador alineado y adaptable: $ancho, texto $escala', (
+        tester,
+      ) async {
+        await _montarCatalogo(tester, _FakeProductoService());
+        tester.view.physicalSize = Size(ancho * 2, 568 * 2);
+        tester.platformDispatcher.textScaleFactorTestValue = escala;
+        addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+        await tester.pumpAndSettle();
+
+        final campo = find.byType(TextField);
+        final tarjetas = find.byType(Card);
+        final rectCampo = tester.getRect(campo);
+        final primera = tester.getRect(
+          find
+              .descendant(of: tarjetas.first, matching: find.byType(Material))
+              .first,
+        );
+        expect(rectCampo.left, 16);
+        expect(rectCampo.right, ancho - 16);
+        expect(primera.left, rectCampo.left);
+        expect(primera.right, rectCampo.right);
+        expect(primera.top - rectCampo.bottom, 16);
+        expect(rectCampo.height, greaterThanOrEqualTo(56));
+        expect(tester.takeException(), isNull);
+
+        await tester.enterText(campo, 'Pan');
+        await tester.pumpAndSettle();
+        expect(tester.getRect(campo).height, rectCampo.height);
+        final limpiar = find.byTooltip('Limpiar búsqueda');
+        expect(tester.getSize(limpiar).width, greaterThanOrEqualTo(48));
+        expect(tester.getSize(limpiar).height, greaterThanOrEqualTo(48));
+        await tester.tap(limpiar);
+        await tester.pumpAndSettle();
+        expect(find.text('Coca Cola'), findsOneWidget);
+        await tester.testTextInput.receiveAction(TextInputAction.search);
+        await tester.pumpAndSettle();
+        expect(tester.testTextInput.isVisible, isFalse);
+        expect(tester.takeException(), isNull);
+      });
+    }
+  }
+
   testWidgets('busca por nombre parcial ignorando tildes y espacios', (
     tester,
   ) async {

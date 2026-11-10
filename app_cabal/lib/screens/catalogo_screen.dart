@@ -225,6 +225,7 @@ class _CatalogoScreenState extends ConsumerState<CatalogoScreen> {
   @override
   Widget build(BuildContext context) {
     final catalogo = ref.watch(catalogoProductosProvider);
+    final colores = Theme.of(context).colorScheme;
 
     Future<void> abrirAgregarProducto() async {
       final result = await Navigator.of(
@@ -336,6 +337,24 @@ class _CatalogoScreenState extends ConsumerState<CatalogoScreen> {
                   onSubmitted: (_) => FocusScope.of(context).unfocus(),
                   decoration: InputDecoration(
                     hintText: 'Buscar producto',
+                    constraints: const BoxConstraints(minHeight: 56),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 16,
+                    ),
+                    filled: true,
+                    fillColor: colores.surfaceContainer,
+                    hintStyle: TextStyle(color: colores.onSurfaceVariant),
+                    prefixIconColor: colores.onSurfaceVariant,
+                    suffixIconColor: colores.onSurfaceVariant,
+                    prefixIconConstraints: const BoxConstraints(
+                      minWidth: 48,
+                      minHeight: 48,
+                    ),
+                    suffixIconConstraints: const BoxConstraints(
+                      minWidth: 48,
+                      minHeight: 48,
+                    ),
                     prefixIcon: const Icon(Icons.search),
                     suffixIcon: _consulta.isEmpty
                         ? null
@@ -344,7 +363,17 @@ class _CatalogoScreenState extends ConsumerState<CatalogoScreen> {
                             icon: const Icon(Icons.close),
                             onPressed: _limpiarBusqueda,
                           ),
-                    border: const OutlineInputBorder(),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: colores.outline),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: colores.primary, width: 2),
+                    ),
                   ),
                 ),
               ),
@@ -373,9 +402,9 @@ class _CatalogoScreenState extends ConsumerState<CatalogoScreen> {
                         keyboardDismissBehavior:
                             ScrollViewKeyboardDismissBehavior.onDrag,
                         padding: const EdgeInsets.fromLTRB(
+                          16,
                           12,
-                          12,
-                          12,
+                          16,
                           _espacioInferiorCatalogo,
                         ),
                         itemCount: productos.length,
@@ -406,6 +435,7 @@ class _CatalogoScreenState extends ConsumerState<CatalogoScreen> {
                               ),
                             ),
                             child: Card(
+                              margin: const EdgeInsets.symmetric(vertical: 4),
                               child: ListTile(
                                 onTap: () => _agregarALaVenta(producto),
                                 // Atajo para quien lo descubra; el icono es la via visible.
