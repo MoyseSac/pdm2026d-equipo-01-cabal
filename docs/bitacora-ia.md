@@ -277,3 +277,18 @@ Lo que la IA corrigió por su cuenta: el botón de cerrar quedaba tapado por el 
 **Qué rechacé o corregí:** no hubo correcciones solicitadas durante la implementación. Las otras propuestas del análisis (buscador, espacio bajo la lista y estado vacío) quedaron fuera de este cambio. El borrado desde el menú reutiliza la validación de productos con ventas y la opción Deshacer.
 
 **Cómo lo verifiqué:** Codex ejecutó las pruebas de catálogo, agregar a la venta, edición, eliminación y productos en uso: 37 pruebas aprobadas. Actualizó las pruebas de edición para acceder desde el menú, comprobó el botón “+” y agregó una prueba de eliminar desde el menú y deshacer. Ejecutó `flutter analyze` sin observaciones y `git diff --check` sin errores. No se ejecutó la suite completa. Verifiqué visualmente todo el flujo desde la aplicación. Al revisar esta entrada, pedí corregir la ausencia de esa validación manual. El push queda pendiente.
+
+
+## 2026-11-09 · Moisés Sac · Codex · Espacio inferior del catálogo y convivencia con avisos
+
+**Qué pedí:** preparar primero un plan para evitar que «Agregar producto» tape el último producto y permitir desplazar la lista por encima del botón. Después pedí implementar el plan, ejecutar las pruebas y mostrar la entrada de bitácora antes de abrir el PR.
+
+**Qué respondió:** revisó `CatalogoScreen`, `HomeShell`, la navegación inferior, el teclado y los avisos. Aumentó el padding inferior de la lista de 12 a 88 píxeles lógicos, conservando los demás márgenes. Como los avisos se muestran en el contenedor exterior y este no conoce el FAB del catálogo, los colocó por encima del botón. Limitó a tres líneas, con puntos suspensivos, el mensaje de agregar a la venta para evitar que un nombre largo saque el aviso de la pantalla.
+
+**Qué acepté:** implementar el espacio inferior y ajustar la convivencia de lista, FAB y avisos. El buscador, el estado vacío y el diseño de las filas quedaron fuera del cambio.
+
+**Qué rechacé o corregí:** durante las pruebas, la IA corrigió el aviso largo y ajustó la prueba del teclado para arrastrar hacia una dirección con recorrido disponible.
+
+**Cómo lo verifiqué:** Codex ejecutó 43 pruebas de catálogo, agregar a la venta, edición, eliminación y navegación; todas aprobaron. Incluyen pantallas de 320 × 568 y 360 × 640, nombres largos, texto ampliado, teclado y acceso al último producto. `flutter analyze` terminó sin observaciones y `git diff --check` sin errores. No se ejecutó la suite completa. También realicé las pruebas manuales del ajuste desde la aplicación.
+
+Las pruebas automatizadas detectaron desbordamientos con texto ampliado en la hoja de cantidad y en la pantalla de venta; quedaron fuera del alcance. Para comprobar el aviso ampliado sin mezclar esos problemas, la prueba abre la hoja con escala normal, amplía el texto al mostrar el aviso y vuelve a escala normal antes de navegar.
