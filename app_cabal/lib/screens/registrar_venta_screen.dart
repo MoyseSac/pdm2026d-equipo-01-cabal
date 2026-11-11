@@ -152,10 +152,10 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
     final tema = Theme.of(context);
     return ListView(
       keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-      padding: const EdgeInsets.only(top: 12, bottom: 16),
+      padding: const EdgeInsets.only(top: 8, bottom: 16),
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
           child: OverflowBar(
             alignment: MainAxisAlignment.spaceBetween,
             overflowAlignment: OverflowBarAlignment.start,
@@ -434,7 +434,7 @@ class _FilaDetalleState extends State<_FilaDetalle>
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+        padding: const EdgeInsets.all(8),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -495,7 +495,6 @@ class _FilaDetalleState extends State<_FilaDetalle>
                         keyboardType: TextInputType.number,
                         textAlign: TextAlign.center,
                         decoration: InputDecoration(
-                          labelText: 'Cant.',
                           border: const OutlineInputBorder(),
                           enabledBorder: _error == null
                               ? null
@@ -548,7 +547,21 @@ class _FilaDetalleState extends State<_FilaDetalle>
                   children: [
                     Row(
                       children: [
-                        ...controles,
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Cantidad',
+                              style: tema.textTheme.bodySmall?.copyWith(
+                                color: colores.onSurfaceVariant,
+                              ),
+                            ),
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: controles,
+                            ),
+                          ],
+                        ),
                         const SizedBox(width: 8),
                         Expanded(
                           child: enLinea

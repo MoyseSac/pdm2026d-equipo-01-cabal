@@ -84,6 +84,36 @@ Future<void> _mostrar(
 }
 
 void main() {
+  for (final escala in [1.0, 2.0]) {
+    for (final ancho in [320.0, 360.0]) {
+      testWidgets('Cantidad se lee completa en $ancho a escala $escala', (
+        tester,
+      ) async {
+        await _abrir(tester, size: Size(ancho, 640), escala: escala);
+        await _mostrar(tester, find.byType(TextField));
+        final etiqueta = find.text('Cantidad');
+        expect(etiqueta, findsOneWidget);
+        final texto = tester.widget<Text>(etiqueta);
+        final contexto = tester.element(etiqueta);
+        final painter = TextPainter(
+          text: TextSpan(text: texto.data, style: texto.style),
+          textDirection: Directionality.of(contexto),
+          textScaler: MediaQuery.textScalerOf(contexto),
+        )..layout();
+        expect(
+          tester.getSize(etiqueta).width,
+          greaterThanOrEqualTo(painter.width),
+        );
+        expect(
+          tester.getBottomLeft(etiqueta).dy,
+          lessThanOrEqualTo(tester.getTopLeft(find.byType(TextField)).dy),
+        );
+        painter.dispose();
+        expect(tester.takeException(), isNull);
+      });
+    }
+  }
+
   for (final size in [
     const Size(320, 568),
     const Size(360, 640),
