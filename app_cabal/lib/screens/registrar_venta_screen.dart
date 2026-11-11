@@ -92,40 +92,74 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
       canPop: !venta.guardando,
       child: Scaffold(
         appBar: AppBar(title: const Text('Registrar venta')),
-        body: Column(
-          children: [
-            Expanded(
-              child: venta.detalles.isEmpty
-                  ? const _VentaVacia()
-                  : _ventaActual(venta.detalles),
+        body: SafeArea(
+          top: false,
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 720),
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  if (venta.detalles.isEmpty) return const _VentaVacia();
+                  final escala =
+                      MediaQuery.textScalerOf(context).scale(16) / 16;
+                  final tieneAviso =
+                      _invalidos.isNotEmpty || venta.mensajeError != null;
+                  // Reserva espacio para leer al menos una tarjeta. Con teclado,
+                  // paisaje o texto grande todo comparte el mismo desplazamiento.
+                  final resumenFijo =
+                      constraints.maxHeight >=
+                      240 + 140 * escala + (tieneAviso ? 120 * escala : 0);
+                  return Column(
+                    children: [
+                      Expanded(
+                        child: _ventaActual(
+                          venta,
+                          incluirResumen: !resumenFijo,
+                        ),
+                      ),
+                      if (resumenFijo) _resumen(venta),
+                    ],
+                  );
+                },
+              ),
             ),
-            if (venta.detalles.isNotEmpty) _resumen(venta),
-          ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _ventaActual(List<DetalleVenta> seleccion) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _ventaActual(VentaState venta, {required bool incluirResumen}) {
+    final seleccion = venta.detalles;
+    final unidades = seleccion.fold<int>(0, (suma, d) => suma + d.cantidad);
+    final tema = Theme.of(context);
+    return ListView(
+      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+      padding: const EdgeInsets.only(top: 12, bottom: 16),
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 'Venta actual',
-                style: Theme.of(context).textTheme.titleMedium,
+                style: tema.textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
               ),
+              const SizedBox(height: 4),
               Text(
                 '${seleccion.length} ${seleccion.length == 1 ? 'producto' : 'productos'} · '
-                '${seleccion.fold<int>(0, (suma, d) => suma + d.cantidad)} '
-                '${seleccion.fold<int>(0, (suma, d) => suma + d.cantidad) == 1 ? 'unidad' : 'unidades'}',
+                '$unidades ${unidades == 1 ? 'unidad' : 'unidades'}',
+                style: tema.textTheme.bodyMedium?.copyWith(
+                  color: tema.colorScheme.onSurfaceVariant,
+                ),
               ),
+              const SizedBox(height: 8),
               TextButton.icon(
-                onPressed: ref.watch(ventaProvider).guardando
+                style: TextButton.styleFrom(minimumSize: const Size(48, 48)),
+                onPressed: venta.guardando
                     ? null
                     : () => ref
                           .read(tabProvider.notifier)
@@ -136,22 +170,20 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
             ],
           ),
         ),
-        Expanded(
-          child: ListView.builder(
-            itemCount: seleccion.length,
-            itemBuilder: (context, index) {
-              final detalle = seleccion[index];
-              return _FilaDetalle(
-                key: ValueKey(detalle.producto.id),
-                detalle: detalle,
-                habilitado: !ref.watch(ventaProvider).guardando,
-                onCantidad: (c) => _establecerCantidad(detalle.producto.id, c),
-                onInvalida: () => _marcarInvalido(detalle.producto.id),
-                onEliminar: () => _eliminar(detalle.producto.id),
-              );
-            },
+        for (final detalle in seleccion)
+          _FilaDetalle(
+            key: ValueKey(detalle.producto.id),
+            detalle: detalle,
+            habilitado: !venta.guardando,
+            onCantidad: (c) => _establecerCantidad(detalle.producto.id, c),
+            onInvalida: () => _marcarInvalido(detalle.producto.id),
+            onEliminar: () => _eliminar(detalle.producto.id),
           ),
-        ),
+        if (incluirResumen)
+          Padding(
+            padding: const EdgeInsets.only(top: 12),
+            child: _resumen(venta),
+          ),
       ],
     );
   }
@@ -160,77 +192,96 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
     final puedeConfirmar =
         venta.detalles.isNotEmpty && _invalidos.isEmpty && !venta.guardando;
 
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                'Total',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              Text(
-                formatearQuetzales(venta.total),
-                style: const TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
-          if (_invalidos.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.only(top: 8),
-              child: Semantics(
-                liveRegion: true,
-                child: Text(
-                  'Revisa la cantidad de ${_invalidos.length} '
-                  '${_invalidos.length == 1 ? 'producto' : 'productos'} para continuar. '
-                  'El total conserva las últimas cantidades válidas.',
-                  style: TextStyle(color: Theme.of(context).colorScheme.error),
-                ),
-              ),
-            ),
-          if (venta.estado == EstadoRegistroVenta.error &&
-              venta.mensajeError != null)
-            Padding(
-              padding: const EdgeInsets.only(top: 8),
-              child: Text(
-                venta.mensajeError!,
-                style: TextStyle(color: Theme.of(context).colorScheme.error),
-                textAlign: TextAlign.center,
-              ),
-            ),
-          const SizedBox(height: 12),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: puedeConfirmar ? _confirmar : null,
-              child: venta.guardando
-                  ? const Wrap(
-                      alignment: WrapAlignment.center,
-                      crossAxisAlignment: WrapCrossAlignment.center,
-                      spacing: 12,
-                      children: [
-                        SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        ),
-                        Text('Registrando venta…'),
-                      ],
-                    )
-                  : Text(
-                      venta.estado == EstadoRegistroVenta.error
-                          ? 'Reintentar registro'
-                          : 'Confirmar venta',
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainer,
+        border: Border(
+          top: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SizedBox(
+              width: double.infinity,
+              child: Wrap(
+                alignment: WrapAlignment.spaceBetween,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                spacing: 16,
+                runSpacing: 4,
+                children: [
+                  Text('Total', style: Theme.of(context).textTheme.titleMedium),
+                  Text(
+                    formatearQuetzales(venta.total),
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.w700,
                     ),
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+            if (_invalidos.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Semantics(
+                  liveRegion: true,
+                  child: Text(
+                    'Revisa la cantidad de ${_invalidos.length} '
+                    '${_invalidos.length == 1 ? 'producto' : 'productos'} para continuar. '
+                    'El total conserva las últimas cantidades válidas.',
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.error,
+                    ),
+                  ),
+                ),
+              ),
+            if (venta.estado == EstadoRegistroVenta.error &&
+                venta.mensajeError != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Text(
+                  venta.mensajeError!,
+                  style: TextStyle(color: Theme.of(context).colorScheme.error),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  minimumSize: const Size(48, 48),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 12,
+                  ),
+                ),
+                onPressed: puedeConfirmar ? _confirmar : null,
+                child: venta.guardando
+                    ? const Wrap(
+                        alignment: WrapAlignment.center,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        spacing: 12,
+                        children: [
+                          SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                          Text('Registrando venta…'),
+                        ],
+                      )
+                    : Text(
+                        venta.estado == EstadoRegistroVenta.error
+                            ? 'Reintentar registro'
+                            : 'Confirmar venta',
+                      ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -258,9 +309,13 @@ class _FilaDetalle extends StatefulWidget {
   State<_FilaDetalle> createState() => _FilaDetalleState();
 }
 
-class _FilaDetalleState extends State<_FilaDetalle> {
+class _FilaDetalleState extends State<_FilaDetalle>
+    with AutomaticKeepAliveClientMixin {
   late final TextEditingController _controller;
   String? _error;
+
+  @override
+  bool get wantKeepAlive => _error != null;
 
   @override
   void initState() {
@@ -277,6 +332,7 @@ class _FilaDetalleState extends State<_FilaDetalle> {
         _controller.text.trim() != '${widget.detalle.cantidad}') {
       _controller.text = '${widget.detalle.cantidad}';
       _error = null;
+      updateKeepAlive();
     }
   }
 
@@ -289,6 +345,7 @@ class _FilaDetalleState extends State<_FilaDetalle> {
   void _alEscribir(String texto) {
     final error = CantidadValidator.validar(texto);
     setState(() => _error = error);
+    updateKeepAlive();
     if (error == null) {
       widget.onCantidad(int.parse(texto.trim()));
     } else {
@@ -299,11 +356,13 @@ class _FilaDetalleState extends State<_FilaDetalle> {
   void _fijar(int cantidad) {
     _controller.text = '$cantidad';
     setState(() => _error = null);
+    updateKeepAlive();
     widget.onCantidad(cantidad);
   }
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     final detalle = widget.detalle;
     final cantidad = detalle.cantidad;
 
