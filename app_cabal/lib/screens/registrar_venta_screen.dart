@@ -8,6 +8,7 @@ import '../providers/catalogo_provider.dart';
 import '../providers/venta_provider.dart';
 import '../utils/moneda.dart';
 import '../validators/cantidad_validator.dart';
+import '../widgets/transicion_venta.dart';
 
 /// Pantalla de registrar venta. Muestra solo lo que ya se agrego a la venta
 /// desde el catalogo: permite editar cantidades, ver subtotales y total, y
@@ -99,7 +100,17 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
               constraints: const BoxConstraints(maxWidth: 720),
               child: LayoutBuilder(
                 builder: (context, constraints) {
-                  if (venta.detalles.isEmpty) return const _VentaVacia();
+                  if (venta.detalles.isEmpty) {
+                    return const TransicionVenta(
+                      key: ValueKey('contenido-venta'),
+                      desplazar: true,
+                      alignment: Alignment.topCenter,
+                      child: KeyedSubtree(
+                        key: ValueKey('vacia'),
+                        child: _VentaVacia(),
+                      ),
+                    );
+                  }
                   final escala =
                       MediaQuery.textScalerOf(context).scale(16) / 16;
                   final tieneAviso =
@@ -109,16 +120,22 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
                   final resumenFijo =
                       constraints.maxHeight >=
                       240 + 140 * escala + (tieneAviso ? 120 * escala : 0);
-                  return Column(
-                    children: [
-                      Expanded(
-                        child: _ventaActual(
-                          venta,
-                          incluirResumen: !resumenFijo,
+                  return TransicionVenta(
+                    key: const ValueKey('contenido-venta'),
+                    desplazar: true,
+                    alignment: Alignment.topCenter,
+                    child: Column(
+                      key: const ValueKey('con-productos'),
+                      children: [
+                        Expanded(
+                          child: _ventaActual(
+                            venta,
+                            incluirResumen: !resumenFijo,
+                          ),
                         ),
-                      ),
-                      if (resumenFijo) _resumen(venta),
-                    ],
+                        if (resumenFijo) _resumen(venta),
+                      ],
+                    ),
                   );
                 },
               ),
@@ -213,10 +230,15 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
                 runSpacing: 4,
                 children: [
                   Text('Total', style: Theme.of(context).textTheme.titleMedium),
-                  Text(
-                    formatearQuetzales(venta.total),
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.w700,
+                  Semantics(
+                    liveRegion: true,
+                    child: TransicionVenta(
+                      child: Text(
+                        formatearQuetzales(venta.total),
+                        key: ValueKey(venta.total),
+                        style: Theme.of(context).textTheme.headlineSmall
+                            ?.copyWith(fontWeight: FontWeight.w700),
+                      ),
                     ),
                   ),
                 ],
@@ -360,6 +382,22 @@ class _FilaDetalleState extends State<_FilaDetalle>
     widget.onCantidad(cantidad);
   }
 
+  Widget _controlCantidad(
+    String etiqueta,
+    IconData icono,
+    VoidCallback? onPressed,
+  ) {
+    return Tooltip(
+      message: etiqueta,
+      excludeFromSemantics: true,
+      child: IconButton(
+        constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+        icon: Icon(icono, semanticLabel: etiqueta),
+        onPressed: onPressed,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     super.build(context);
@@ -395,14 +433,10 @@ class _FilaDetalleState extends State<_FilaDetalle>
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                IconButton(
-                  tooltip: 'Reducir cantidad de ${detalle.producto.nombre}',
-                  constraints: const BoxConstraints(
-                    minWidth: 48,
-                    minHeight: 48,
-                  ),
-                  icon: const Icon(Icons.remove_circle_outline),
-                  onPressed: widget.habilitado && cantidad > 1
+                _controlCantidad(
+                  'Reducir cantidad de ${detalle.producto.nombre}',
+                  Icons.remove_circle_outline,
+                  widget.habilitado && cantidad > 1
                       ? () => _fijar(cantidad - 1)
                       : null,
                 ),
@@ -430,16 +464,10 @@ class _FilaDetalleState extends State<_FilaDetalle>
                   ),
                 ),
                 const SizedBox(width: 8),
-                IconButton(
-                  tooltip: 'Aumentar cantidad de ${detalle.producto.nombre}',
-                  constraints: const BoxConstraints(
-                    minWidth: 48,
-                    minHeight: 48,
-                  ),
-                  icon: const Icon(Icons.add_circle_outline),
-                  onPressed: widget.habilitado
-                      ? () => _fijar(cantidad + 1)
-                      : null,
+                _controlCantidad(
+                  'Aumentar cantidad de ${detalle.producto.nombre}',
+                  Icons.add_circle_outline,
+                  widget.habilitado ? () => _fijar(cantidad + 1) : null,
                 ),
               ],
             ),
@@ -450,10 +478,14 @@ class _FilaDetalleState extends State<_FilaDetalle>
               spacing: 16,
               runSpacing: 8,
               children: [
-                Text(
-                  'Subtotal: ${formatearQuetzales(subtotalDe(detalle))}',
-                  style: tema.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
+                TransicionVenta(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    'Subtotal: ${formatearQuetzales(subtotalDe(detalle))}',
+                    key: ValueKey(subtotalDe(detalle)),
+                    style: tema.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
                 TextButton.icon(

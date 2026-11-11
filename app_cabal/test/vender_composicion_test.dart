@@ -9,6 +9,7 @@ import 'package:app_cabal/screens/confirmacion_venta_screen.dart';
 import 'package:app_cabal/screens/home_shell.dart';
 import 'package:app_cabal/screens/registrar_venta_screen.dart';
 import 'package:app_cabal/theme/tema_cabal.dart';
+import 'package:app_cabal/widgets/transicion_venta.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -208,4 +209,94 @@ void main() {
       expect(tester.takeException(), isNull);
     },
   );
+  testWidgets(
+    'transición retira acciones anteriores del toque y la accesibilidad',
+    (tester) async {
+      final semantics = tester.ensureSemantics();
+
+      var anteriores = 0;
+      var actuales = 0;
+      Widget vista(bool nueva) => MaterialApp(
+        home: Scaffold(
+          body: TransicionVenta(
+            child: ElevatedButton(
+              key: ValueKey(nueva),
+              onPressed: () {
+                if (nueva) {
+                  actuales++;
+                } else {
+                  anteriores++;
+                }
+              },
+              child: Text(nueva ? 'Acción actual' : 'Acción anterior'),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpWidget(vista(false));
+      await tester.pumpWidget(vista(true));
+      await tester.pump(const Duration(milliseconds: 40));
+      expect(find.text('Acción anterior').hitTestable(), findsNothing);
+      expect(find.bySemanticsLabel('Acción anterior'), findsNothing);
+      await tester.tap(find.text('Acción actual'));
+      expect(anteriores, 0);
+      expect(actuales, 1);
+      await tester.pumpAndSettle();
+      expect(find.text('Acción anterior'), findsNothing);
+      semantics.dispose();
+    },
+  );
+
+  testWidgets(
+    'movimiento reducido muestra el nuevo importe sin esperar una animación',
+    (tester) async {
+      await _abrir(tester, reducirMovimiento: true);
+      await _mostrar(tester, find.byType(TextField));
+      await tester.enterText(find.byType(TextField), '3');
+      await tester.pump();
+      await tester.pump();
+      expect(find.text('Q3,703.50'), findsOneWidget);
+      expect(find.text('Q2,469.00'), findsNothing);
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets('edición rápida conserva foco y termina con el total correcto', (
+    tester,
+  ) async {
+    await _abrir(tester);
+    await _mostrar(tester, find.byType(TextField));
+    for (final cantidad in ['3', '4', '5']) {
+      await tester.enterText(find.byType(TextField), cantidad);
+      await tester.pump(const Duration(milliseconds: 16));
+    }
+    await tester.pumpAndSettle();
+    expect(
+      tester.widget<TextField>(find.byType(TextField)).controller!.text,
+      '5',
+    );
+    expect(FocusManager.instance.primaryFocus?.hasFocus, isTrue);
+    expect(find.text('Q6,172.50'), findsOneWidget);
+    expect(find.text('Q4,938.00'), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('controles anuncian el producto al que pertenecen', (
+    tester,
+  ) async {
+    final semantics = tester.ensureSemantics();
+
+    await _abrir(tester);
+    await _mostrar(tester, find.byType(TextField));
+    expect(
+      find.bySemanticsLabel('Aumentar cantidad de ${_producto.nombre}'),
+      findsOneWidget,
+    );
+    expect(
+      find.bySemanticsLabel(RegExp('Cantidad de Chocolate artesanal')),
+      findsOneWidget,
+    );
+    expect(tester.takeException(), isNull);
+    semantics.dispose();
+  });
 }

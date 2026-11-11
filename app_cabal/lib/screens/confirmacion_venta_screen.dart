@@ -24,10 +24,26 @@ class ConfirmacionVentaScreen extends ConsumerWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(
-                  Icons.check_circle,
-                  size: 64,
-                  color: Theme.of(context).colorScheme.primary,
+                TweenAnimationBuilder<double>(
+                  duration: MediaQuery.disableAnimationsOf(context)
+                      ? Duration.zero
+                      : const Duration(milliseconds: 240),
+                  tween: Tween(begin: 0, end: 1),
+                  curve: Curves.easeOutCubic,
+                  builder: (context, valor, child) => Opacity(
+                    opacity: valor,
+                    child: Transform.scale(
+                      scale: 0.94 + 0.06 * valor,
+                      child: child,
+                    ),
+                  ),
+                  child: ExcludeSemantics(
+                    child: Icon(
+                      Icons.check_circle,
+                      size: 64,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                  ),
                 ),
                 const SizedBox(height: 16),
                 Text(
