@@ -317,3 +317,15 @@ Las pruebas automatizadas detectaron desbordamientos con texto ampliado en la ho
 **Qué rechacé o corregí:** no hubo nuevas correcciones del usuario. Se corrigió el precio esperado en la prueba nueva para incluir el separador de miles que ya usa la aplicación.
 
 **Cómo lo verifiqué:** Se ejecutaron 51 pruebas focalizadas de catálogo, agregar a la venta, edición, eliminación y productos en uso; todas aprobaron. Las cuatro pruebas nuevas comprueban nombres largos con y sin espacios y precios de distinta longitud a anchos de 320 y 360 y escalas 1 y 2, sin excepciones de layout y sin superposición de nombre, precio y botón de agregar. `flutter analyze` terminó sin observaciones. El contraste calculado con la paleta actual es 6.67:1 para precio sobre tarjeta blanca, 15.77:1 para nombre sobre blanco y título blanco sobre marino, y 6.23:1 para texto secundario sobre fondo claro. Antes del push, tras integrar `main`, se ejecutó la suite completa: 305 pruebas aprobadas y `flutter analyze` sin observaciones. También verifiqué los cambios desde la aplicación y confirmé que todo está bien.
+
+## 2026-11-10 · Moisés Sac · Estado vacío del catálogo
+
+**Qué pedí:** mejorar el estado vacío del catálogo, con un plan previo y después su implementación.
+
+**Qué respondió:** confirmó que el botón central y el flotante duplicaban la acción de agregar. Dejó solo «Agregar primer producto» cuando no hay productos activos, cambió el carrito por un icono de inventario y propuso «Tu catálogo está vacío» con una explicación orientada a empezar a registrar ventas. La composición usa el tema existente, centra el contenido cuando hay espacio y permite desplazarlo cuando falta altura; el botón admite varias líneas y tiene altura mínima de 48.
+
+**Qué acepté:** aplicar el plan, conservando la búsqueda sin coincidencias como un estado distinto, los estados de carga y error, las filas y el comportamiento de Deshacer.
+
+**Qué rechacé o corregí:** no hubo nuevas correcciones del usuario. Durante la validación, se corrigió la lectura de datos para que la condición del botón flotante no interfiriera con el estado de error. Las pruebas con texto al doble detectaron un desbordamiento en `palabra_cabal.dart`, en la pantalla de entrada; quedó fuera del alcance y la adaptación del catálogo se comprobó directamente dentro de `HomeShell`.
+
+**Cómo lo verifiqué:** Se ejecutaron 55 pruebas focalizadas de catálogo, eliminación, edición, productos en uso y agregar a la venta; todas aprobaron. Incluyen la ausencia del botón flotante en vacío, su regreso tras Deshacer, navegación al formulario y el estado vacío dentro de `HomeShell` en 320 × 568 y 360 × 640 con escalas de texto 1 y 2 y espacio de teclado simulado. `flutter analyze` terminó sin observaciones y `git diff --check` sin errores. Después se actualizaron tres pruebas de imágenes para abrir el formulario desde «Agregar primer producto», y se ejecutó la suite completa: 309 pruebas aprobadas. No se hizo validación visual manual, de lector de pantalla o de teclado físico.
