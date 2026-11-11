@@ -77,11 +77,11 @@ class ConfirmacionVentaScreen extends ConsumerWidget {
     );
   }
 
-  /// Regresa a registrar venta, que queda sin productos y con total Q0.00.
+  /// Empieza la siguiente venta donde se eligen los productos.
   void _nuevaVenta(BuildContext context, WidgetRef ref) {
     final notifier = ref.read(ventaProvider.notifier);
-    Navigator.of(context).pop();
     notifier.limpiar();
+    _irAPestana(context, ref, Pestana.catalogo);
   }
 
   /// Desapila registrar venta y esta confirmacion hasta la barra de

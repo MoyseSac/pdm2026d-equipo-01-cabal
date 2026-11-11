@@ -7,7 +7,8 @@ import '../services/venta_service.dart';
 
 const mensajeVentaSinProductos = 'Agrega al menos un producto a la venta.';
 const mensajeCantidadInvalida = 'La cantidad debe ser mayor que cero.';
-const mensajeErrorGuardado = 'No se pudo registrar la venta. Intenta de nuevo.';
+const mensajeErrorGuardado =
+    'No se pudo registrar la venta. Tus productos siguen aquí. Intenta de nuevo.';
 
 enum EstadoRegistroVenta { inactivo, guardando, exito, error }
 

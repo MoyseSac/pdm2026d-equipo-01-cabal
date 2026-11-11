@@ -97,10 +97,7 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
             Expanded(
               child: venta.detalles.isEmpty
                   ? const _VentaVacia()
-                  : IgnorePointer(
-                      ignoring: venta.guardando,
-                      child: _ventaActual(venta.detalles),
-                    ),
+                  : _ventaActual(venta.detalles),
             ),
             if (venta.detalles.isNotEmpty) _resumen(venta),
           ],
@@ -147,6 +144,7 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
               return _FilaDetalle(
                 key: ValueKey(detalle.producto.id),
                 detalle: detalle,
+                habilitado: !ref.watch(ventaProvider).guardando,
                 onCantidad: (c) => _establecerCantidad(detalle.producto.id, c),
                 onInvalida: () => _marcarInvalido(detalle.producto.id),
                 onEliminar: () => _eliminar(detalle.producto.id),
@@ -212,12 +210,24 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
             child: ElevatedButton(
               onPressed: puedeConfirmar ? _confirmar : null,
               child: venta.guardando
-                  ? const SizedBox(
-                      height: 20,
-                      width: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
+                  ? const Wrap(
+                      alignment: WrapAlignment.center,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      spacing: 12,
+                      children: [
+                        SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                        Text('Registrando venta…'),
+                      ],
                     )
-                  : const Text('Confirmar venta'),
+                  : Text(
+                      venta.estado == EstadoRegistroVenta.error
+                          ? 'Reintentar registro'
+                          : 'Confirmar venta',
+                    ),
             ),
           ),
         ],
@@ -230,6 +240,7 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
 /// subtotal y boton para eliminar.
 class _FilaDetalle extends StatefulWidget {
   final DetalleVenta detalle;
+  final bool habilitado;
   final ValueChanged<int> onCantidad;
   final VoidCallback onInvalida;
   final VoidCallback onEliminar;
@@ -237,6 +248,7 @@ class _FilaDetalle extends StatefulWidget {
   const _FilaDetalle({
     super.key,
     required this.detalle,
+    required this.habilitado,
     required this.onCantidad,
     required this.onInvalida,
     required this.onEliminar,
@@ -329,12 +341,15 @@ class _FilaDetalleState extends State<_FilaDetalle> {
               IconButton(
                 tooltip: 'Quitar una unidad',
                 icon: const Icon(Icons.remove_circle_outline),
-                onPressed: cantidad > 1 ? () => _fijar(cantidad - 1) : null,
+                onPressed: widget.habilitado && cantidad > 1
+                    ? () => _fijar(cantidad - 1)
+                    : null,
               ),
               SizedBox(
                 width: 64,
                 child: TextField(
                   controller: _controller,
+                  enabled: widget.habilitado,
                   keyboardType: TextInputType.number,
                   textAlign: TextAlign.center,
                   decoration: InputDecoration(
@@ -355,12 +370,14 @@ class _FilaDetalleState extends State<_FilaDetalle> {
               IconButton(
                 tooltip: 'Agregar una unidad',
                 icon: const Icon(Icons.add_circle_outline),
-                onPressed: () => _fijar(cantidad + 1),
+                onPressed: widget.habilitado
+                    ? () => _fijar(cantidad + 1)
+                    : null,
               ),
               IconButton(
                 tooltip: 'Eliminar de la venta',
                 icon: const Icon(Icons.delete_outline),
-                onPressed: widget.onEliminar,
+                onPressed: widget.habilitado ? widget.onEliminar : null,
               ),
             ],
           ),
@@ -390,7 +407,9 @@ class _VentaVacia extends ConsumerWidget {
       final guardado = await Navigator.of(
         context,
       ).pushNamed(AppRoutes.agregarProducto);
-      if (guardado == true) ref.invalidate(catalogoProductosProvider);
+      if (context.mounted && guardado == true) {
+        ref.invalidate(catalogoProductosProvider);
+      }
     }
 
     return catalogo.when(

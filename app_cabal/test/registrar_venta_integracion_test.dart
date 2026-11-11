@@ -1,3 +1,7 @@
+import 'package:app_cabal/screens/home_shell.dart';
+import 'package:app_cabal/providers/tab_provider.dart';
+import 'package:app_cabal/providers/cierre_provider.dart';
+import 'package:app_cabal/providers/ventas_registradas_provider.dart';
 import 'dart:async';
 import 'dart:io';
 
@@ -78,6 +82,8 @@ void _pantalla(WidgetTester tester) {
 }
 
 Finder _confirmar() => find.widgetWithText(ElevatedButton, 'Confirmar venta');
+Finder _reintentar() =>
+    find.widgetWithText(ElevatedButton, 'Reintentar registro');
 
 /// Agrega un producto a la venta como lo hace el catalogo: por el provider.
 Future<void> _agregar(WidgetTester tester, Producto producto) async {
@@ -100,6 +106,90 @@ void main() {
         ventaServiceProvider.overrideWithValue(servicio),
       ];
     });
+
+    testWidgets(
+      'HomeShell bloquea navegación y edición durante registro y se libera tras error',
+      (tester) async {
+        _pantalla(tester);
+        servicio.espera = Completer<void>();
+        servicio.fallar = true;
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              ...overrides,
+              ventasRegistradasProvider.overrideWith((ref) async => []),
+              cierreHoyProvider.overrideWith(
+                (ref) async => throw Exception('sin cierre de prueba'),
+              ),
+            ],
+            child: MaterialApp(
+              home: const HomeShell(),
+              routes: {
+                AppRoutes.confirmacionVenta: (_) =>
+                    const ConfirmacionVentaScreen(),
+              },
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+        final container = ProviderScope.containerOf(
+          tester.element(find.byType(HomeShell)),
+        );
+        container.read(ventaProvider.notifier).agregarProducto(_cola, 2);
+        container.read(tabProvider.notifier).seleccionar(Pestana.vender);
+        await tester.pumpAndSettle();
+        final detalle = container.read(ventaProvider).detalles.single;
+        await tester.tap(_confirmar());
+        await tester.pump();
+        expect(find.text('Registrando venta…'), findsOneWidget);
+        expect(
+          tester.widget<TextField>(find.byType(TextField)).enabled,
+          isFalse,
+        );
+        expect(
+          tester
+              .widget<IconButton>(
+                find.widgetWithIcon(IconButton, Icons.delete_outline),
+              )
+              .onPressed,
+          isNull,
+        );
+        expect(
+          tester
+              .widget<TextButton>(
+                find.widgetWithText(TextButton, 'Agregar más'),
+              )
+              .onPressed,
+          isNull,
+        );
+        expect(
+          tester
+              .widget<NavigationBar>(find.byType(NavigationBar))
+              .onDestinationSelected,
+          isNull,
+        );
+        expect(
+          container.read(ventaProvider.notifier).restaurarDetalle(detalle, 0),
+          isFalse,
+        );
+        await tester.tap(find.text('Catálogo'));
+        container.read(tabProvider.notifier).seleccionar(Pestana.ventas);
+        await tester.pump();
+        expect(container.read(tabProvider), Pestana.vender);
+        expect(servicio.llamadas, 1);
+        servicio.espera!.complete();
+        await tester.pumpAndSettle();
+        expect(find.text('Reintentar registro'), findsOneWidget);
+        expect(
+          tester.widget<TextField>(find.byType(TextField)).enabled,
+          isTrue,
+        );
+        await tester.tap(find.text('Catálogo'));
+        await tester.pumpAndSettle();
+        expect(container.read(tabProvider), Pestana.catalogo);
+        expect(container.read(ventaProvider).detalles.single.cantidad, 2);
+      },
+    );
 
     testWidgets('al guardar muestra confirmación y limpia la selección', (
       tester,
@@ -170,12 +260,12 @@ void main() {
         expect(find.byType(CircularProgressIndicator), findsNothing);
         expect(find.text('Subtotal: Q10.50'), findsOneWidget);
         expect(
-          tester.widget<ElevatedButton>(_confirmar()).onPressed,
+          tester.widget<ElevatedButton>(_reintentar()).onPressed,
           isNotNull,
         );
 
         servicio.fallar = false;
-        await tester.tap(_confirmar());
+        await tester.tap(_reintentar());
         await tester.pumpAndSettle();
 
         expect(servicio.llamadas, 2);
@@ -198,7 +288,7 @@ void main() {
       expect(servicio.llamadas, 0);
     });
 
-    testWidgets('Nueva venta vuelve a registrar venta vacía y con Q0.00', (
+    testWidgets('Nueva venta abre catálogo con la selección limpia', (
       tester,
     ) async {
       _pantalla(tester);
@@ -213,10 +303,13 @@ void main() {
       await tester.tap(find.text('Nueva venta'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Registrar venta'), findsOneWidget);
-      expect(find.text('Q0.00'), findsNothing);
-      expect(find.text('Empieza una nueva venta'), findsOneWidget);
-      expect(_confirmar(), findsNothing);
+      expect(find.text('CATALOGO'), findsOneWidget);
+      expect(find.text('Registrar venta'), findsNothing);
+      final container = ProviderScope.containerOf(
+        tester.element(find.text('CATALOGO')),
+      );
+      expect(container.read(ventaProvider).detalles, isEmpty);
+      expect(container.read(ventaProvider).ventaConfirmada, isNull);
     });
 
     testWidgets('dos ventas consecutivas se registran una vez cada una', (
@@ -231,6 +324,8 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('Total: Q10.50'), findsOneWidget);
       await tester.tap(find.text('Nueva venta'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Ir a vender'));
       await tester.pumpAndSettle();
 
       await _agregar(tester, _pan);

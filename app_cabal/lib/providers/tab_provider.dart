@@ -1,5 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'venta_provider.dart';
+
 /// Destinos de la barra de navegacion inferior, en el orden en que se
 /// muestran.
 enum Pestana { catalogo, vender, ventas, cierre }
@@ -13,5 +15,8 @@ class TabNotifier extends Notifier<Pestana> {
   @override
   Pestana build() => Pestana.catalogo;
 
-  void seleccionar(Pestana pestana) => state = pestana;
+  void seleccionar(Pestana pestana) {
+    if (ref.read(ventaProvider).guardando) return;
+    state = pestana;
+  }
 }
