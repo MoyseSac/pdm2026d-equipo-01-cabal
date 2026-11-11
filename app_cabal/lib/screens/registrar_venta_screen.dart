@@ -472,36 +472,39 @@ class _FilaDetalleState extends State<_FilaDetalle>
               ],
             ),
             const SizedBox(height: 8),
-            Wrap(
-              alignment: WrapAlignment.spaceBetween,
-              crossAxisAlignment: WrapCrossAlignment.center,
-              spacing: 16,
-              runSpacing: 8,
-              children: [
-                TransicionVenta(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    'Subtotal: ${formatearQuetzales(subtotalDe(detalle))}',
-                    key: ValueKey(subtotalDe(detalle)),
-                    style: tema.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
+            SizedBox(
+              width: double.infinity,
+              child: OverflowBar(
+                alignment: MainAxisAlignment.spaceBetween,
+                overflowAlignment: OverflowBarAlignment.end,
+                spacing: 16,
+                overflowSpacing: 8,
+                children: [
+                  TransicionVenta(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      'Subtotal: ${formatearQuetzales(subtotalDe(detalle))}',
+                      key: ValueKey(subtotalDe(detalle)),
+                      style: tema.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
-                ),
-                TextButton.icon(
-                  onPressed: widget.habilitado ? widget.onEliminar : null,
-                  style: TextButton.styleFrom(
-                    foregroundColor: colores.error,
-                    minimumSize: const Size(48, 48),
+                  TextButton.icon(
+                    onPressed: widget.habilitado ? widget.onEliminar : null,
+                    style: TextButton.styleFrom(
+                      foregroundColor: colores.error,
+                      minimumSize: const Size(48, 48),
+                    ),
+                    icon: const Icon(Icons.delete_outline),
+                    label: Semantics(
+                      label: 'Quitar ${detalle.producto.nombre} de la venta',
+                      excludeSemantics: true,
+                      child: const Text('Quitar'),
+                    ),
                   ),
-                  icon: const Icon(Icons.delete_outline),
-                  label: Semantics(
-                    label: 'Quitar ${detalle.producto.nombre} de la venta',
-                    excludeSemantics: true,
-                    child: const Text('Quitar'),
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
           ],
         ),

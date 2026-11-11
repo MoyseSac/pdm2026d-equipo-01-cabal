@@ -289,6 +289,10 @@ void main() {
         tester.getTopLeft(find.byType(TextField)).dy,
         greaterThan(tester.getBottomLeft(find.text('Q1,234.50 por unidad')).dy),
       );
+      expect(
+        tester.getBottomRight(find.widgetWithText(TextButton, 'Quitar')).dx,
+        closeTo(tester.getBottomRight(tarjeta).dx - 32, 1),
+      );
       expect(tester.takeException(), isNull);
     },
   );
