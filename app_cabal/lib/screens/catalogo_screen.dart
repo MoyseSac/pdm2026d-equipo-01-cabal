@@ -289,10 +289,10 @@ class _CatalogoScreenState extends ConsumerState<CatalogoScreen> {
                   color: Theme.of(context).colorScheme.error,
                 ),
                 const SizedBox(height: 16),
-                const Text(
+                Text(
                   'No se pudieron cargar los productos.',
                   textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 16),
+                  style: Theme.of(context).textTheme.bodyLarge,
                 ),
                 const SizedBox(height: 16),
                 OutlinedButton.icon(

@@ -72,6 +72,61 @@ Future<void> _montarCatalogo(
 void main() {
   for (final ancho in [320.0, 360.0]) {
     for (final escala in [1.0, 2.0]) {
+      testWidgets('nombres largos y precios legibles: $ancho, texto $escala', (
+        tester,
+      ) async {
+        await _montarCatalogo(
+          tester,
+          _FakeProductoService(
+            productos: const [
+              Producto(
+                id: 'largo',
+                nombre: 'Café molido de tueste medio presentación familiar',
+                precio: 12345.67,
+              ),
+              Producto(
+                id: 'palabra',
+                nombre: 'ProductoConNombreMuyLargoSinEspaciosAdicionales',
+                precio: 0.1,
+              ),
+            ],
+          ),
+        );
+        tester.view.physicalSize = Size(ancho * 2, 800 * 2);
+        tester.platformDispatcher.textScaleFactorTestValue = escala;
+        addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+        await tester.pumpAndSettle();
+
+        for (final precio in ['Q12,345.67', 'Q0.10']) {
+          final textoPrecio = find.text(precio);
+          final fila = find.ancestor(
+            of: textoPrecio,
+            matching: find.byType(ListTile),
+          );
+          final nombre = tester.widget<ListTile>(fila).title!;
+          final rectNombre = tester.getRect(find.byWidget(nombre));
+          final rectPrecio = tester.getRect(textoPrecio);
+          final agregar = find.descendant(
+            of: fila,
+            matching: find.byTooltip('Agregar a la venta'),
+          );
+          expect(rectPrecio.top, greaterThanOrEqualTo(rectNombre.bottom));
+          expect(
+            rectPrecio.right,
+            lessThanOrEqualTo(tester.getRect(agregar).left),
+          );
+          expect(
+            rectNombre.right,
+            lessThanOrEqualTo(tester.getRect(agregar).left),
+          );
+        }
+        expect(tester.takeException(), isNull);
+      });
+    }
+  }
+
+  for (final ancho in [320.0, 360.0]) {
+    for (final escala in [1.0, 2.0]) {
       testWidgets('buscador alineado y adaptable: $ancho, texto $escala', (
         tester,
       ) async {
