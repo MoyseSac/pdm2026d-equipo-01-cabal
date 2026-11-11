@@ -38,11 +38,32 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
   }
 
   void _eliminar(String productoId) {
+    final detalles = ref.read(ventaProvider).detalles;
+    final posicion = detalles.indexWhere((d) => d.producto.id == productoId);
+    if (posicion == -1 || ref.read(ventaProvider).guardando) return;
+    final detalle = detalles[posicion];
     _venta.quitarProducto(productoId);
     setState(() => _invalidos.remove(productoId));
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(
+            '${detalle.producto.nombre} quitado de la venta',
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+          action: SnackBarAction(
+            label: 'Deshacer',
+            onPressed: () => _venta.restaurarDetalle(detalle, posicion),
+          ),
+        ),
+      );
   }
 
   Future<void> _confirmar() async {
+    FocusScope.of(context).unfocus();
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
     final guardada = await _venta.confirmarVenta();
     if (!guardada || !mounted) return;
 
@@ -53,6 +74,17 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
   @override
   Widget build(BuildContext context) {
     final venta = ref.watch(ventaProvider);
+    ref.listen(ventaProvider, (anterior, nueva) {
+      _invalidos.removeWhere((id) {
+        final antes = anterior?.detalles
+            .where((d) => d.producto.id == id)
+            .firstOrNull;
+        final ahora = nueva.detalles
+            .where((d) => d.producto.id == id)
+            .firstOrNull;
+        return ahora == null || antes?.cantidad != ahora.cantidad;
+      });
+    });
 
     // Mientras se guarda no se permite salir de la pantalla, para que el
     // resultado del guardado no quede sin mostrar.
@@ -151,6 +183,19 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
               ),
             ],
           ),
+          if (_invalidos.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Semantics(
+                liveRegion: true,
+                child: Text(
+                  'Revisa la cantidad de ${_invalidos.length} '
+                  '${_invalidos.length == 1 ? 'producto' : 'productos'} para continuar. '
+                  'El total conserva las últimas cantidades válidas.',
+                  style: TextStyle(color: Theme.of(context).colorScheme.error),
+                ),
+              ),
+            ),
           if (venta.estado == EstadoRegistroVenta.error &&
               venta.mensajeError != null)
             Padding(
@@ -293,6 +338,7 @@ class _FilaDetalleState extends State<_FilaDetalle> {
                   keyboardType: TextInputType.number,
                   textAlign: TextAlign.center,
                   decoration: InputDecoration(
+                    labelText: 'Cantidad',
                     isDense: true,
                     border: const OutlineInputBorder(),
                     enabledBorder: _error == null

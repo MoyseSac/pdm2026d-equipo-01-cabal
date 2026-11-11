@@ -165,6 +165,23 @@ class VentaNotifier extends StateNotifier<VentaState> {
     );
   }
 
+  /// Recupera una fila quitada sin recalcular su precio ni duplicarla.
+  bool restaurarDetalle(DetalleVenta detalle, int posicion) {
+    if (state.guardando ||
+        state.detalles.any((d) => d.producto.id == detalle.producto.id)) {
+      return false;
+    }
+    final detalles = [...state.detalles];
+    detalles.insert(posicion.clamp(0, detalles.length), detalle);
+    state = state.copyWith(
+      detalles: detalles,
+      estado: EstadoRegistroVenta.inactivo,
+      limpiarError: true,
+      limpiarConfirmada: true,
+    );
+    return true;
+  }
+
   /// Descarta la venta en curso y cualquier resultado anterior.
   void limpiar() {
     if (state.guardando) return;

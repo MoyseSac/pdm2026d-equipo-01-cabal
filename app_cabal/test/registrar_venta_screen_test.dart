@@ -260,6 +260,82 @@ void main() {
     });
   });
 
+  group('recuperación de la edición', () {
+    testWidgets('Deshacer recupera posición, cantidad y precio de la fila', (
+      tester,
+    ) async {
+      await _abrir(tester);
+      await _agregar(tester, _cola, 3);
+      await _agregar(tester, _pan);
+      await tester.tap(find.byTooltip('Eliminar de la venta').first);
+      await tester.pumpAndSettle();
+      expect(find.textContaining('quitado de la venta'), findsOneWidget);
+      expect(_enVenta('Coca Cola'), findsNothing);
+      await tester.tap(find.text('Deshacer'));
+      await tester.pumpAndSettle();
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(RegistrarVentaScreen)),
+      );
+      final detalles = container.read(ventaProvider).detalles;
+      expect(detalles.map((d) => d.producto.id), ['1', '2']);
+      expect(detalles.first.cantidad, 3);
+      expect(detalles.first.precioAlMomento, 10.5);
+      expect(find.text('Q34.00'), findsOneWidget);
+    });
+
+    testWidgets('Deshacer del último producto recupera una venta editable', (
+      tester,
+    ) async {
+      await _abrir(tester);
+      await _agregar(tester, _cola, 2);
+      await tester.enterText(_campoCantidad(0), '0');
+      await tester.pumpAndSettle();
+      expect(find.textContaining('El total conserva'), findsOneWidget);
+      await tester.tap(find.byTooltip('Eliminar de la venta'));
+      await tester.pumpAndSettle();
+      expect(find.text('Empieza una nueva venta'), findsOneWidget);
+      await tester.tap(find.text('Deshacer'));
+      await tester.pumpAndSettle();
+      expect(_cantidadEn(tester, 0), '2');
+      expect(_confirmarHabilitado(tester), isTrue);
+      expect(find.textContaining('El total conserva'), findsNothing);
+    });
+
+    testWidgets(
+      'agregar desde catálogo corrige una cantidad inválida anterior',
+      (tester) async {
+        await _abrir(tester);
+        await _agregar(tester, _cola);
+        await tester.enterText(_campoCantidad(0), 'abc');
+        await tester.pumpAndSettle();
+        expect(_confirmarHabilitado(tester), isFalse);
+        await _agregar(tester, _cola);
+        expect(_cantidadEn(tester, 0), '2');
+        expect(_confirmarHabilitado(tester), isTrue);
+        expect(find.textContaining('El total conserva'), findsNothing);
+      },
+    );
+
+    testWidgets(
+      'Deshacer no duplica un producto agregado otra vez desde catálogo',
+      (tester) async {
+        await _abrir(tester);
+        await _agregar(tester, _cola, 2);
+        await tester.tap(find.byTooltip('Eliminar de la venta'));
+        await tester.pumpAndSettle();
+        await _agregar(
+          tester,
+          const Producto(id: '1', nombre: 'Cola actualizada', precio: 12),
+          4,
+        );
+        await tester.tap(find.text('Deshacer'));
+        await tester.pumpAndSettle();
+        expect(_cantidadEn(tester, 0), '4');
+        expect(find.text('Q48.00'), findsOneWidget);
+      },
+    );
+  });
+
   group('cantidades', () {
     testWidgets('los botones +/- ajustan la cantidad y no bajan de 1', (
       tester,
