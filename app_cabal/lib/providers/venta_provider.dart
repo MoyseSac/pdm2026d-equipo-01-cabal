@@ -7,7 +7,8 @@ import '../services/venta_service.dart';
 
 const mensajeVentaSinProductos = 'Agrega al menos un producto a la venta.';
 const mensajeCantidadInvalida = 'La cantidad debe ser mayor que cero.';
-const mensajeErrorGuardado = 'No se pudo registrar la venta. Intenta de nuevo.';
+const mensajeErrorGuardado =
+    'No se pudo registrar la venta. Tus productos siguen aquí. Intenta de nuevo.';
 
 enum EstadoRegistroVenta { inactivo, guardando, exito, error }
 
@@ -163,6 +164,23 @@ class VentaNotifier extends StateNotifier<VentaState> {
       estado: EstadoRegistroVenta.inactivo,
       limpiarError: true,
     );
+  }
+
+  /// Recupera una fila quitada sin recalcular su precio ni duplicarla.
+  bool restaurarDetalle(DetalleVenta detalle, int posicion) {
+    if (state.guardando ||
+        state.detalles.any((d) => d.producto.id == detalle.producto.id)) {
+      return false;
+    }
+    final detalles = [...state.detalles];
+    detalles.insert(posicion.clamp(0, detalles.length), detalle);
+    state = state.copyWith(
+      detalles: detalles,
+      estado: EstadoRegistroVenta.inactivo,
+      limpiarError: true,
+      limpiarConfirmada: true,
+    );
+    return true;
   }
 
   /// Descarta la venta en curso y cualquier resultado anterior.
