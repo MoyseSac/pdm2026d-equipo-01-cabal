@@ -307,89 +307,113 @@ class _FilaDetalleState extends State<_FilaDetalle> {
     final detalle = widget.detalle;
     final cantidad = detalle.cantidad;
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      detalle.producto.nombre,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontSize: 16),
-                    ),
-                    Text(
-                      formatearQuetzales(detalle.precioAlMomento),
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                    Text(
-                      'Subtotal: ${formatearQuetzales(subtotalDe(detalle))}',
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                  ],
-                ),
-              ),
-              IconButton(
-                tooltip: 'Quitar una unidad',
-                icon: const Icon(Icons.remove_circle_outline),
-                onPressed: widget.habilitado && cantidad > 1
-                    ? () => _fijar(cantidad - 1)
-                    : null,
-              ),
-              SizedBox(
-                width: 64,
-                child: TextField(
-                  controller: _controller,
-                  enabled: widget.habilitado,
-                  keyboardType: TextInputType.number,
-                  textAlign: TextAlign.center,
-                  decoration: InputDecoration(
-                    labelText: 'Cantidad',
-                    isDense: true,
-                    border: const OutlineInputBorder(),
-                    enabledBorder: _error == null
-                        ? null
-                        : OutlineInputBorder(
-                            borderSide: BorderSide(
-                              color: Theme.of(context).colorScheme.error,
-                            ),
-                          ),
-                  ),
-                  onChanged: _alEscribir,
-                ),
-              ),
-              IconButton(
-                tooltip: 'Agregar una unidad',
-                icon: const Icon(Icons.add_circle_outline),
-                onPressed: widget.habilitado
-                    ? () => _fijar(cantidad + 1)
-                    : null,
-              ),
-              IconButton(
-                tooltip: 'Eliminar de la venta',
-                icon: const Icon(Icons.delete_outline),
-                onPressed: widget.habilitado ? widget.onEliminar : null,
-              ),
-            ],
-          ),
-          if (_error != null)
+    final tema = Theme.of(context);
+    final colores = tema.colorScheme;
+
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
             Text(
-              _error!,
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.error,
-                fontSize: 12,
+              detalle.producto.nombre,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: tema.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w600,
               ),
             ),
-        ],
+            const SizedBox(height: 4),
+            Text(
+              '${formatearQuetzales(detalle.precioAlMomento)} por unidad',
+              style: tema.textTheme.bodyMedium?.copyWith(
+                color: colores.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                IconButton(
+                  tooltip: 'Reducir cantidad de ${detalle.producto.nombre}',
+                  constraints: const BoxConstraints(
+                    minWidth: 48,
+                    minHeight: 48,
+                  ),
+                  icon: const Icon(Icons.remove_circle_outline),
+                  onPressed: widget.habilitado && cantidad > 1
+                      ? () => _fijar(cantidad - 1)
+                      : null,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Semantics(
+                    label: 'Cantidad de ${detalle.producto.nombre}',
+                    child: TextField(
+                      controller: _controller,
+                      enabled: widget.habilitado,
+                      keyboardType: TextInputType.number,
+                      textAlign: TextAlign.center,
+                      decoration: InputDecoration(
+                        labelText: 'Cantidad',
+                        border: const OutlineInputBorder(),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 16,
+                        ),
+                        errorText: _error,
+                        errorMaxLines: 4,
+                      ),
+                      onChanged: _alEscribir,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                IconButton(
+                  tooltip: 'Aumentar cantidad de ${detalle.producto.nombre}',
+                  constraints: const BoxConstraints(
+                    minWidth: 48,
+                    minHeight: 48,
+                  ),
+                  icon: const Icon(Icons.add_circle_outline),
+                  onPressed: widget.habilitado
+                      ? () => _fijar(cantidad + 1)
+                      : null,
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Wrap(
+              alignment: WrapAlignment.spaceBetween,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 16,
+              runSpacing: 8,
+              children: [
+                Text(
+                  'Subtotal: ${formatearQuetzales(subtotalDe(detalle))}',
+                  style: tema.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                TextButton.icon(
+                  onPressed: widget.habilitado ? widget.onEliminar : null,
+                  style: TextButton.styleFrom(
+                    foregroundColor: colores.error,
+                    minimumSize: const Size(48, 48),
+                  ),
+                  icon: const Icon(Icons.delete_outline),
+                  label: Semantics(
+                    label: 'Quitar ${detalle.producto.nombre} de la venta',
+                    excludeSemantics: true,
+                    child: const Text('Quitar'),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
