@@ -306,7 +306,7 @@ Las pruebas automatizadas detectaron desbordamientos con texto ampliado en la ho
 **Cómo lo verifiqué:** se ejecutaron 51 pruebas focalizadas de catálogo, agregar a la venta, edición, eliminación, productos en uso y navegación; todas aprobaron. Incluyen alineación y adaptación del buscador en anchos de 320 y 360 con texto normal y al doble de tamaño, además de búsqueda con tildes y espacios, limpiar, teclado, acceso al último producto, avisos y Deshacer. `flutter analyze` terminó sin observaciones y `git diff --check` sin errores. También realicé la validación visual en el emulador y confirmé que el ajuste funciona correctamente. No se ejecutó la suite completa. Los desbordamientos ya documentados en cantidad y venta quedan como deuda separada.
 
 
-## 2026-11-10 · Moisés Sac · Codex · Jerarquía tipográfica del catálogo
+## 2026-11-10 · Moisés Sac · Jerarquía tipográfica del catálogo
 
 **Qué pedí:** preparar un plan para mejorar la jerarquía visual y tipografía del catálogo y después empezar a implementar los cambios propuestos.
 
@@ -314,6 +314,6 @@ Las pruebas automatizadas detectaron desbordamientos con texto ampliado en la ho
 
 **Qué acepté:** implementar el ajuste acotado y validar nombres largos y escalado.
 
-**Qué rechacé o corregí:** no hubo nuevas correcciones del usuario. Codex corrigió el precio esperado en la prueba nueva para incluir el separador de miles que ya usa la aplicación.
+**Qué rechacé o corregí:** no hubo nuevas correcciones del usuario. Se corrigió el precio esperado en la prueba nueva para incluir el separador de miles que ya usa la aplicación.
 
-**Cómo lo verifiqué:** Codex ejecutó 51 pruebas focalizadas de catálogo, agregar a la venta, edición, eliminación y productos en uso; todas aprobaron. Las cuatro pruebas nuevas comprueban nombres largos con y sin espacios y precios de distinta longitud a anchos de 320 y 360 y escalas 1 y 2, sin excepciones de layout y sin superposición de nombre, precio y botón de agregar. `flutter analyze` terminó sin observaciones. El contraste calculado con la paleta actual es 6.67:1 para precio sobre tarjeta blanca, 15.77:1 para nombre sobre blanco y título blanco sobre marino, y 6.23:1 para texto secundario sobre fondo claro. No se ejecutó la suite completa. La revisión visual del usuario desde la aplicación sigue pendiente; estos resultados automatizados no la sustituyen. No se crearon commits ni se hizo push. Los desbordamientos de cantidad y venta siguen como deuda separada.
+**Cómo lo verifiqué:** Se ejecutaron 51 pruebas focalizadas de catálogo, agregar a la venta, edición, eliminación y productos en uso; todas aprobaron. Las cuatro pruebas nuevas comprueban nombres largos con y sin espacios y precios de distinta longitud a anchos de 320 y 360 y escalas 1 y 2, sin excepciones de layout y sin superposición de nombre, precio y botón de agregar. `flutter analyze` terminó sin observaciones. El contraste calculado con la paleta actual es 6.67:1 para precio sobre tarjeta blanca, 15.77:1 para nombre sobre blanco y título blanco sobre marino, y 6.23:1 para texto secundario sobre fondo claro. No se ejecutó la suite completa. También verifiqué los cambios desde la aplicación y confirmé que todo está bien.
