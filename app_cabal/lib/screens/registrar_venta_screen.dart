@@ -155,25 +155,31 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
       padding: const EdgeInsets.only(top: 12, bottom: 16),
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+          child: OverflowBar(
+            alignment: MainAxisAlignment.spaceBetween,
+            overflowAlignment: OverflowBarAlignment.start,
+            spacing: 16,
             children: [
-              Text(
-                'Venta actual',
-                style: tema.textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Venta actual',
+                    style: tema.textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '${seleccion.length} ${seleccion.length == 1 ? 'producto' : 'productos'} · '
+                    '$unidades ${unidades == 1 ? 'unidad' : 'unidades'}',
+                    style: tema.textTheme.bodySmall?.copyWith(
+                      color: tema.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 4),
-              Text(
-                '${seleccion.length} ${seleccion.length == 1 ? 'producto' : 'productos'} · '
-                '$unidades ${unidades == 1 ? 'unidad' : 'unidades'}',
-                style: tema.textTheme.bodyMedium?.copyWith(
-                  color: tema.colorScheme.onSurfaceVariant,
-                ),
-              ),
-              const SizedBox(height: 8),
               TextButton.icon(
                 style: TextButton.styleFrom(minimumSize: const Size(48, 48)),
                 onPressed: venta.guardando
@@ -407,10 +413,28 @@ class _FilaDetalleState extends State<_FilaDetalle>
     final tema = Theme.of(context);
     final colores = tema.colorScheme;
 
+    final subtotal = formatearQuetzales(subtotalDe(detalle));
+    final estiloSubtotal = tema.textTheme.titleMedium?.copyWith(
+      fontWeight: FontWeight.w600,
+      letterSpacing: 0,
+    );
+
+    Widget importe({required bool conEtiqueta}) => Semantics(
+      label: 'Subtotal de ${detalle.producto.nombre}: $subtotal',
+      excludeSemantics: true,
+      child: TransicionVenta(
+        child: Text(
+          conEtiqueta ? 'Subtotal: $subtotal' : subtotal,
+          key: ValueKey(subtotal),
+          style: estiloSubtotal,
+        ),
+      ),
+    );
+
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -429,82 +453,132 @@ class _FilaDetalleState extends State<_FilaDetalle>
                 color: colores.onSurfaceVariant,
               ),
             ),
-            const SizedBox(height: 16),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _controlCantidad(
-                  'Reducir cantidad de ${detalle.producto.nombre}',
-                  Icons.remove_circle_outline,
-                  widget.habilitado && cantidad > 1
-                      ? () => _fijar(cantidad - 1)
-                      : null,
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Semantics(
-                    label: 'Cantidad de ${detalle.producto.nombre}',
-                    child: TextField(
-                      controller: _controller,
-                      enabled: widget.habilitado,
-                      keyboardType: TextInputType.number,
-                      textAlign: TextAlign.center,
-                      decoration: InputDecoration(
-                        labelText: 'Cantidad',
-                        border: const OutlineInputBorder(),
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 16,
-                        ),
-                        errorText: _error,
-                        errorMaxLines: 4,
-                      ),
-                      onChanged: _alEscribir,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                _controlCantidad(
-                  'Aumentar cantidad de ${detalle.producto.nombre}',
-                  Icons.add_circle_outline,
-                  widget.habilitado ? () => _fijar(cantidad + 1) : null,
-                ),
-              ],
-            ),
             const SizedBox(height: 8),
-            SizedBox(
-              width: double.infinity,
-              child: OverflowBar(
-                alignment: MainAxisAlignment.spaceBetween,
-                overflowAlignment: OverflowBarAlignment.end,
-                spacing: 16,
-                overflowSpacing: 8,
-                children: [
-                  TransicionVenta(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      'Subtotal: ${formatearQuetzales(subtotalDe(detalle))}',
-                      key: ValueKey(subtotalDe(detalle)),
-                      style: tema.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
+            LayoutBuilder(
+              builder: (context, constraints) {
+                double anchoTexto(String texto, TextStyle? estilo) {
+                  final painter = TextPainter(
+                    text: TextSpan(text: texto, style: estilo),
+                    textDirection: Directionality.of(context),
+                    textScaler: MediaQuery.textScalerOf(context),
+                  )..layout();
+                  final ancho = painter.width;
+                  painter.dispose();
+                  return ancho;
+                }
+
+                final escala = MediaQuery.textScalerOf(context).scale(16) / 16;
+                final anchoCampo = (48 * escala).clamp(
+                  48.0,
+                  (constraints.maxWidth - 168).clamp(48.0, double.infinity),
+                );
+                final enLinea =
+                    constraints.maxWidth >=
+                    168 + anchoCampo + anchoTexto(subtotal, estiloSubtotal);
+                final controles = [
+                  _controlCantidad(
+                    'Reducir cantidad de ${detalle.producto.nombre}',
+                    Icons.remove_circle_outline,
+                    widget.habilitado && cantidad > 1
+                        ? () => _fijar(cantidad - 1)
+                        : null,
+                  ),
+                  const SizedBox(width: 8),
+                  SizedBox(
+                    width: anchoCampo,
+                    child: Semantics(
+                      label:
+                          'Cantidad de ${detalle.producto.nombre}${_error == null ? '' : '. $_error'}',
+                      child: TextField(
+                        controller: _controller,
+                        enabled: widget.habilitado,
+                        keyboardType: TextInputType.number,
+                        textAlign: TextAlign.center,
+                        decoration: InputDecoration(
+                          labelText: 'Cant.',
+                          border: const OutlineInputBorder(),
+                          enabledBorder: _error == null
+                              ? null
+                              : OutlineInputBorder(
+                                  borderSide: BorderSide(color: colores.error),
+                                ),
+                          focusedBorder: _error == null
+                              ? null
+                              : OutlineInputBorder(
+                                  borderSide: BorderSide(
+                                    color: colores.error,
+                                    width: 2,
+                                  ),
+                                ),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 12,
+                          ),
+                        ),
+                        onChanged: _alEscribir,
                       ),
                     ),
                   ),
-                  TextButton.icon(
-                    onPressed: widget.habilitado ? widget.onEliminar : null,
-                    style: TextButton.styleFrom(
-                      foregroundColor: colores.error,
-                      minimumSize: const Size(48, 48),
+                  const SizedBox(width: 8),
+                  _controlCantidad(
+                    'Aumentar cantidad de ${detalle.producto.nombre}',
+                    Icons.add_circle_outline,
+                    widget.habilitado ? () => _fijar(cantidad + 1) : null,
+                  ),
+                ];
+                final quitar = Tooltip(
+                  message: 'Quitar ${detalle.producto.nombre} de la venta',
+                  excludeFromSemantics: true,
+                  child: IconButton(
+                    constraints: const BoxConstraints(
+                      minWidth: 48,
+                      minHeight: 48,
                     ),
-                    icon: const Icon(Icons.delete_outline),
-                    label: Semantics(
-                      label: 'Quitar ${detalle.producto.nombre} de la venta',
-                      excludeSemantics: true,
-                      child: const Text('Quitar'),
+                    style: IconButton.styleFrom(foregroundColor: colores.error),
+                    onPressed: widget.habilitado ? widget.onEliminar : null,
+                    icon: Icon(
+                      Icons.delete_outline,
+                      semanticLabel:
+                          'Quitar ${detalle.producto.nombre} de la venta',
                     ),
                   ),
-                ],
-              ),
+                );
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Row(
+                      children: [
+                        ...controles,
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: enLinea
+                              ? importe(conEtiqueta: false)
+                              : const SizedBox(),
+                        ),
+                        quitar,
+                      ],
+                    ),
+                    if (!enLinea)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8),
+                        child: importe(conEtiqueta: true),
+                      ),
+                    if (_error != null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8),
+                        child: Semantics(
+                          liveRegion: true,
+                          child: Text(
+                            _error!,
+                            style: tema.textTheme.bodyMedium?.copyWith(
+                              color: colores.error,
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                );
+              },
             ),
           ],
         ),

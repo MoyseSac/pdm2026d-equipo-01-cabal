@@ -148,7 +148,9 @@ void main() {
         );
         expect(
           tester
-              .widget<TextButton>(find.widgetWithText(TextButton, 'Quitar'))
+              .widget<IconButton>(
+                find.widgetWithIcon(IconButton, Icons.delete_outline),
+              )
               .onPressed,
           isNull,
         );
@@ -256,7 +258,17 @@ void main() {
         expect(find.text(mensajeErrorGuardado), findsOneWidget);
         expect(find.text('Venta registrada'), findsNothing);
         expect(find.byType(CircularProgressIndicator), findsNothing);
-        expect(find.text('Subtotal: Q10.50'), findsOneWidget);
+        expect(
+          find.descendant(
+            of: find.byType(Card),
+            matching: find.byWidgetPredicate(
+              (w) =>
+                  w is Text &&
+                  (w.data == 'Q10.50' || w.data == 'Subtotal: Q10.50'),
+            ),
+          ),
+          findsOneWidget,
+        );
         expect(
           tester.widget<ElevatedButton>(_reintentar()).onPressed,
           isNotNull,

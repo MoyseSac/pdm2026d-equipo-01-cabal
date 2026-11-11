@@ -252,11 +252,16 @@ void main() {
       await _agregar(tester, _pan);
       await tester.pumpAndSettle();
 
-      await tester.tap(find.widgetWithText(TextButton, 'Quitar').first);
+      await tester.tap(
+        find.widgetWithIcon(IconButton, Icons.delete_outline).first,
+      );
       await tester.pumpAndSettle();
 
       expect(_enVenta('Pan dulce'), findsOneWidget);
-      expect(find.widgetWithText(TextButton, 'Quitar'), findsOneWidget);
+      expect(
+        find.widgetWithIcon(IconButton, Icons.delete_outline),
+        findsOneWidget,
+      );
     });
   });
 
@@ -290,8 +295,12 @@ void main() {
         greaterThan(tester.getBottomLeft(find.text('Q1,234.50 por unidad')).dy),
       );
       expect(
-        tester.getBottomRight(find.widgetWithText(TextButton, 'Quitar')).dx,
-        closeTo(tester.getBottomRight(tarjeta).dx - 32, 1),
+        tester
+            .getBottomRight(
+              find.widgetWithIcon(IconButton, Icons.delete_outline),
+            )
+            .dx,
+        closeTo(tester.getBottomRight(tarjeta).dx - 24, 1),
       );
       expect(tester.takeException(), isNull);
     },
@@ -304,7 +313,9 @@ void main() {
       await _abrir(tester);
       await _agregar(tester, _cola, 3);
       await _agregar(tester, _pan);
-      await tester.tap(find.widgetWithText(TextButton, 'Quitar').first);
+      await tester.tap(
+        find.widgetWithIcon(IconButton, Icons.delete_outline).first,
+      );
       await tester.pumpAndSettle();
       expect(find.textContaining('quitado de la venta'), findsOneWidget);
       expect(_enVenta('Coca Cola'), findsNothing);
@@ -328,7 +339,7 @@ void main() {
       await tester.enterText(_campoCantidad(0), '0');
       await tester.pumpAndSettle();
       expect(find.textContaining('El total conserva'), findsOneWidget);
-      await tester.tap(find.widgetWithText(TextButton, 'Quitar'));
+      await tester.tap(find.widgetWithIcon(IconButton, Icons.delete_outline));
       await tester.pumpAndSettle();
       expect(find.text('Empieza una nueva venta'), findsOneWidget);
       await tester.tap(find.text('Deshacer'));
@@ -358,7 +369,7 @@ void main() {
       (tester) async {
         await _abrir(tester);
         await _agregar(tester, _cola, 2);
-        await tester.tap(find.widgetWithText(TextButton, 'Quitar'));
+        await tester.tap(find.widgetWithIcon(IconButton, Icons.delete_outline));
         await tester.pumpAndSettle();
         await _agregar(
           tester,
@@ -368,7 +379,7 @@ void main() {
         await tester.tap(find.text('Deshacer'));
         await tester.pumpAndSettle();
         expect(_cantidadEn(tester, 0), '4');
-        expect(find.text('Q48.00'), findsOneWidget);
+        expect(find.text('Q48.00'), findsNWidgets(2));
       },
     );
   });
@@ -405,7 +416,17 @@ void main() {
       await tester.enterText(_campoCantidad(0), '25');
       await tester.pumpAndSettle();
 
-      expect(find.text('Subtotal: Q262.50'), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byType(Card),
+          matching: find.byWidgetPredicate(
+            (w) =>
+                w is Text &&
+                (w.data == 'Q262.50' || w.data == 'Subtotal: Q262.50'),
+          ),
+        ),
+        findsOneWidget,
+      );
       expect(_confirmarHabilitado(tester), isTrue);
     });
 
@@ -451,10 +472,12 @@ void main() {
 
       // Eliminar el producto inválido desbloquea la venta.
       await tester.ensureVisible(
-        find.widgetWithText(TextButton, 'Quitar').last,
+        find.widgetWithIcon(IconButton, Icons.delete_outline).last,
       );
       await tester.pumpAndSettle();
-      await tester.tap(find.widgetWithText(TextButton, 'Quitar').last);
+      await tester.tap(
+        find.widgetWithIcon(IconButton, Icons.delete_outline).last,
+      );
       await tester.pumpAndSettle();
       expect(_confirmarHabilitado(tester), isTrue);
     });
@@ -470,7 +493,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(_confirmarHabilitado(tester), isTrue);
 
-      await tester.tap(find.widgetWithText(TextButton, 'Quitar'));
+      await tester.tap(find.widgetWithIcon(IconButton, Icons.delete_outline));
       await tester.pumpAndSettle();
       expect(_confirmarHabilitado(tester), isFalse);
     });
@@ -496,8 +519,27 @@ void main() {
       await tester.enterText(_campoCantidad(1), '3');
       await tester.pumpAndSettle();
 
-      expect(find.text('Subtotal: Q21.00'), findsOneWidget);
-      expect(find.text('Subtotal: Q7.50'), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byType(Card),
+          matching: find.byWidgetPredicate(
+            (w) =>
+                w is Text &&
+                (w.data == 'Q21.00' || w.data == 'Subtotal: Q21.00'),
+          ),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(
+          of: find.byType(Card),
+          matching: find.byWidgetPredicate(
+            (w) =>
+                w is Text && (w.data == 'Q7.50' || w.data == 'Subtotal: Q7.50'),
+          ),
+        ),
+        findsOneWidget,
+      );
       expect(_total('Q28.50'), findsOneWidget);
     });
 
@@ -518,7 +560,9 @@ void main() {
       await tester.pumpAndSettle();
       expect(_total('Q23.50'), findsOneWidget);
 
-      await tester.tap(find.widgetWithText(TextButton, 'Quitar').first);
+      await tester.tap(
+        find.widgetWithIcon(IconButton, Icons.delete_outline).first,
+      );
       await tester.pumpAndSettle();
       expect(_total('Q2.50'), findsWidgets);
     });

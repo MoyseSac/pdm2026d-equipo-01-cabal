@@ -96,9 +96,12 @@ void main() {
         (tester) async {
           await _abrir(tester, size: size, escala: escala);
           expect(tester.takeException(), isNull);
-          await _mostrar(tester, find.widgetWithText(TextButton, 'Quitar'));
+          await _mostrar(
+            tester,
+            find.widgetWithIcon(IconButton, Icons.delete_outline),
+          );
           expect(
-            find.widgetWithText(TextButton, 'Quitar').hitTestable(),
+            find.widgetWithIcon(IconButton, Icons.delete_outline).hitTestable(),
             findsOneWidget,
           );
           await _mostrar(
@@ -209,6 +212,63 @@ void main() {
       expect(tester.takeException(), isNull);
     },
   );
+  testWidgets('dos productos completos caben junto al resumen en teléfono', (
+    tester,
+  ) async {
+    final container = await _abrir(tester);
+    final venta = container.read(ventaProvider.notifier);
+    venta.limpiar();
+    venta.agregarProducto(
+      const Producto(id: 'cafe', nombre: 'Café molido', precio: 15),
+      2,
+    );
+    venta.agregarProducto(
+      const Producto(id: 'pan', nombre: 'Pan dulce', precio: 2.5),
+      1,
+    );
+    await tester.pumpAndSettle();
+    expect(find.byType(Card), findsNWidgets(2));
+    for (final card in find.byType(Card).evaluate()) {
+      expect(
+        tester.getSize(find.byWidget(card.widget)).height,
+        lessThanOrEqualTo(144),
+      );
+    }
+    expect(
+      tester.getBottomLeft(find.byType(Card).last).dy,
+      lessThan(tester.getTopLeft(find.text('Total')).dy),
+    );
+    expect(find.text('Q30.00'), findsOneWidget);
+    expect(find.text('Q32.50'), findsOneWidget);
+    expect(
+      find.widgetWithText(ElevatedButton, 'Confirmar venta').hitTestable(),
+      findsOneWidget,
+    );
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets(
+    'subtotal baja con etiqueta si el importe es largo y el texto aumenta',
+    (tester) async {
+      final container = await _abrir(
+        tester,
+        size: const Size(320, 568),
+        escala: 2,
+      );
+      container.read(ventaProvider.notifier).limpiar();
+      container
+          .read(ventaProvider.notifier)
+          .agregarProducto(
+            const Producto(id: 'p', nombre: 'Chocolate', precio: 9999999.99),
+            1,
+          );
+      await tester.pumpAndSettle();
+      await _mostrar(tester, find.textContaining('Subtotal:'));
+      expect(find.textContaining('Subtotal:'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    },
+  );
+
   testWidgets(
     'transición retira acciones anteriores del toque y la accesibilidad',
     (tester) async {
