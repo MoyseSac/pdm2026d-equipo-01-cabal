@@ -4,6 +4,7 @@ import 'package:app_cabal/constants/app_routes.dart';
 import 'package:app_cabal/models/producto.dart';
 import 'package:app_cabal/providers/producto_provider.dart';
 import 'package:app_cabal/screens/catalogo_screen.dart';
+import 'package:app_cabal/screens/home_shell.dart';
 import 'package:app_cabal/services/producto_service.dart';
 import 'package:app_cabal/theme/tema_cabal.dart';
 import 'package:flutter/material.dart';
@@ -70,6 +71,45 @@ Future<void> _montarCatalogo(
 }
 
 void main() {
+  for (final size in [const Size(320, 568), const Size(360, 640)]) {
+    for (final escala in [1.0, 2.0]) {
+      testWidgets('vacio adaptable en $size con texto $escala', (tester) async {
+        await _montarCatalogo(tester, _FakeProductoService(productos: []));
+        tester.view.physicalSize = size * 2;
+        tester.platformDispatcher.textScaleFactorTestValue = escala;
+        addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              productoServiceProvider.overrideWithValue(
+                _FakeProductoService(productos: []),
+              ),
+            ],
+            child: MaterialApp(theme: temaCabal, home: const HomeShell()),
+          ),
+        );
+        await tester.pumpAndSettle();
+        expect(find.text('Tu catálogo está vacío'), findsOneWidget);
+        expect(find.byType(FloatingActionButton), findsNothing);
+        final boton = find.text('Agregar primer producto');
+        await tester.ensureVisible(boton);
+        expect(
+          tester
+              .getSize(
+                find.ancestor(of: boton, matching: find.byType(ElevatedButton)),
+              )
+              .height,
+          greaterThanOrEqualTo(48),
+        );
+        expect(tester.takeException(), isNull);
+        tester.view.viewInsets = const FakeViewPadding(bottom: 400);
+        await tester.pumpAndSettle();
+        await tester.ensureVisible(boton);
+        expect(tester.takeException(), isNull);
+      });
+    }
+  }
+
   for (final ancho in [320.0, 360.0]) {
     for (final escala in [1.0, 2.0]) {
       testWidgets('nombres largos y precios legibles: $ancho, texto $escala', (
@@ -205,7 +245,8 @@ void main() {
       find.text('No encontramos productos con «inexistente»'),
       findsOneWidget,
     );
-    expect(find.text('Catálogo vacío'), findsNothing);
+    expect(find.text('Tu catálogo está vacío'), findsNothing);
+    expect(find.byType(FloatingActionButton), findsOneWidget);
     await tester.tap(find.text('Limpiar búsqueda'));
     await tester.pumpAndSettle();
     expect(find.text('Coca Cola'), findsOneWidget);
@@ -261,8 +302,9 @@ void main() {
     await _montarCatalogo(tester, _FakeProductoService(productos: const []));
     await tester.pumpAndSettle();
 
-    expect(find.text('Catálogo vacío'), findsOneWidget);
+    expect(find.text('Tu catálogo está vacío'), findsOneWidget);
     expect(find.text('Agregar primer producto'), findsOneWidget);
+    expect(find.byType(FloatingActionButton), findsNothing);
 
     await tester.tap(find.text('Agregar primer producto'));
     await tester.pumpAndSettle();

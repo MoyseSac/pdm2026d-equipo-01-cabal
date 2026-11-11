@@ -150,7 +150,8 @@ void main() {
       await _deslizar(tester, 'Coca Cola');
       await _deslizar(tester, 'Pan dulce');
 
-      expect(find.text('Catálogo vacío'), findsOneWidget);
+      expect(find.text('Tu catálogo está vacío'), findsOneWidget);
+      expect(find.byType(FloatingActionButton), findsNothing);
       expect(find.text('Agregar primer producto'), findsOneWidget);
     });
   });
@@ -204,12 +205,14 @@ void main() {
       await _abrir(tester, servicio);
 
       await _deslizar(tester, 'Coca Cola');
-      expect(find.text('Catálogo vacío'), findsOneWidget);
+      expect(find.text('Tu catálogo está vacío'), findsOneWidget);
+      expect(find.byType(FloatingActionButton), findsNothing);
 
       await tester.tap(find.text('Deshacer'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Catálogo vacío'), findsNothing);
+      expect(find.text('Tu catálogo está vacío'), findsNothing);
+      expect(find.byType(FloatingActionButton), findsOneWidget);
       expect(find.text('Coca Cola'), findsOneWidget);
       expect(find.text('Q10.50'), findsOneWidget);
     });
@@ -286,7 +289,8 @@ void main() {
     testWidgets('sin productos muestra el estado vacío', (tester) async {
       await _abrir(tester, _FakeProductoService([]));
 
-      expect(find.text('Catálogo vacío'), findsOneWidget);
+      expect(find.text('Tu catálogo está vacío'), findsOneWidget);
+      expect(find.byType(FloatingActionButton), findsNothing);
     });
   });
 }

@@ -19,6 +19,7 @@ class HomeShell extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final actual = ref.watch(tabProvider);
+    final guardando = ref.watch(ventaProvider.select((v) => v.guardando));
     final unidadesEnVenta = ref.watch(
       ventaProvider.select(
         (v) => v.detalles.fold<int>(0, (suma, d) => suma + d.cantidad),
@@ -49,8 +50,11 @@ class HomeShell extends ConsumerWidget {
       ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: actual.index,
-        onDestinationSelected: (indice) =>
-            ref.read(tabProvider.notifier).seleccionar(Pestana.values[indice]),
+        onDestinationSelected: guardando
+            ? null
+            : (indice) => ref
+                  .read(tabProvider.notifier)
+                  .seleccionar(Pestana.values[indice]),
         destinations: [
           const NavigationDestination(
             icon: Icon(Icons.storefront_outlined),

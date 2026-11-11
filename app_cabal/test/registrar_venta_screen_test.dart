@@ -1,3 +1,7 @@
+import 'dart:async';
+
+import 'package:app_cabal/providers/catalogo_provider.dart';
+import 'package:app_cabal/constants/app_routes.dart';
 import 'package:app_cabal/models/detalle_venta.dart';
 import 'package:app_cabal/models/producto.dart';
 import 'package:app_cabal/providers/producto_provider.dart';
@@ -61,28 +65,128 @@ String _cantidadEn(WidgetTester tester, int posicion) =>
     tester.widget<TextField>(_campoCantidad(posicion)).controller!.text;
 
 bool _confirmarHabilitado(WidgetTester tester) =>
+    _confirmar().evaluate().isNotEmpty &&
     tester.widget<ElevatedButton>(_confirmar()).onPressed != null;
 
 Finder _total(String texto) =>
     find.descendant(of: find.byType(Padding), matching: find.text(texto));
 
 void main() {
+  group('estados iniciales', () {
+    testWidgets('catálogo cargando no se confunde con vacío', (tester) async {
+      final carga = Completer<List<Producto>>();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            catalogoProductosProvider.overrideWith((ref) => carga.future),
+          ],
+          child: const MaterialApp(home: RegistrarVentaScreen()),
+        ),
+      );
+      await tester.pump();
+      expect(find.text('Consultando productos…'), findsOneWidget);
+      expect(find.text('Agregar primer producto'), findsNothing);
+      expect(_confirmar(), findsNothing);
+      carga.complete([]);
+      await tester.pumpAndSettle();
+      expect(find.text('Primero agrega un producto'), findsOneWidget);
+    });
+
+    testWidgets('error de catálogo permite reintentar sin mostrar vacío', (
+      tester,
+    ) async {
+      var intentos = 0;
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            catalogoProductosProvider.overrideWith((ref) async {
+              if (++intentos == 1) throw Exception('consulta fallida');
+              return [_cola];
+            }),
+          ],
+          child: const MaterialApp(home: RegistrarVentaScreen()),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('No se pudo consultar el catálogo'), findsOneWidget);
+      expect(find.text('Agregar primer producto'), findsNothing);
+      await tester.tap(find.text('Reintentar'));
+      await tester.pumpAndSettle();
+      expect(find.text('Elegir productos'), findsOneWidget);
+      expect(intentos, 2);
+    });
+
+    testWidgets('crear primer producto refresca el estado al regresar', (
+      tester,
+    ) async {
+      var creado = false;
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            catalogoProductosProvider.overrideWith(
+              (ref) async => creado ? [_cola] : [],
+            ),
+          ],
+          child: MaterialApp(
+            home: const RegistrarVentaScreen(),
+            routes: {
+              AppRoutes.agregarProducto: (context) => Scaffold(
+                body: ElevatedButton(
+                  onPressed: () {
+                    creado = true;
+                    Navigator.of(context).pop(true);
+                  },
+                  child: const Text('Guardar producto de prueba'),
+                ),
+              ),
+            },
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Agregar primer producto'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Guardar producto de prueba'));
+      await tester.pumpAndSettle();
+      expect(find.text('Elegir productos'), findsOneWidget);
+    });
+
+    testWidgets(
+      'Agregar más conserva selección y contador distingue unidades',
+      (tester) async {
+        await _abrir(tester);
+        await _agregar(tester, _cola, 2);
+        await _agregar(tester, _pan);
+        expect(find.text('2 productos · 3 unidades'), findsOneWidget);
+        final container = ProviderScope.containerOf(
+          tester.element(find.byType(RegistrarVentaScreen)),
+        );
+        container.read(tabProvider.notifier).seleccionar(Pestana.vender);
+        await tester.tap(find.text('Agregar más'));
+        await tester.pump();
+        expect(container.read(tabProvider), Pestana.catalogo);
+        expect(container.read(ventaProvider).detalles.length, 2);
+        expect(container.read(ventaProvider).total, 23.5);
+      },
+    );
+  });
+
   group('selección de productos', () {
     testWidgets('venta vacía muestra mensaje para agregar desde el catálogo', (
       tester,
     ) async {
       await _abrir(tester);
 
-      expect(find.text('La venta está vacía'), findsOneWidget);
+      expect(find.text('Empieza una nueva venta'), findsOneWidget);
       expect(
-        find.textContaining('Agrega productos desde el catálogo'),
+        find.textContaining('Selecciona productos del catálogo'),
         findsOneWidget,
       );
-      expect(find.text('Ir al catálogo'), findsOneWidget);
+      expect(find.text('Elegir productos'), findsOneWidget);
       expect(find.text('Venta actual'), findsNothing);
     });
 
-    testWidgets('Ir al catálogo cambia a la pestaña del catálogo', (
+    testWidgets('Elegir productos cambia a la pestaña del catálogo', (
       tester,
     ) async {
       await _abrir(tester);
@@ -91,7 +195,7 @@ void main() {
       );
       container.read(tabProvider.notifier).seleccionar(Pestana.vender);
 
-      await tester.tap(find.text('Ir al catálogo'));
+      await tester.tap(find.text('Elegir productos'));
       await tester.pump();
 
       expect(container.read(tabProvider), Pestana.catalogo);
@@ -108,7 +212,7 @@ void main() {
       expect(find.text('Coca Cola'), findsOneWidget);
       expect(find.text('Pan dulce'), findsNothing);
       expect(find.text('Agua pura'), findsNothing);
-      expect(find.text('La venta está vacía'), findsNothing);
+      expect(find.text('Empieza una nueva venta'), findsNothing);
     });
 
     testWidgets('seleccionar varios productos los agrega a la venta actual', (
@@ -154,6 +258,82 @@ void main() {
       expect(_enVenta('Pan dulce'), findsOneWidget);
       expect(find.byTooltip('Eliminar de la venta'), findsOneWidget);
     });
+  });
+
+  group('recuperación de la edición', () {
+    testWidgets('Deshacer recupera posición, cantidad y precio de la fila', (
+      tester,
+    ) async {
+      await _abrir(tester);
+      await _agregar(tester, _cola, 3);
+      await _agregar(tester, _pan);
+      await tester.tap(find.byTooltip('Eliminar de la venta').first);
+      await tester.pumpAndSettle();
+      expect(find.textContaining('quitado de la venta'), findsOneWidget);
+      expect(_enVenta('Coca Cola'), findsNothing);
+      await tester.tap(find.text('Deshacer'));
+      await tester.pumpAndSettle();
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(RegistrarVentaScreen)),
+      );
+      final detalles = container.read(ventaProvider).detalles;
+      expect(detalles.map((d) => d.producto.id), ['1', '2']);
+      expect(detalles.first.cantidad, 3);
+      expect(detalles.first.precioAlMomento, 10.5);
+      expect(find.text('Q34.00'), findsOneWidget);
+    });
+
+    testWidgets('Deshacer del último producto recupera una venta editable', (
+      tester,
+    ) async {
+      await _abrir(tester);
+      await _agregar(tester, _cola, 2);
+      await tester.enterText(_campoCantidad(0), '0');
+      await tester.pumpAndSettle();
+      expect(find.textContaining('El total conserva'), findsOneWidget);
+      await tester.tap(find.byTooltip('Eliminar de la venta'));
+      await tester.pumpAndSettle();
+      expect(find.text('Empieza una nueva venta'), findsOneWidget);
+      await tester.tap(find.text('Deshacer'));
+      await tester.pumpAndSettle();
+      expect(_cantidadEn(tester, 0), '2');
+      expect(_confirmarHabilitado(tester), isTrue);
+      expect(find.textContaining('El total conserva'), findsNothing);
+    });
+
+    testWidgets(
+      'agregar desde catálogo corrige una cantidad inválida anterior',
+      (tester) async {
+        await _abrir(tester);
+        await _agregar(tester, _cola);
+        await tester.enterText(_campoCantidad(0), 'abc');
+        await tester.pumpAndSettle();
+        expect(_confirmarHabilitado(tester), isFalse);
+        await _agregar(tester, _cola);
+        expect(_cantidadEn(tester, 0), '2');
+        expect(_confirmarHabilitado(tester), isTrue);
+        expect(find.textContaining('El total conserva'), findsNothing);
+      },
+    );
+
+    testWidgets(
+      'Deshacer no duplica un producto agregado otra vez desde catálogo',
+      (tester) async {
+        await _abrir(tester);
+        await _agregar(tester, _cola, 2);
+        await tester.tap(find.byTooltip('Eliminar de la venta'));
+        await tester.pumpAndSettle();
+        await _agregar(
+          tester,
+          const Producto(id: '1', nombre: 'Cola actualizada', precio: 12),
+          4,
+        );
+        await tester.tap(find.text('Deshacer'));
+        await tester.pumpAndSettle();
+        expect(_cantidadEn(tester, 0), '4');
+        expect(find.text('Q48.00'), findsOneWidget);
+      },
+    );
   });
 
   group('cantidades', () {
@@ -256,10 +436,11 @@ void main() {
   });
 
   group('subtotales y total', () {
-    testWidgets('venta vacía muestra total Q0.00', (tester) async {
+    testWidgets('venta vacía oculta total y confirmación', (tester) async {
       await _abrir(tester);
 
-      expect(_total('Q0.00'), findsOneWidget);
+      expect(_total('Q0.00'), findsNothing);
+      expect(_confirmar(), findsNothing);
     });
 
     testWidgets('calcula subtotales y total con varios productos', (

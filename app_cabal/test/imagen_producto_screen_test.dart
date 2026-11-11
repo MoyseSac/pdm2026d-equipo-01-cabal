@@ -131,7 +131,7 @@ void main() {
     final productos = _FakeProductoService();
     await _abrir(tester, productos, _FakeImagenService());
 
-    await tester.tap(find.text('Agregar producto'));
+    await tester.tap(find.text('Agregar primer producto'));
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextFormField).at(0), 'Agua pura');
     await tester.enterText(find.byType(TextFormField).at(1), '5');
@@ -292,7 +292,7 @@ void main() {
 
   testWidgets('sin camara no se ofrece tomar foto', (tester) async {
     await _abrir(tester, _FakeProductoService(), _FakeImagenService());
-    await tester.tap(find.text('Agregar producto'));
+    await tester.tap(find.text('Agregar primer producto'));
     await tester.pumpAndSettle();
     expect(find.text('Tomar foto'), findsNothing);
   });
@@ -303,7 +303,7 @@ void main() {
       _FakeProductoService(),
       _FakeImagenService(camara: true),
     );
-    await tester.tap(find.text('Agregar producto'));
+    await tester.tap(find.text('Agregar primer producto'));
     await tester.pumpAndSettle();
     expect(find.text('Tomar foto'), findsOneWidget);
   });
