@@ -226,6 +226,15 @@ class _CatalogoScreenState extends ConsumerState<CatalogoScreen> {
   Widget build(BuildContext context) {
     final catalogo = ref.watch(catalogoProductosProvider);
     final colores = Theme.of(context).colorScheme;
+    final activos = catalogo.valueOrNull
+        ?.where((producto) => !_ocultos.contains(producto.id))
+        .toList();
+    final mostrarVacio = catalogo.when(
+      skipLoadingOnReload: catalogo.hasValue,
+      loading: () => false,
+      error: (_, _) => false,
+      data: (_) => activos!.isEmpty,
+    );
 
     Future<void> abrirAgregarProducto() async {
       final result = await Navigator.of(
@@ -309,17 +318,13 @@ class _CatalogoScreenState extends ConsumerState<CatalogoScreen> {
 
         // ESTADOS 3 Y 4: VACÍO O DATOS
         data: (lista) {
-          final activos = lista
-              .where((producto) => !_ocultos.contains(producto.id))
-              .toList();
-
           // También es el estado vacío cuando se borran todos los productos.
-          if (activos.isEmpty) {
+          if (mostrarVacio) {
             return CatalogoVacioWidget(onAgregarProducto: abrirAgregarProducto);
           }
 
           final consulta = normalizarBusqueda(_consulta);
-          final productos = activos
+          final productos = activos!
               .where(
                 (producto) =>
                     normalizarBusqueda(producto.nombre).contains(consulta),
@@ -530,12 +535,14 @@ class _CatalogoScreenState extends ConsumerState<CatalogoScreen> {
         },
       ),
 
-      floatingActionButton: FloatingActionButton.extended(
-        heroTag: 'agregar',
-        onPressed: abrirAgregarProducto,
-        label: const Text('Agregar producto'),
-        icon: const Icon(Icons.add),
-      ),
+      floatingActionButton: mostrarVacio
+          ? null
+          : FloatingActionButton.extended(
+              heroTag: 'agregar',
+              onPressed: abrirAgregarProducto,
+              label: const Text('Agregar producto'),
+              icon: const Icon(Icons.add),
+            ),
     );
   }
 }
