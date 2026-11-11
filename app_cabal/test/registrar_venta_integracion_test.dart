@@ -120,8 +120,8 @@ void main() {
       // Al volver a la pantalla de venta la selección está limpia.
       await tester.pageBack();
       await tester.pumpAndSettle();
-      expect(find.text('La venta está vacía'), findsOneWidget);
-      expect(tester.widget<ElevatedButton>(_confirmar()).onPressed, isNull);
+      expect(find.text('Empieza una nueva venta'), findsOneWidget);
+      expect(_confirmar(), findsNothing);
     });
 
     testWidgets('muestra carga y evita registros duplicados al pulsar varias '
@@ -214,9 +214,9 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Registrar venta'), findsOneWidget);
-      expect(find.text('Q0.00'), findsOneWidget);
-      expect(find.text('La venta está vacía'), findsOneWidget);
-      expect(tester.widget<ElevatedButton>(_confirmar()).onPressed, isNull);
+      expect(find.text('Q0.00'), findsNothing);
+      expect(find.text('Empieza una nueva venta'), findsOneWidget);
+      expect(_confirmar(), findsNothing);
     });
 
     testWidgets('dos ventas consecutivas se registran una vez cada una', (
@@ -258,9 +258,8 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Registrar venta'), findsOneWidget);
-      expect(find.text('Q0.00'), findsOneWidget);
-      expect(tester.widget<ElevatedButton>(_confirmar()).onPressed, isNull);
-      await tester.tap(_confirmar(), warnIfMissed: false);
+      expect(find.text('Q0.00'), findsNothing);
+      expect(_confirmar(), findsNothing);
       await tester.pumpAndSettle();
       expect(servicio.llamadas, 1);
     });
@@ -381,7 +380,7 @@ void main() {
       _pantalla(tester);
       await tester.pumpWidget(_app(const []));
       await tester.tap(find.text('Ir a vender'));
-      await tester.pumpAndSettle();
+      await tester.pump();
       await tester.runAsync(
         () => Future<void>.delayed(const Duration(milliseconds: 300)),
       );

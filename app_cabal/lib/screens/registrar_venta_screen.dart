@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../constants/app_routes.dart';
 import '../models/detalle_venta.dart';
 import '../providers/tab_provider.dart';
+import '../providers/catalogo_provider.dart';
 import '../providers/venta_provider.dart';
 import '../utils/moneda.dart';
 import '../validators/cantidad_validator.dart';
@@ -69,7 +70,7 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
                       child: _ventaActual(venta.detalles),
                     ),
             ),
-            _resumen(venta),
+            if (venta.detalles.isNotEmpty) _resumen(venta),
           ],
         ),
       ),
@@ -80,11 +81,30 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Padding(
-          padding: EdgeInsets.fromLTRB(16, 12, 16, 4),
-          child: Text(
-            'Venta actual',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Venta actual',
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+              Text(
+                '${seleccion.length} ${seleccion.length == 1 ? 'producto' : 'productos'} · '
+                '${seleccion.fold<int>(0, (suma, d) => suma + d.cantidad)} '
+                '${seleccion.fold<int>(0, (suma, d) => suma + d.cantidad) == 1 ? 'unidad' : 'unidades'}',
+              ),
+              TextButton.icon(
+                onPressed: ref.watch(ventaProvider).guardando
+                    ? null
+                    : () => ref
+                          .read(tabProvider.notifier)
+                          .seleccionar(Pestana.catalogo),
+                icon: const Icon(Icons.add),
+                label: const Text('Agregar más'),
+              ),
+            ],
           ),
         ),
         Expanded(
@@ -318,39 +338,114 @@ class _VentaVacia extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.shopping_cart_outlined,
-              size: 64,
-              color: Theme.of(context).colorScheme.outline,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'La venta está vacía',
-              style: Theme.of(context).textTheme.headlineSmall,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Agrega productos desde el catálogo.',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 24),
-            ElevatedButton.icon(
-              onPressed: () =>
+    final catalogo = ref.watch(catalogoProductosProvider);
+
+    Future<void> agregarProducto() async {
+      final guardado = await Navigator.of(
+        context,
+      ).pushNamed(AppRoutes.agregarProducto);
+      if (guardado == true) ref.invalidate(catalogoProductosProvider);
+    }
+
+    return catalogo.when(
+      skipLoadingOnReload: false,
+      loading: () => const _MensajeVentaVacia(
+        titulo: 'Consultando productos…',
+        descripcion: 'Estamos preparando el catálogo para tu venta.',
+        cargando: true,
+      ),
+      error: (_, _) => _MensajeVentaVacia(
+        titulo: 'No se pudo consultar el catálogo',
+        descripcion: 'Vuelve a intentarlo para elegir productos para tu venta.',
+        accion: 'Reintentar',
+        onAccion: () => ref.invalidate(catalogoProductosProvider),
+      ),
+      data: (productos) => productos.isEmpty
+          ? _MensajeVentaVacia(
+              titulo: 'Primero agrega un producto',
+              descripcion:
+                  'Tu catálogo no tiene productos activos. Agrega uno para empezar a vender.',
+              accion: 'Agregar primer producto',
+              onAccion: agregarProducto,
+            )
+          : _MensajeVentaVacia(
+              titulo: 'Empieza una nueva venta',
+              descripcion:
+                  'Selecciona productos del catálogo para agregarlos aquí.',
+              accion: 'Elegir productos',
+              onAccion: () =>
                   ref.read(tabProvider.notifier).seleccionar(Pestana.catalogo),
-              icon: const Icon(Icons.storefront_outlined),
-              label: const Text('Ir al catálogo'),
             ),
-          ],
+    );
+  }
+}
+
+class _MensajeVentaVacia extends StatelessWidget {
+  final String titulo;
+  final String descripcion;
+  final String? accion;
+  final VoidCallback? onAccion;
+  final bool cargando;
+
+  const _MensajeVentaVacia({
+    required this.titulo,
+    required this.descripcion,
+    this.accion,
+    this.onAccion,
+    this.cargando = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) => SingleChildScrollView(
+        padding: const EdgeInsets.all(24),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            minHeight: (constraints.maxHeight - 48).clamp(0.0, double.infinity),
+          ),
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 360),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (cargando)
+                    const CircularProgressIndicator()
+                  else
+                    Icon(
+                      Icons.shopping_cart_outlined,
+                      size: 64,
+                      color: Theme.of(context).colorScheme.outline,
+                    ),
+                  const SizedBox(height: 16),
+                  Text(
+                    titulo,
+                    style: Theme.of(context).textTheme.headlineSmall,
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    descripcion,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  if (accion != null) ...[
+                    const SizedBox(height: 24),
+                    ElevatedButton(
+                      onPressed: onAccion,
+                      style: ElevatedButton.styleFrom(
+                        minimumSize: const Size(0, 48),
+                      ),
+                      child: Text(accion!, textAlign: TextAlign.center),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ),
         ),
       ),
     );
