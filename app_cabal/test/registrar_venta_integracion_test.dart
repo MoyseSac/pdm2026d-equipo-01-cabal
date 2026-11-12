@@ -258,7 +258,23 @@ void main() {
         expect(find.text(mensajeErrorGuardado), findsOneWidget);
         expect(find.text('Venta registrada'), findsNothing);
         expect(find.byType(CircularProgressIndicator), findsNothing);
-        expect(find.text('Subtotal: Q10.50'), findsOneWidget);
+        expect(
+          find.descendant(
+            of: find.byWidgetPredicate(
+              (w) =>
+                  w.key is ValueKey<String> &&
+                  (w.key as ValueKey<String>).value.startsWith(
+                    'detalle-venta-',
+                  ),
+            ),
+            matching: find.byWidgetPredicate(
+              (w) =>
+                  w is Text &&
+                  (w.data == 'Q10.50' || w.data == 'Subtotal: Q10.50'),
+            ),
+          ),
+          findsOneWidget,
+        );
         expect(
           tester.widget<ElevatedButton>(_reintentar()).onPressed,
           isNotNull,
