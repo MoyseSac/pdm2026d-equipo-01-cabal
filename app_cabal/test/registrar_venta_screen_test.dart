@@ -265,46 +265,47 @@ void main() {
     });
   });
 
-  testWidgets(
-    'tarjeta separa información y controles y conserva áreas táctiles',
-    (tester) async {
-      await _abrir(tester);
-      await _agregar(
-        tester,
-        const Producto(
-          id: 'largo',
-          nombre:
-              'Chocolate artesanal con almendras y leche en presentación familiar',
-          precio: 1234.5,
-        ),
-      );
-      final tarjeta = find.byType(Card);
-      expect(tarjeta, findsOneWidget);
-      expect(find.text('Q1,234.50 por unidad'), findsOneWidget);
-      expect(
-        tester.getSize(find.byType(TextField)).height,
-        greaterThanOrEqualTo(48),
-      );
-      for (final boton in find.byType(IconButton).evaluate()) {
-        final size = tester.getSize(find.byWidget(boton.widget));
-        expect(size.width, greaterThanOrEqualTo(48));
-        expect(size.height, greaterThanOrEqualTo(48));
-      }
-      expect(
-        tester.getTopLeft(find.byType(TextField)).dy,
-        greaterThan(tester.getBottomLeft(find.text('Q1,234.50 por unidad')).dy),
-      );
-      expect(
-        tester
-            .getBottomRight(
-              find.widgetWithIcon(IconButton, Icons.delete_outline),
-            )
-            .dx,
-        closeTo(tester.getBottomRight(tarjeta).dx - 24, 1),
-      );
-      expect(tester.takeException(), isNull);
-    },
-  );
+  testWidgets('fila separa información y controles y conserva áreas táctiles', (
+    tester,
+  ) async {
+    await _abrir(tester);
+    await _agregar(
+      tester,
+      const Producto(
+        id: 'largo',
+        nombre:
+            'Chocolate artesanal con almendras y leche en presentación familiar',
+        precio: 1234.5,
+      ),
+    );
+    final tarjeta = find.byWidgetPredicate(
+      (w) =>
+          w.key is ValueKey<String> &&
+          (w.key as ValueKey<String>).value.startsWith('detalle-venta-'),
+    );
+    expect(tarjeta, findsOneWidget);
+    expect(find.text('Q1,234.50 por unidad'), findsOneWidget);
+    expect(
+      tester.getSize(find.byType(TextField)).height,
+      greaterThanOrEqualTo(48),
+    );
+    for (final boton in find.byType(IconButton).evaluate()) {
+      final size = tester.getSize(find.byWidget(boton.widget));
+      expect(size.width, greaterThanOrEqualTo(48));
+      expect(size.height, greaterThanOrEqualTo(48));
+    }
+    expect(
+      tester.getTopLeft(find.byType(TextField)).dy,
+      greaterThan(tester.getBottomLeft(find.text('Q1,234.50 por unidad')).dy),
+    );
+    expect(
+      tester
+          .getBottomRight(find.widgetWithIcon(IconButton, Icons.delete_outline))
+          .dx,
+      closeTo(tester.getBottomRight(tarjeta).dx - 16, 1),
+    );
+    expect(tester.takeException(), isNull);
+  });
 
   group('recuperación de la edición', () {
     testWidgets('Deshacer recupera posición, cantidad y precio de la fila', (
@@ -418,7 +419,11 @@ void main() {
 
       expect(
         find.descendant(
-          of: find.byType(Card),
+          of: find.byWidgetPredicate(
+            (w) =>
+                w.key is ValueKey<String> &&
+                (w.key as ValueKey<String>).value.startsWith('detalle-venta-'),
+          ),
           matching: find.byWidgetPredicate(
             (w) =>
                 w is Text &&
@@ -521,7 +526,11 @@ void main() {
 
       expect(
         find.descendant(
-          of: find.byType(Card),
+          of: find.byWidgetPredicate(
+            (w) =>
+                w.key is ValueKey<String> &&
+                (w.key as ValueKey<String>).value.startsWith('detalle-venta-'),
+          ),
           matching: find.byWidgetPredicate(
             (w) =>
                 w is Text &&
@@ -532,7 +541,11 @@ void main() {
       );
       expect(
         find.descendant(
-          of: find.byType(Card),
+          of: find.byWidgetPredicate(
+            (w) =>
+                w.key is ValueKey<String> &&
+                (w.key as ValueKey<String>).value.startsWith('detalle-venta-'),
+          ),
           matching: find.byWidgetPredicate(
             (w) =>
                 w is Text && (w.data == 'Q7.50' || w.data == 'Subtotal: Q7.50'),

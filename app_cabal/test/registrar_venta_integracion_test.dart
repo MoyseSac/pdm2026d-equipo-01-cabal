@@ -260,7 +260,13 @@ void main() {
         expect(find.byType(CircularProgressIndicator), findsNothing);
         expect(
           find.descendant(
-            of: find.byType(Card),
+            of: find.byWidgetPredicate(
+              (w) =>
+                  w.key is ValueKey<String> &&
+                  (w.key as ValueKey<String>).value.startsWith(
+                    'detalle-venta-',
+                  ),
+            ),
             matching: find.byWidgetPredicate(
               (w) =>
                   w is Text &&

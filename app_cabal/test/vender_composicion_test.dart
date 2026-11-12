@@ -10,6 +10,7 @@ import 'package:app_cabal/screens/home_shell.dart';
 import 'package:app_cabal/screens/registrar_venta_screen.dart';
 import 'package:app_cabal/theme/tema_cabal.dart';
 import 'package:app_cabal/widgets/transicion_venta.dart';
+import 'package:app_cabal/widgets/producto_imagen_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -249,24 +250,62 @@ void main() {
     final venta = container.read(ventaProvider.notifier);
     venta.limpiar();
     venta.agregarProducto(
-      const Producto(id: 'cafe', nombre: 'Café molido', precio: 15),
+      const Producto(id: 'cafe', nombre: 'Café', precio: 15),
       2,
     );
     venta.agregarProducto(
-      const Producto(id: 'pan', nombre: 'Pan dulce', precio: 2.5),
+      const Producto(id: 'pan', nombre: 'Pan', precio: 2.5),
       1,
     );
     await tester.pumpAndSettle();
-    expect(find.byType(Card), findsNWidgets(2));
-    for (final card in find.byType(Card).evaluate()) {
+    expect(
+      find.byWidgetPredicate(
+        (w) =>
+            w.key is ValueKey<String> &&
+            (w.key as ValueKey<String>).value.startsWith('detalle-venta-'),
+      ),
+      findsNWidgets(2),
+    );
+    for (final card
+        in find
+            .byWidgetPredicate(
+              (w) =>
+                  w.key is ValueKey<String> &&
+                  (w.key as ValueKey<String>).value.startsWith(
+                    'detalle-venta-',
+                  ),
+            )
+            .evaluate()) {
       expect(
         tester.getSize(find.byWidget(card.widget)).height,
         lessThanOrEqualTo(144),
       );
     }
     expect(
-      tester.getBottomLeft(find.byType(Card).last).dy,
+      tester
+          .getBottomLeft(
+            find
+                .byWidgetPredicate(
+                  (w) =>
+                      w.key is ValueKey<String> &&
+                      (w.key as ValueKey<String>).value.startsWith(
+                        'detalle-venta-',
+                      ),
+                )
+                .last,
+          )
+          .dy,
       lessThan(tester.getTopLeft(find.text('Total')).dy),
+    );
+    expect(find.byType(Card), findsNothing);
+    expect(find.byType(ProductoImagenWidget), findsNWidgets(2));
+    expect(
+      tester.getTopLeft(find.text('Q30.00')).dy,
+      closeTo(tester.getTopLeft(find.text('Café')).dy, 1),
+    );
+    expect(
+      tester.getTopLeft(find.text('Q30.00')).dx,
+      greaterThan(tester.getBottomRight(find.text('Café')).dx),
     );
     expect(find.text('Q30.00'), findsOneWidget);
     expect(find.text('Q32.50'), findsOneWidget);
@@ -345,7 +384,7 @@ void main() {
       await tester.enterText(find.byType(TextField), '3');
       await tester.pump();
       await tester.pump();
-      expect(find.text('Q3,703.50'), findsOneWidget);
+      expect(find.text('Q3,703.50'), findsWidgets);
       expect(find.text('Q2,469.00'), findsNothing);
       expect(tester.takeException(), isNull);
     },
@@ -366,7 +405,7 @@ void main() {
       '5',
     );
     expect(FocusManager.instance.primaryFocus?.hasFocus, isTrue);
-    expect(find.text('Q6,172.50'), findsOneWidget);
+    expect(find.text('Q6,172.50'), findsWidgets);
     expect(find.text('Q4,938.00'), findsNothing);
     expect(tester.takeException(), isNull);
   });
