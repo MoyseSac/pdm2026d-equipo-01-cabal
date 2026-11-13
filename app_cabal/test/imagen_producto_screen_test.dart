@@ -122,8 +122,6 @@ Future<void> _guardarCambios(WidgetTester tester) async {
   await tester.pumpAndSettle();
 }
 
-final _bebida = iconosProducto['bebida']!.icono;
-
 void main() {
   testWidgets('crear con icono lo guarda y el catalogo lo muestra', (
     tester,
@@ -142,7 +140,16 @@ void main() {
     final creado = (await productos.obtenerProductos()).single;
     expect(creado.icono, 'bebida');
     expect(creado.imagen, isNull);
-    expect(_imagenDeLaFila('Agua pura', _bebida), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.ancestor(
+          of: find.text('Agua pura'),
+          matching: find.byType(ListTile),
+        ),
+        matching: find.image(AssetImage(iconosProducto['bebida']!.asset)),
+      ),
+      findsOneWidget,
+    );
   });
 
   testWidgets('un producto sin imagen muestra el icono generico', (

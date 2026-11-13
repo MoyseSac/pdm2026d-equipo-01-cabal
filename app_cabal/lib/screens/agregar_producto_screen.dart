@@ -7,6 +7,7 @@ import '../services/imagen_producto_service.dart';
 import '../services/producto_service.dart';
 import '../validators/producto_validator.dart';
 import '../widgets/producto_imagen_widget.dart';
+import '../widgets/icono_producto_widget.dart';
 
 /// Formulario de producto. Sin [producto] agrega uno nuevo; con [producto]
 /// edita ese mismo (conserva su id) y arranca con sus valores.
@@ -98,31 +99,97 @@ class _AgregarProductoScreenState extends State<AgregarProductoScreen> {
     final clave = await showModalBottomSheet<String>(
       context: context,
       showDragHandle: true,
-      builder: (context) => GridView.extent(
-        maxCrossAxisExtent: 96,
-        padding: const EdgeInsets.fromLTRB(12, 0, 12, 24),
-        shrinkWrap: true,
-        children: [
-          for (final MapEntry(key: clave, value: icono)
-              in iconosProducto.entries)
-            InkWell(
-              borderRadius: BorderRadius.circular(8),
-              onTap: () => Navigator.of(context).pop(clave),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(icono.icono, size: 32),
-                  const SizedBox(height: 4),
-                  Text(
-                    icono.etiqueta,
-                    textAlign: TextAlign.center,
-                    maxLines: 2,
-                    style: const TextStyle(fontSize: 12),
-                  ),
-                ],
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (context) => SizedBox(
+        height: MediaQuery.sizeOf(context).height * 0.7,
+        child: Column(
+          children: [
+            Text(
+              'Elige un icono',
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+            const SizedBox(height: 16),
+            Expanded(
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final escala = MediaQuery.textScalerOf(context);
+                  final columnas =
+                      (constraints.maxWidth / (144 * escala.scale(13) / 13))
+                          .ceil()
+                          .clamp(1, 6);
+                  final ancho =
+                      (constraints.maxWidth - 32 - (columnas - 1) * 8) /
+                      columnas;
+                  var altoTexto = 0.0;
+                  for (final categoria in iconosProducto.values) {
+                    final texto = TextPainter(
+                      text: TextSpan(
+                        text: categoria.etiqueta,
+                        style: Theme.of(context).textTheme.labelMedium,
+                      ),
+                      textDirection: Directionality.of(context),
+                      textScaler: escala,
+                    )..layout(maxWidth: ancho - 8);
+                    if (texto.height > altoTexto) altoTexto = texto.height;
+                    texto.dispose();
+                  }
+                  return GridView.builder(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: columnas,
+                      mainAxisExtent: 80 + altoTexto,
+                      crossAxisSpacing: 8,
+                      mainAxisSpacing: 8,
+                    ),
+                    itemCount: iconosProducto.length,
+                    itemBuilder: (context, index) {
+                      final entrada = iconosProducto.entries.elementAt(index);
+                      final seleccionado = _imagen.claveIcono == entrada.key;
+                      return Semantics(
+                        button: true,
+                        selected: seleccionado,
+                        child: Material(
+                          color: seleccionado
+                              ? Theme.of(context).colorScheme.secondaryContainer
+                              : Theme.of(context).colorScheme.surface,
+                          borderRadius: BorderRadius.circular(16),
+                          clipBehavior: Clip.antiAlias,
+                          child: InkWell(
+                            onTap: () => Navigator.of(context).pop(entrada.key),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                IconoProductoWidget(
+                                  clave: entrada.key,
+                                  size: 48,
+                                  excluirSemantica: true,
+                                ),
+                                const SizedBox(height: 8),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 4,
+                                  ),
+                                  child: Text(
+                                    entrada.value.etiqueta,
+                                    textAlign: TextAlign.center,
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.labelMedium,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  );
+                },
               ),
             ),
-        ],
+          ],
+        ),
       ),
     );
     if (clave == null || !mounted) return;
