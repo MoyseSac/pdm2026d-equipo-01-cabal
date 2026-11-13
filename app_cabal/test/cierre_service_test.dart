@@ -82,6 +82,40 @@ void main() {
         0;
   }
 
+  test(
+    'actividad semanal incluye siete dias locales y suma centavos sin duplicar ventas',
+    () async {
+      final primero = DateTime(_hoy.year, _hoy.month, _hoy.day - 6);
+      await vender(
+        'fuera',
+        DateTime(primero.year, primero.month, primero.day - 1, 23, 59),
+        [(_cola, 1, 100)],
+      );
+      await vender('primero', primero, [(_pan, 2, 2.5)]);
+      await vender('ayer', DateTime(_hoy.year, _hoy.month, _hoy.day - 1, 12), [
+        (_leche, 5, 9),
+      ]);
+      await vender('hoy', DateTime(_hoy.year, _hoy.month, _hoy.day, 23, 59), [
+        (_cola, 1, 0.1),
+        (_pan, 1, 0.2),
+      ]);
+      await vender('manana', DateTime(_hoy.year, _hoy.month, _hoy.day + 1), [
+        (_cola, 1, 200),
+      ]);
+      final dias = await servicio.actividadSemana(_hoy);
+      expect(dias, hasLength(7));
+      expect(dias.first.dia, primero);
+      expect(dias.first.centavos, 500);
+      expect(dias[1].ventas, 0);
+      expect(dias[1].centavos, 0);
+      expect(dias[5].centavos, 4500);
+      expect(dias.last.dia, _hoy);
+      expect(dias.last.ventas, 1);
+      expect(dias.last.centavos, 30);
+      expect(dias.last.total, 0.3);
+    },
+  );
+
   group('calcularDia', () {
     test('solo cuenta las ventas de ese dia, con sus limites', () async {
       await vender('ayer_final', DateTime(2026, 10, 25, 23, 59, 59), [

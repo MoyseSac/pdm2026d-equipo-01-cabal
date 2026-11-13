@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../widgets/ilustracion_estado_vacio.dart';
+import '../widgets/estadisticas_cierre.dart';
 
 import '../models/cierre.dart';
 import '../providers/cierre_provider.dart';
@@ -111,9 +112,18 @@ class _CierreDiaScreenState extends ConsumerState<CierreDiaScreen> {
             _ErrorCierre(onReintentar: () => ref.invalidate(cierreHoyProvider)),
         data: (hoy) {
           if (!hoy.hayVentas && !hoy.cerrado) {
-            return _SinVentasHoy(
-              onRegistrarVenta: () =>
-                  ref.read(tabProvider.notifier).seleccionar(Pestana.vender),
+            return ListView(
+              children: [
+                _SinVentasHoy(
+                  onRegistrarVenta: () => ref
+                      .read(tabProvider.notifier)
+                      .seleccionar(Pestana.vender),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: EstadisticasCierre(cierre: hoy.enVivo),
+                ),
+              ],
             );
           }
           return _CierreConDatos(hoy: hoy);
@@ -201,6 +211,8 @@ class _CierreConDatosState extends State<_CierreConDatos> {
           cierre: vista,
           montoNuevo: hoy.hayVentasNuevas ? hoy.montoNuevo : null,
         ),
+        const SizedBox(height: 16),
+        EstadisticasCierre(cierre: vista),
         const SizedBox(height: 22),
         Row(
           crossAxisAlignment: CrossAxisAlignment.baseline,
@@ -295,7 +307,10 @@ class _EstadoCierre extends StatelessWidget {
       letra = colores.onSurface;
     }
 
-    return DecoratedBox(
+    return AnimatedContainer(
+      duration: MediaQuery.disableAnimationsOf(context)
+          ? Duration.zero
+          : const Duration(milliseconds: 240),
       decoration: BoxDecoration(
         color: fondo,
         borderRadius: BorderRadius.circular(999),
@@ -360,9 +375,17 @@ class _Resumen extends StatelessWidget {
     );
 
     return Card(
+      clipBehavior: Clip.antiAlias,
       color: colores.secondary,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Padding(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [colores.secondary, colores.primary],
+          ),
+        ),
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 14),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -376,14 +399,26 @@ class _Resumen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 4),
-            Text(
-              formatearQuetzales(cierre.total),
-              style: textos.displaySmall
-                  ?.copyWith(
-                    color: colores.onSecondary,
-                    fontWeight: FontWeight.bold,
-                  )
-                  .merge(_cifras),
+            Semantics(
+              label: 'Total del día: ${formatearQuetzales(cierre.total)}',
+              child: ExcludeSemantics(
+                child: TweenAnimationBuilder<double>(
+                  duration: MediaQuery.disableAnimationsOf(context)
+                      ? Duration.zero
+                      : const Duration(milliseconds: 480),
+                  tween: Tween(begin: 0, end: cierre.total),
+                  curve: Curves.easeOutCubic,
+                  builder: (context, valor, _) => Text(
+                    formatearQuetzales(valor),
+                    style: textos.displaySmall
+                        ?.copyWith(
+                          color: colores.onSecondary,
+                          fontWeight: FontWeight.bold,
+                        )
+                        .merge(_cifras),
+                  ),
+                ),
+              ),
             ),
             if (montoNuevo != null)
               Text(
@@ -514,11 +549,18 @@ class _FilaVendido extends StatelessWidget {
           const SizedBox(height: 7),
           ClipRRect(
             borderRadius: BorderRadius.circular(3),
-            child: LinearProgressIndicator(
-              value: peso,
-              minHeight: 5,
-              color: colores.primary,
-              backgroundColor: colores.surfaceContainerHighest,
+            child: TweenAnimationBuilder<double>(
+              duration: MediaQuery.disableAnimationsOf(context)
+                  ? Duration.zero
+                  : const Duration(milliseconds: 420),
+              tween: Tween(begin: 0, end: peso),
+              curve: Curves.easeOutCubic,
+              builder: (context, valor, _) => LinearProgressIndicator(
+                value: valor,
+                minHeight: 5,
+                color: colores.primary,
+                backgroundColor: colores.surfaceContainerHighest,
+              ),
             ),
           ),
         ],

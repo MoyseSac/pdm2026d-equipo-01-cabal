@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/cierre.dart';
+import '../models/actividad_ventas.dart';
 import '../services/cierre_service.dart';
 import 'ventas_filtro_provider.dart';
 
@@ -43,3 +44,11 @@ class CierreAcciones {
 }
 
 final cierreAccionesProvider = Provider<CierreAcciones>(CierreAcciones.new);
+
+/// Se actualiza con el cierre y al regresar a su pestaña.
+final actividadSemanaProvider =
+    FutureProvider.autoDispose<List<ActividadVentasDia>>((ref) async {
+      final servicio = ref.watch(cierreServiceProvider);
+      final hoy = await ref.watch(cierreHoyProvider.future);
+      return servicio.actividadSemana(hoy.enVivo.dia);
+    });
