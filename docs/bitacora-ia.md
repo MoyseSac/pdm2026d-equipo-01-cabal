@@ -375,3 +375,13 @@ Las pruebas automatizadas detectaron desbordamientos con texto ampliado en la ho
 **Qué se ajustó:** Se conservaron las categorías existentes y la identidad visual de la aplicación.
 
 **Cómo se verificó:** Se realizaron 343 pruebas automatizadas. El análisis estático y la revisión de formato terminaron sin observaciones. Se probaron los flujos modificados en un emulador Android. Las capturas del PR quedan pendientes.
+
+## 2026-11-13 · Moisés Sac · Rediseñar el historial y el detalle de ventas
+
+**Qué se planteó:** Se planteó facilitar la consulta de ventas y dar continuidad entre el historial y el detalle a partir de las referencias compartidas.
+
+**Qué se aceptó:** Se organizó el historial por día, se destacó el total del período y se presentó el detalle como un comprobante con transiciones breves.
+
+**Qué se ajustó:** Se mantuvieron los filtros y los precios registrados al realizar cada venta.
+
+**Cómo se verificó:** Se realizaron 348 pruebas automatizadas. El análisis estático y la revisión de formato terminaron sin observaciones. Se probaron los flujos modificados en un emulador Android. Las capturas del PR quedan pendientes.
