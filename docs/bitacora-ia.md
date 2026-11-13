@@ -405,3 +405,13 @@ Las pruebas automatizadas detectaron desbordamientos con texto ampliado en la ho
 **Qué se ajustó:** Se contemplaron empates y días sin productos vendidos para evitar resultados ambiguos.
 
 **Cómo se verificó:** Se realizaron 357 pruebas automatizadas. El análisis estático y la revisión de formato terminaron sin observaciones. Se probaron los flujos modificados en un emulador Android. Las capturas del PR quedan pendientes.
+
+## 2026-11-13 · Moisés Sac · Rediseñar la selección de cantidades para vender
+
+**Qué se planteó:** Se planteó agilizar la selección de cantidades y mantener una respuesta visual coherente con las referencias compartidas.
+
+**Qué se aceptó:** Se añadió la imagen del producto, entrada directa de cantidades, opciones rápidas y un subtotal con transición antes de confirmar.
+
+**Qué se ajustó:** Se conservaron la suma a la venta actual y la validación de cantidades, con adaptación al teclado y al movimiento reducido.
+
+**Cómo se verificó:** Se realizaron 363 pruebas automatizadas. El análisis estático y la revisión de formato terminaron sin observaciones. Se probaron los flujos modificados en un emulador Android. Las capturas del PR quedan pendientes.
