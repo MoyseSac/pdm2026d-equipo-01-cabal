@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Arquitectura de Cabal</title>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&family=Noto+Serif:ital@0;1&family=Noto+Sans+KR:wght@400;500;600&family=Noto+Serif+KR:wght@400&family=Noto+Sans+TC:wght@400;500;600&family=Noto+Serif+TC:wght@400&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      /* Paleta de Cabal (docs/diseno-tema-de-color.md) */
+      --color-paper:  #ffffff;
+      --color-ink:    #0a2342;   /* marino */
+      --color-muted:  #46607a;
+      --color-soft:   #4f6580;
+      --color-accent: #1b7f5c;   /* verde Cabal */
+      --font-sans:    'Geist', system-ui, sans-serif;
+      --font-serif:   'Instrument Serif', 'Noto Serif', serif;
+      --font-mono:    'Geist Mono', ui-monospace, monospace;
+    }
+    body { font-family: var(--font-sans); background: var(--color-paper); color: var(--color-ink); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 3rem 2rem; }
+    .frame { max-width: 1200px; width: 100%; }
+    .diagram-container { width: 100%; overflow-x: auto; }
+    .eyebrow { font-family: var(--font-mono); font-size: 0.66rem; font-weight: 500; letter-spacing: 0.18em; text-transform: uppercase; color: var(--color-muted); margin-bottom: 0.5rem; }
+    h1 { font-family: var(--font-serif); font-size: clamp(1.5rem, 2.4vw + 0.75rem, 2rem); font-weight: 400; letter-spacing: -0.02em; line-height: 1.15; margin-bottom: 1.5rem; }
+    svg { width: 100%; min-width: 352px; display: block; }
+    @media print { .diagram-container { overflow-x: visible; } svg { min-width: 0; } }
+  </style>
+</head>
+<body>
+  <div class="frame">
+    <p class="eyebrow">Arquitectura · Diagram Design</p>
+    <h1>Arquitectura de Cabal en cuatro capas</h1>
+
+    <div class="diagram-container">
+      <svg viewBox="16 16 352 200" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="cabal-arquitectura-title cabal-arquitectura-desc">
+        <title id="cabal-arquitectura-title">Arquitectura de Cabal</title>
+        <desc id="cabal-arquitectura-desc">Cuatro capas: las pantallas leen el estado de los providers, los providers llaman a los servicios y los servicios guardan en SQLite.</desc>
+        <defs>
+          <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#46607a"/></marker>
+          <marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#1b7f5c"/></marker>
+        </defs>
+
+        <rect x="16" y="16" width="352" height="200" fill="#ffffff"/>
+
+        <!-- Flechas primero -->
+        <line x1="168" y1="56" x2="216" y2="56" stroke="#46607a" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <line x1="288" y1="88" x2="288" y2="144" stroke="#46607a" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <line x1="216" y1="176" x2="168" y2="176" stroke="#1b7f5c" stroke-width="1.2" marker-end="url(#arrow-accent)"/>
+
+        <!-- Etiquetas de flecha (con máscara y 8px de separación) -->
+        <rect x="180" y="36" width="24" height="12" fill="#ffffff"/>
+        <text x="192" y="45" fill="#4f6580" font-size="8" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.06em">LEE</text>
+        <rect x="296" y="110" width="34" height="12" fill="#ffffff"/>
+        <text x="313" y="119" fill="#4f6580" font-size="8" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.06em">LLAMA</text>
+        <rect x="180" y="156" width="24" height="12" fill="#ffffff"/>
+        <text x="192" y="165" fill="#4f6580" font-size="8" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.06em">SQL</text>
+
+        <!-- 1 · Pantallas -->
+        <rect x="24" y="24" width="144" height="64" rx="6" fill="#ffffff"/>
+        <rect x="24" y="24" width="144" height="64" rx="6" fill="#ffffff" stroke="#0a2342" stroke-width="1"/>
+        <rect x="32" y="32" width="44" height="12" rx="2" fill="transparent" stroke="rgba(10,35,66,0.40)" stroke-width="0.8"/>
+        <text x="54" y="41" fill="#0a2342" fill-opacity="0.8" font-size="7" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">VISTA</text>
+        <text x="96" y="64" fill="#0a2342" font-size="12" font-weight="600" font-family="'Geist', system-ui, sans-serif" text-anchor="middle">Pantallas</text>
+        <text x="96" y="78" fill="#46607a" font-size="9" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle">widgets de Flutter</text>
+
+        <!-- 2 · Providers -->
+        <rect x="216" y="24" width="144" height="64" rx="6" fill="#ffffff"/>
+        <rect x="216" y="24" width="144" height="64" rx="6" fill="#ffffff" stroke="#0a2342" stroke-width="1"/>
+        <rect x="224" y="32" width="44" height="12" rx="2" fill="transparent" stroke="rgba(10,35,66,0.40)" stroke-width="0.8"/>
+        <text x="246" y="41" fill="#0a2342" fill-opacity="0.8" font-size="7" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">ESTADO</text>
+        <text x="288" y="64" fill="#0a2342" font-size="12" font-weight="600" font-family="'Geist', system-ui, sans-serif" text-anchor="middle">Providers</text>
+        <text x="288" y="78" fill="#46607a" font-size="9" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle">Riverpod</text>
+
+        <!-- 3 · Servicios -->
+        <rect x="216" y="144" width="144" height="64" rx="6" fill="#ffffff"/>
+        <rect x="216" y="144" width="144" height="64" rx="6" fill="#ffffff" stroke="#0a2342" stroke-width="1"/>
+        <rect x="224" y="152" width="44" height="12" rx="2" fill="transparent" stroke="rgba(10,35,66,0.40)" stroke-width="0.8"/>
+        <text x="246" y="161" fill="#0a2342" fill-opacity="0.8" font-size="7" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">LÓGICA</text>
+        <text x="288" y="184" fill="#0a2342" font-size="12" font-weight="600" font-family="'Geist', system-ui, sans-serif" text-anchor="middle">Servicios</text>
+        <text x="288" y="198" fill="#46607a" font-size="9" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle">reglas de negocio</text>
+
+        <!-- 4 · SQLite (focal) -->
+        <rect x="24" y="144" width="144" height="64" rx="6" fill="#ffffff"/>
+        <rect x="24" y="144" width="144" height="64" rx="6" fill="rgba(27,127,92,0.10)" stroke="#1b7f5c" stroke-width="1"/>
+        <rect x="32" y="152" width="44" height="12" rx="2" fill="transparent" stroke="rgba(27,127,92,0.40)" stroke-width="0.8"/>
+        <text x="54" y="161" fill="#1b7f5c" font-size="7" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">DATOS</text>
+        <text x="96" y="184" fill="#0a2342" font-size="12" font-weight="600" font-family="'Geist', system-ui, sans-serif" text-anchor="middle">SQLite</text>
+        <text x="96" y="198" fill="#46607a" font-size="9" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle">cabal.db · 5 tablas</text>
+      </svg>
+    </div>
+  </div>
+</body>
+</html>
