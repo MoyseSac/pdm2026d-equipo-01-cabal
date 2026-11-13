@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../widgets/ilustracion_estado_vacio.dart';
 import '../widgets/estadisticas_cierre.dart';
+import '../widgets/aviso_en_linea.dart';
 
 import '../models/cierre.dart';
 import '../providers/cierre_provider.dart';
@@ -30,6 +31,7 @@ class CierreDiaScreen extends ConsumerStatefulWidget {
 
 class _CierreDiaScreenState extends ConsumerState<CierreDiaScreen> {
   bool _cerrando = false;
+  String? _errorGuardado;
 
   /// Cerrar el dia guarda el cierre (y puede reemplazar uno anterior), asi que
   /// primero se pide confirmacion: un toque sin querer no lo cierra.
@@ -69,15 +71,16 @@ class _CierreDiaScreenState extends ConsumerState<CierreDiaScreen> {
 
   Future<void> _cerrar() async {
     if (_cerrando) return;
-    setState(() => _cerrando = true);
+    setState(() {
+      _cerrando = true;
+      _errorGuardado = null;
+    });
 
     try {
       await ref.read(cierreAccionesProvider).cerrarHoy();
     } catch (_) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text(mensajeErrorCierre)));
+        setState(() => _errorGuardado = mensajeErrorCierre);
       }
     } finally {
       if (mounted) setState(() => _cerrando = false);
@@ -100,6 +103,7 @@ class _CierreDiaScreenState extends ConsumerState<CierreDiaScreen> {
           ? _BarraCierre(
               hoy: hoy,
               cerrando: _cerrando,
+              errorGuardado: _errorGuardado,
               onCerrar: () => _pedirConfirmacion(hoy),
             )
           : null,
@@ -575,8 +579,10 @@ class _BarraCierre extends StatelessWidget {
   final CierreHoy hoy;
   final bool cerrando;
   final VoidCallback onCerrar;
+  final String? errorGuardado;
 
   const _BarraCierre({
+    this.errorGuardado,
     required this.hoy,
     required this.cerrando,
     required this.onCerrar,
@@ -601,6 +607,10 @@ class _BarraCierre extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
+                    if (errorGuardado != null) ...[
+                      AvisoEnLinea(mensaje: errorGuardado!),
+                      const SizedBox(height: 12),
+                    ],
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [

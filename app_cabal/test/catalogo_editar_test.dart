@@ -113,7 +113,8 @@ void main() {
       expect(find.text('Coca Cola 3L'), findsOneWidget);
       expect(find.text('Q18.75'), findsOneWidget);
       expect(find.text('Coca Cola'), findsNothing);
-      expect(find.text('Producto actualizado'), findsOneWidget);
+      expect(find.text('Producto actualizado'), findsNothing);
+      expect(find.byType(SnackBar), findsNothing);
     });
 
     testWidgets('con datos invalidos no guarda y se queda en el formulario', (
