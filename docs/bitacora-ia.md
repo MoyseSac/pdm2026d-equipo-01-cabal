@@ -385,3 +385,13 @@ Las pruebas automatizadas detectaron desbordamientos con texto ampliado en la ho
 **Qué se ajustó:** Se mantuvieron los filtros y los precios registrados al realizar cada venta.
 
 **Cómo se verificó:** Se realizaron 348 pruebas automatizadas. El análisis estático y la revisión de formato terminaron sin observaciones. Se probaron los flujos modificados en un emulador Android. Las capturas del PR quedan pendientes.
+
+## 2026-11-13 · Moisés Sac · Incorporar comparaciones y gráficos al cierre del día
+
+**Qué se planteó:** Se planteó convertir el cierre en una consulta del desempeño diario mediante comparaciones y gráficos basados en las referencias compartidas.
+
+**Qué se aceptó:** Se incorporaron una comparación con el día anterior y un gráfico semanal interactivo, conservando el registro y la actualización del cierre.
+
+**Qué se ajustó:** Las comparaciones utilizan ventas reales y explican los casos sin base porcentual.
+
+**Cómo se verificó:** Se realizaron 355 pruebas automatizadas. El análisis estático y la revisión de formato terminaron sin observaciones. Se probaron los flujos modificados en un emulador Android. Las capturas del PR quedan pendientes.
