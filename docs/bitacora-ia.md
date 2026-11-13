@@ -349,3 +349,69 @@ Las pruebas automatizadas detectaron desbordamientos con texto ampliado en la ho
 **Qué se corrigió:** la composición inicial separaba demasiadas zonas en tarjetas y la etiqueta abreviada se recortaba dentro del campo. La lista elimina esos contenedores y facilita comparar nombres e importes, manteniendo los controles visibles para editar sin abrir otra pantalla. Se conserva la paleta actual y no cambian esquema, dependencias ni reglas monetarias.
 
 **Cómo se verificó:** 68 pruebas focalizadas y suite completa de 340 pruebas aprobadas; análisis, formato y `git diff --check` sin observaciones. La verificación de dos productos cortos completos sobre el resumen en 360 × 640 incluye la ausencia de tarjetas, presencia de imágenes, posición del subtotal y filas de hasta 144 de altura con la fuente de pruebas. La matriz cubre teléfono pequeño, paisaje, tablet, escalas 1 y 2, etiqueta Cantidad completa, importes largos, teclado, errores, listas largas, edición rápida y nombres semánticos. El 12 de noviembre confirmé que probé y aprobé todos los cambios de la nueva vista de lista en la app, incluida la lectura de Cantidad, imágenes, subtotales, total, controles y adaptación de la composición. La validación manual del autor está completada.
+
+## 2026-11-12 · Alexander Méndez · Claude Code · Póster A0 del proyecto Cabal
+
+**Qué pedí:** armar en LaTeX (tikzposter, A0 vertical) un póster del proyecto Cabal siguiendo la plantilla de la clase, con los logos de la universidad, la facultad e IEEE, y rehacer los diagramas de arquitectura y de flujo de trabajo con el skill `diagram-design`.
+
+**Qué respondió:** propuso el contenido de cada tarjeta a partir del repositorio, dibujó los diagramas con la paleta de Cabal (arquitectura de cuatro capas y flujo Issue, Rama, Pull request, Revisión, CI y Merge), los exportó a PNG y repartió las tarjetas para que las tres columnas terminaran al mismo nivel.
+
+**Qué acepté:** la estructura de la plantilla (texto de 31 pt, tablas de 28 pt, referencias de 26 pt), los dos diagramas y la tabla de tecnologías con las versiones de `pubspec.yaml`.
+
+**Qué rechacé o corregí:**
+- Los nombres de los autores van como apellido e inicial, igual que en la plantilla.
+- Sprint 3 no se llama así: queda como M4 dentro de las etapas M1 a M4.
+- Los diagramas hechos a mano en TikZ se descartaron y se reemplazaron por los del skill.
+- La arquitectura se comprobó contra `origin/main` y no contra la rama local `pr-91`, que estaba 91 commits atrás y sin la tabla de cierre.
+
+**Cómo lo verifiqué:** compilé con `pdflatex` sin errores en una sola hoja A0 y comprobé la altura de las tres columnas en una vista previa. Recontando contra `main` (#118): 228 commits, 55 issues cerrados, 62 PR integrados, 10 pantallas, 8 providers, 4 servicios y 5 tablas. La cifra de 340 pruebas es la que registra la bitácora de #117; no corrí `flutter test` para este póster.
+
+## 2026-11-13 · Moisés Sac · Unificar la presentación y el registro de productos
+
+**Qué se planteó:** Se planteó unificar la presentación de los productos y simplificar su registro a partir de las referencias compartidas.
+
+**Qué se aceptó:** Se incorporaron iconos a color, estados vacíos coherentes y un formulario con vista previa, precio en quetzales y guardado accesible.
+
+**Qué se ajustó:** Se conservaron las categorías existentes y la identidad visual de la aplicación.
+
+**Cómo se verificó:** Se realizaron 343 pruebas automatizadas. El análisis estático y la revisión de formato terminaron sin observaciones. Se probaron los flujos modificados en un emulador Android. Las capturas del PR quedan pendientes.
+
+## 2026-11-13 · Moisés Sac · Rediseñar el historial y el detalle de ventas
+
+**Qué se planteó:** Se planteó facilitar la consulta de ventas y dar continuidad entre el historial y el detalle a partir de las referencias compartidas.
+
+**Qué se aceptó:** Se organizó el historial por día, se destacó el total del período y se presentó el detalle como un comprobante con transiciones breves.
+
+**Qué se ajustó:** Se mantuvieron los filtros y los precios registrados al realizar cada venta.
+
+**Cómo se verificó:** Se realizaron 348 pruebas automatizadas. El análisis estático y la revisión de formato terminaron sin observaciones. Se probaron los flujos modificados en un emulador Android. Las capturas del PR quedan pendientes.
+
+## 2026-11-13 · Moisés Sac · Incorporar comparaciones y gráficos al cierre del día
+
+**Qué se planteó:** Se planteó convertir el cierre en una consulta del desempeño diario mediante comparaciones y gráficos basados en las referencias compartidas.
+
+**Qué se aceptó:** Se incorporaron una comparación con el día anterior y un gráfico semanal interactivo, conservando el registro y la actualización del cierre.
+
+**Qué se ajustó:** Las comparaciones utilizan ventas reales y explican los casos sin base porcentual.
+
+**Cómo se verificó:** Se realizaron 355 pruebas automatizadas. El análisis estático y la revisión de formato terminaron sin observaciones. Se probaron los flujos modificados en un emulador Android. Las capturas del PR quedan pendientes.
+
+## 2026-11-13 · Moisés Sac · Destacar el producto más vendido por unidades
+
+**Qué se planteó:** Se planteó adaptar el indicador del cierre a las necesidades de una tienda con productos de venta frecuente.
+
+**Qué se aceptó:** Se reemplazó el promedio por venta por el producto con más unidades vendidas y su cantidad.
+
+**Qué se ajustó:** Se contemplaron empates y días sin productos vendidos para evitar resultados ambiguos.
+
+**Cómo se verificó:** Se realizaron 357 pruebas automatizadas. El análisis estático y la revisión de formato terminaron sin observaciones. Se probaron los flujos modificados en un emulador Android. Las capturas del PR quedan pendientes.
+
+## 2026-11-13 · Moisés Sac · Rediseñar la selección de cantidades para vender
+
+**Qué se planteó:** Se planteó agilizar la selección de cantidades y mantener una respuesta visual coherente con las referencias compartidas.
+
+**Qué se aceptó:** Se añadió la imagen del producto, entrada directa de cantidades, opciones rápidas y un subtotal con transición antes de confirmar.
+
+**Qué se ajustó:** Se conservaron la suma a la venta actual y la validación de cantidades, con adaptación al teclado y al movimiento reducido.
+
+**Cómo se verificó:** Se realizaron 363 pruebas automatizadas. El análisis estático y la revisión de formato terminaron sin observaciones. Se probaron los flujos modificados en un emulador Android. Las capturas del PR quedan pendientes.
