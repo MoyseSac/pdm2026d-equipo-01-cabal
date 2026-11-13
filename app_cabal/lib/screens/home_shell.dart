@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../utils/avisos.dart';
 import '../providers/cierre_provider.dart';
 import '../providers/tab_provider.dart';
 import '../providers/venta_provider.dart';
@@ -30,6 +31,7 @@ class HomeShell extends ConsumerWidget {
     // cierre se vuelven a leer al entrar a ellas (ej. una venta recien
     // registrada).
     ref.listen(tabProvider, (_, nueva) {
+      limpiarAvisosTemporales(context);
       if (nueva == Pestana.ventas) {
         ref.invalidate(ventasRegistradasProvider);
       }

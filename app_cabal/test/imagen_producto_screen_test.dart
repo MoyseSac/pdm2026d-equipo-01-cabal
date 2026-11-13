@@ -294,7 +294,9 @@ void main() {
     expect(find.textContaining('No se pudo cargar la foto'), findsOneWidget);
 
     await _guardarCambios(tester);
-    expect(find.text('Producto actualizado'), findsOneWidget);
+    expect(find.text('Pan'), findsOneWidget);
+    expect(find.byType(TextFormField), findsNothing);
+    expect(find.byType(SnackBar), findsNothing);
   });
 
   testWidgets('sin camara no se ofrece tomar foto', (tester) async {
