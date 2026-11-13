@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Flujo de trabajo de Cabal</title>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&family=Noto+Serif:ital@0;1&family=Noto+Sans+KR:wght@400;500;600&family=Noto+Serif+KR:wght@400&family=Noto+Sans+TC:wght@400;500;600&family=Noto+Serif+TC:wght@400&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --color-paper:  #ffffff;
+      --color-ink:    #0a2342;
+      --color-muted:  #46607a;
+      --color-accent: #1b7f5c;
+      --font-sans:    'Geist', system-ui, sans-serif;
+      --font-serif:   'Instrument Serif', 'Noto Serif', serif;
+      --font-mono:    'Geist Mono', ui-monospace, monospace;
+    }
+    body { font-family: var(--font-sans); background: var(--color-paper); color: var(--color-ink); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 3rem 2rem; }
+    .frame { max-width: 1200px; width: 100%; }
+    .diagram-container { width: 100%; overflow-x: auto; }
+    .eyebrow { font-family: var(--font-mono); font-size: 0.66rem; font-weight: 500; letter-spacing: 0.18em; text-transform: uppercase; color: var(--color-muted); margin-bottom: 0.5rem; }
+    h1 { font-family: var(--font-serif); font-size: clamp(1.5rem, 2.4vw + 0.75rem, 2rem); font-weight: 400; letter-spacing: -0.02em; line-height: 1.15; margin-bottom: 1.5rem; }
+    svg { width: 100%; min-width: 352px; display: block; }
+    @media print { .diagram-container { overflow-x: visible; } svg { min-width: 0; } }
+  </style>
+</head>
+<body>
+  <div class="frame">
+    <p class="eyebrow">Proceso · Diagram Design</p>
+    <h1>Cómo entra un cambio a main</h1>
+
+    <div class="diagram-container">
+      <svg viewBox="16 16 352 180" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="cabal-flujo-title cabal-flujo-desc">
+        <title id="cabal-flujo-title">Flujo de trabajo de Cabal</title>
+        <desc id="cabal-flujo-desc">Cada cambio pasa por seis pasos: issue, rama, pull request, revisión de otra persona, CI en verde y merge a main.</desc>
+        <defs>
+          <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#46607a"/></marker>
+        </defs>
+
+        <rect x="16" y="16" width="352" height="180" fill="#ffffff"/>
+
+        <!-- Flechas primero -->
+        <line x1="120" y1="52" x2="144" y2="52" stroke="#46607a" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <line x1="240" y1="52" x2="264" y2="52" stroke="#46607a" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <line x1="312" y1="80" x2="312" y2="132" stroke="#46607a" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <line x1="264" y1="160" x2="240" y2="160" stroke="#46607a" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <line x1="144" y1="160" x2="120" y2="160" stroke="#46607a" stroke-width="1.2" marker-end="url(#arrow)"/>
+
+        <!-- 1 · Issue -->
+        <rect x="24" y="24" width="96" height="56" rx="6" fill="#ffffff"/>
+        <rect x="24" y="24" width="96" height="56" rx="6" fill="#ffffff" stroke="#0a2342" stroke-width="1"/>
+        <rect x="32" y="30" width="20" height="12" rx="2" fill="transparent" stroke="rgba(10,35,66,0.40)" stroke-width="0.8"/>
+        <text x="42" y="39" fill="#0a2342" fill-opacity="0.8" font-size="7" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">01</text>
+        <text x="72" y="58" fill="#0a2342" font-size="12" font-weight="600" font-family="'Geist', system-ui, sans-serif" text-anchor="middle">Issue</text>
+        <text x="72" y="71" fill="#46607a" font-size="9" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle">una tarea</text>
+
+        <!-- 2 · Rama -->
+        <rect x="144" y="24" width="96" height="56" rx="6" fill="#ffffff"/>
+        <rect x="144" y="24" width="96" height="56" rx="6" fill="#ffffff" stroke="#0a2342" stroke-width="1"/>
+        <rect x="152" y="30" width="20" height="12" rx="2" fill="transparent" stroke="rgba(10,35,66,0.40)" stroke-width="0.8"/>
+        <text x="162" y="39" fill="#0a2342" fill-opacity="0.8" font-size="7" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">02</text>
+        <text x="192" y="58" fill="#0a2342" font-size="12" font-weight="600" font-family="'Geist', system-ui, sans-serif" text-anchor="middle">Rama</text>
+        <text x="192" y="71" fill="#46607a" font-size="9" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle">por issue</text>
+
+        <!-- 3 · Pull request -->
+        <rect x="264" y="24" width="96" height="56" rx="6" fill="#ffffff"/>
+        <rect x="264" y="24" width="96" height="56" rx="6" fill="#ffffff" stroke="#0a2342" stroke-width="1"/>
+        <rect x="272" y="30" width="20" height="12" rx="2" fill="transparent" stroke="rgba(10,35,66,0.40)" stroke-width="0.8"/>
+        <text x="282" y="39" fill="#0a2342" fill-opacity="0.8" font-size="7" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">03</text>
+        <text x="312" y="58" fill="#0a2342" font-size="12" font-weight="600" font-family="'Geist', system-ui, sans-serif" text-anchor="middle">Pull request</text>
+        <text x="312" y="71" fill="#46607a" font-size="9" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle">hacia main</text>
+
+        <!-- 4 · Revisión (focal) -->
+        <rect x="264" y="132" width="96" height="56" rx="6" fill="#ffffff"/>
+        <rect x="264" y="132" width="96" height="56" rx="6" fill="rgba(27,127,92,0.10)" stroke="#1b7f5c" stroke-width="1"/>
+        <rect x="272" y="138" width="20" height="12" rx="2" fill="transparent" stroke="rgba(27,127,92,0.40)" stroke-width="0.8"/>
+        <text x="282" y="147" fill="#1b7f5c" font-size="7" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">04</text>
+        <text x="312" y="166" fill="#0a2342" font-size="12" font-weight="600" font-family="'Geist', system-ui, sans-serif" text-anchor="middle">Revisión</text>
+        <text x="312" y="179" fill="#46607a" font-size="9" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle">otra persona</text>
+
+        <!-- 5 · CI (focal) -->
+        <rect x="144" y="132" width="96" height="56" rx="6" fill="#ffffff"/>
+        <rect x="144" y="132" width="96" height="56" rx="6" fill="rgba(27,127,92,0.10)" stroke="#1b7f5c" stroke-width="1"/>
+        <rect x="152" y="138" width="20" height="12" rx="2" fill="transparent" stroke="rgba(27,127,92,0.40)" stroke-width="0.8"/>
+        <text x="162" y="147" fill="#1b7f5c" font-size="7" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">05</text>
+        <text x="192" y="166" fill="#0a2342" font-size="12" font-weight="600" font-family="'Geist', system-ui, sans-serif" text-anchor="middle">CI en verde</text>
+        <text x="192" y="179" fill="#46607a" font-size="9" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle">3 chequeos</text>
+
+        <!-- 6 · Merge -->
+        <rect x="24" y="132" width="96" height="56" rx="6" fill="#ffffff"/>
+        <rect x="24" y="132" width="96" height="56" rx="6" fill="#ffffff" stroke="#0a2342" stroke-width="1"/>
+        <rect x="32" y="138" width="20" height="12" rx="2" fill="transparent" stroke="rgba(10,35,66,0.40)" stroke-width="0.8"/>
+        <text x="42" y="147" fill="#0a2342" fill-opacity="0.8" font-size="7" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">06</text>
+        <text x="72" y="166" fill="#0a2342" font-size="12" font-weight="600" font-family="'Geist', system-ui, sans-serif" text-anchor="middle">Merge</text>
+        <text x="72" y="179" fill="#46607a" font-size="9" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle">a main</text>
+      </svg>
+    </div>
+  </div>
+</body>
+</html>
