@@ -268,54 +268,109 @@ class _AgregarProductoScreenState extends State<AgregarProductoScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colores = Theme.of(context).colorScheme;
+    final textos = Theme.of(context).textTheme;
     return Scaffold(
       appBar: AppBar(
         title: Text(_esEdicion ? 'Editar producto' : 'Agregar producto'),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+      bottomNavigationBar: Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.viewInsetsOf(context).bottom,
+        ),
+        child: SafeArea(
+          top: false,
+          child: Container(
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: colores.surfaceContainerLowest,
+              border: Border(top: BorderSide(color: colores.outlineVariant)),
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            child: Center(
+              heightFactor: 1,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 520),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      minimumSize: const Size(0, 52),
+                    ),
+                    onPressed: _isLoading ? null : _guardarProducto,
+                    child: _isLoading
+                        ? const SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : Text(
+                            _esEdicion ? 'Guardar cambios' : 'Guardar producto',
+                          ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+      body: SafeArea(
         child: Form(
           key: _formKey,
           child: Column(
             children: [
-              _seccionImagen(),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _nombreController,
-                decoration: const InputDecoration(
-                  labelText: 'Nombre del producto',
-                  hintText: 'Ej: Coca Cola',
-                  border: OutlineInputBorder(),
-                ),
-                validator: ProductoValidator.validarNombre,
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _precioController,
-                decoration: const InputDecoration(
-                  labelText: 'Precio',
-                  hintText: 'Ej: 10.50',
-                  border: OutlineInputBorder(),
-                ),
-                keyboardType: const TextInputType.numberWithOptions(
-                  decimal: true,
-                ),
-                validator: ProductoValidator.validarPrecio,
-              ),
-              const SizedBox(height: 24),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: _isLoading ? null : _guardarProducto,
-                  child: _isLoading
-                      ? const SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : Text(
-                          _esEdicion ? 'Guardar cambios' : 'Guardar producto',
-                        ),
+              Expanded(
+                child: SingleChildScrollView(
+                  keyboardDismissBehavior:
+                      ScrollViewKeyboardDismissBehavior.onDrag,
+                  padding: const EdgeInsets.all(20),
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 520),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          _seccionImagen(),
+                          const SizedBox(height: 28),
+                          Text('Datos del producto', style: textos.titleLarge),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Ingresa el nombre y el precio de venta.',
+                            style: textos.bodyMedium?.copyWith(
+                              color: colores.onSurfaceVariant,
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+                          TextFormField(
+                            controller: _nombreController,
+                            textCapitalization: TextCapitalization.sentences,
+                            textInputAction: TextInputAction.next,
+                            decoration: const InputDecoration(
+                              labelText: 'Nombre del producto',
+                              hintText: 'Ej: Coca Cola',
+                              border: OutlineInputBorder(),
+                            ),
+                            validator: ProductoValidator.validarNombre,
+                          ),
+                          const SizedBox(height: 20),
+                          TextFormField(
+                            controller: _precioController,
+                            decoration: const InputDecoration(
+                              labelText: 'Precio de venta',
+                              hintText: '0.00',
+                              prefixText: 'Q ',
+                              helperText: 'Precio por unidad en quetzales',
+                              border: OutlineInputBorder(),
+                            ),
+                            keyboardType: const TextInputType.numberWithOptions(
+                              decimal: true,
+                            ),
+                            validator: ProductoValidator.validarPrecio,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                 ),
               ),
             ],
@@ -326,42 +381,73 @@ class _AgregarProductoScreenState extends State<AgregarProductoScreen> {
   }
 
   Widget _seccionImagen() {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        ProductoImagenWidget(imagen: _imagen, size: 88),
-        const SizedBox(width: 16),
-        Expanded(
-          child: Wrap(
+    final colores = Theme.of(context).colorScheme;
+    final textos = Theme.of(context).textTheme;
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 20, 16, 12),
+      decoration: BoxDecoration(
+        color: colores.surfaceContainerLowest,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: colores.outlineVariant),
+      ),
+      child: Column(
+        children: [
+          if (_imagen is SinImagen)
+            Container(
+              width: 112,
+              height: 112,
+              decoration: BoxDecoration(
+                color: colores.primaryContainer,
+                borderRadius: BorderRadius.circular(24),
+              ),
+              child: Icon(
+                Icons.add_photo_alternate_outlined,
+                size: 40,
+                color: colores.onPrimaryContainer,
+              ),
+            )
+          else
+            ProductoImagenWidget(imagen: _imagen, size: 112),
+          const SizedBox(height: 12),
+          Text('Imagen del producto', style: textos.titleMedium),
+          const SizedBox(height: 4),
+          Text(
+            'Agrega una foto o elige un icono. Es opcional.',
+            textAlign: TextAlign.center,
+            style: textos.bodySmall?.copyWith(color: colores.onSurfaceVariant),
+          ),
+          const SizedBox(height: 8),
+          Wrap(
+            alignment: WrapAlignment.center,
             spacing: 8,
             runSpacing: 4,
             children: [
-              OutlinedButton.icon(
+              TextButton.icon(
                 onPressed: () => _elegirFoto(camara: false),
-                icon: const Icon(Icons.photo_library),
+                icon: const Icon(Icons.photo_library_outlined, size: 20),
                 label: const Text('Elegir foto'),
               ),
-              if (_imagenes.admiteCamara)
-                OutlinedButton.icon(
-                  onPressed: () => _elegirFoto(camara: true),
-                  icon: const Icon(Icons.photo_camera),
-                  label: const Text('Tomar foto'),
-                ),
-              OutlinedButton.icon(
+              TextButton.icon(
                 onPressed: _elegirIcono,
-                icon: const Icon(Icons.category),
+                icon: const Icon(Icons.category_outlined, size: 20),
                 label: const Text('Usar icono'),
               ),
+              if (_imagenes.admiteCamara)
+                TextButton.icon(
+                  onPressed: () => _elegirFoto(camara: true),
+                  icon: const Icon(Icons.photo_camera_outlined, size: 20),
+                  label: const Text('Tomar foto'),
+                ),
               if (_imagen is! SinImagen)
                 TextButton.icon(
                   onPressed: () => setState(() => _imagen = const SinImagen()),
-                  icon: const Icon(Icons.close),
+                  icon: const Icon(Icons.close, size: 20),
                   label: const Text('Quitar'),
                 ),
             ],
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
