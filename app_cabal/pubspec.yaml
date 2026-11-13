@@ -70,6 +70,7 @@ flutter:
 
   assets:
     - assets/icons/productos/
+    - assets/icons/estados/
 
   # Montserrat (SIL Open Font License, ver assets/fonts/OFL-Montserrat.txt).
   # Es una fuente variable: el grosor se pide con FontVariation('wght', ...)
