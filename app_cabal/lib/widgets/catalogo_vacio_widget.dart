@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'ilustracion_estado_vacio.dart';
+
 class CatalogoVacioWidget extends StatelessWidget {
   final VoidCallback onAgregarProducto;
 
@@ -20,11 +22,7 @@ class CatalogoVacioWidget extends StatelessWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(
-                    Icons.inventory_2_outlined,
-                    size: 64,
-                    color: Theme.of(context).colorScheme.outline,
-                  ),
+                  const IlustracionEstadoVacio(estado: EstadoVacio.catalogo),
                   const SizedBox(height: 16),
                   Text(
                     'Tu catálogo está vacío',

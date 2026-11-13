@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../widgets/ilustracion_estado_vacio.dart';
+
 import '../models/cierre.dart';
 import '../providers/cierre_provider.dart';
 import '../providers/tab_provider.dart';
@@ -694,7 +696,7 @@ class _SinVentasHoy extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.event_busy_outlined, size: 64, color: colores.outline),
+            const IlustracionEstadoVacio(estado: EstadoVacio.periodo),
             const SizedBox(height: 16),
             Text(
               'Hoy no hay ventas para cerrar',

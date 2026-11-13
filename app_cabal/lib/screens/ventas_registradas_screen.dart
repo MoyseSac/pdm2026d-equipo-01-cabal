@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../widgets/ilustracion_estado_vacio.dart';
+
 import '../constants/app_routes.dart';
 import '../providers/tab_provider.dart';
 import '../providers/venta_provider.dart';
@@ -186,11 +188,7 @@ class _SinVentasPeriodo extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              Icons.filter_list_off,
-              size: 64,
-              color: Theme.of(context).colorScheme.outline,
-            ),
+            const IlustracionEstadoVacio(estado: EstadoVacio.periodo),
             const SizedBox(height: 16),
             Text(
               'No hay ventas en este período',
@@ -233,11 +231,7 @@ class _SinVentas extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              Icons.receipt_long_outlined,
-              size: 64,
-              color: Theme.of(context).colorScheme.outline,
-            ),
+            const IlustracionEstadoVacio(estado: EstadoVacio.ventas),
             const SizedBox(height: 16),
             Text(
               'Aún no hay ventas registradas',

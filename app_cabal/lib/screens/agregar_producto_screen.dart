@@ -7,6 +7,7 @@ import '../services/imagen_producto_service.dart';
 import '../services/producto_service.dart';
 import '../validators/producto_validator.dart';
 import '../widgets/producto_imagen_widget.dart';
+import '../widgets/icono_producto_widget.dart';
 
 /// Formulario de producto. Sin [producto] agrega uno nuevo; con [producto]
 /// edita ese mismo (conserva su id) y arranca con sus valores.
@@ -98,31 +99,97 @@ class _AgregarProductoScreenState extends State<AgregarProductoScreen> {
     final clave = await showModalBottomSheet<String>(
       context: context,
       showDragHandle: true,
-      builder: (context) => GridView.extent(
-        maxCrossAxisExtent: 96,
-        padding: const EdgeInsets.fromLTRB(12, 0, 12, 24),
-        shrinkWrap: true,
-        children: [
-          for (final MapEntry(key: clave, value: icono)
-              in iconosProducto.entries)
-            InkWell(
-              borderRadius: BorderRadius.circular(8),
-              onTap: () => Navigator.of(context).pop(clave),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(icono.icono, size: 32),
-                  const SizedBox(height: 4),
-                  Text(
-                    icono.etiqueta,
-                    textAlign: TextAlign.center,
-                    maxLines: 2,
-                    style: const TextStyle(fontSize: 12),
-                  ),
-                ],
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (context) => SizedBox(
+        height: MediaQuery.sizeOf(context).height * 0.7,
+        child: Column(
+          children: [
+            Text(
+              'Elige un icono',
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+            const SizedBox(height: 16),
+            Expanded(
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final escala = MediaQuery.textScalerOf(context);
+                  final columnas =
+                      (constraints.maxWidth / (144 * escala.scale(13) / 13))
+                          .ceil()
+                          .clamp(1, 6);
+                  final ancho =
+                      (constraints.maxWidth - 32 - (columnas - 1) * 8) /
+                      columnas;
+                  var altoTexto = 0.0;
+                  for (final categoria in iconosProducto.values) {
+                    final texto = TextPainter(
+                      text: TextSpan(
+                        text: categoria.etiqueta,
+                        style: Theme.of(context).textTheme.labelMedium,
+                      ),
+                      textDirection: Directionality.of(context),
+                      textScaler: escala,
+                    )..layout(maxWidth: ancho - 8);
+                    if (texto.height > altoTexto) altoTexto = texto.height;
+                    texto.dispose();
+                  }
+                  return GridView.builder(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: columnas,
+                      mainAxisExtent: 80 + altoTexto,
+                      crossAxisSpacing: 8,
+                      mainAxisSpacing: 8,
+                    ),
+                    itemCount: iconosProducto.length,
+                    itemBuilder: (context, index) {
+                      final entrada = iconosProducto.entries.elementAt(index);
+                      final seleccionado = _imagen.claveIcono == entrada.key;
+                      return Semantics(
+                        button: true,
+                        selected: seleccionado,
+                        child: Material(
+                          color: seleccionado
+                              ? Theme.of(context).colorScheme.secondaryContainer
+                              : Theme.of(context).colorScheme.surface,
+                          borderRadius: BorderRadius.circular(16),
+                          clipBehavior: Clip.antiAlias,
+                          child: InkWell(
+                            onTap: () => Navigator.of(context).pop(entrada.key),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                IconoProductoWidget(
+                                  clave: entrada.key,
+                                  size: 48,
+                                  excluirSemantica: true,
+                                ),
+                                const SizedBox(height: 8),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 4,
+                                  ),
+                                  child: Text(
+                                    entrada.value.etiqueta,
+                                    textAlign: TextAlign.center,
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.labelMedium,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  );
+                },
               ),
             ),
-        ],
+          ],
+        ),
       ),
     );
     if (clave == null || !mounted) return;
@@ -201,54 +268,109 @@ class _AgregarProductoScreenState extends State<AgregarProductoScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colores = Theme.of(context).colorScheme;
+    final textos = Theme.of(context).textTheme;
     return Scaffold(
       appBar: AppBar(
         title: Text(_esEdicion ? 'Editar producto' : 'Agregar producto'),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+      bottomNavigationBar: Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.viewInsetsOf(context).bottom,
+        ),
+        child: SafeArea(
+          top: false,
+          child: Container(
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: colores.surfaceContainerLowest,
+              border: Border(top: BorderSide(color: colores.outlineVariant)),
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            child: Center(
+              heightFactor: 1,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 520),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      minimumSize: const Size(0, 52),
+                    ),
+                    onPressed: _isLoading ? null : _guardarProducto,
+                    child: _isLoading
+                        ? const SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : Text(
+                            _esEdicion ? 'Guardar cambios' : 'Guardar producto',
+                          ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+      body: SafeArea(
         child: Form(
           key: _formKey,
           child: Column(
             children: [
-              _seccionImagen(),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _nombreController,
-                decoration: const InputDecoration(
-                  labelText: 'Nombre del producto',
-                  hintText: 'Ej: Coca Cola',
-                  border: OutlineInputBorder(),
-                ),
-                validator: ProductoValidator.validarNombre,
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _precioController,
-                decoration: const InputDecoration(
-                  labelText: 'Precio',
-                  hintText: 'Ej: 10.50',
-                  border: OutlineInputBorder(),
-                ),
-                keyboardType: const TextInputType.numberWithOptions(
-                  decimal: true,
-                ),
-                validator: ProductoValidator.validarPrecio,
-              ),
-              const SizedBox(height: 24),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: _isLoading ? null : _guardarProducto,
-                  child: _isLoading
-                      ? const SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : Text(
-                          _esEdicion ? 'Guardar cambios' : 'Guardar producto',
-                        ),
+              Expanded(
+                child: SingleChildScrollView(
+                  keyboardDismissBehavior:
+                      ScrollViewKeyboardDismissBehavior.onDrag,
+                  padding: const EdgeInsets.all(20),
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 520),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          _seccionImagen(),
+                          const SizedBox(height: 28),
+                          Text('Datos del producto', style: textos.titleLarge),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Ingresa el nombre y el precio de venta.',
+                            style: textos.bodyMedium?.copyWith(
+                              color: colores.onSurfaceVariant,
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+                          TextFormField(
+                            controller: _nombreController,
+                            textCapitalization: TextCapitalization.sentences,
+                            textInputAction: TextInputAction.next,
+                            decoration: const InputDecoration(
+                              labelText: 'Nombre del producto',
+                              hintText: 'Ej: Coca Cola',
+                              border: OutlineInputBorder(),
+                            ),
+                            validator: ProductoValidator.validarNombre,
+                          ),
+                          const SizedBox(height: 20),
+                          TextFormField(
+                            controller: _precioController,
+                            decoration: const InputDecoration(
+                              labelText: 'Precio de venta',
+                              hintText: '0.00',
+                              prefixText: 'Q ',
+                              helperText: 'Precio por unidad en quetzales',
+                              border: OutlineInputBorder(),
+                            ),
+                            keyboardType: const TextInputType.numberWithOptions(
+                              decimal: true,
+                            ),
+                            validator: ProductoValidator.validarPrecio,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                 ),
               ),
             ],
@@ -259,42 +381,73 @@ class _AgregarProductoScreenState extends State<AgregarProductoScreen> {
   }
 
   Widget _seccionImagen() {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        ProductoImagenWidget(imagen: _imagen, size: 88),
-        const SizedBox(width: 16),
-        Expanded(
-          child: Wrap(
+    final colores = Theme.of(context).colorScheme;
+    final textos = Theme.of(context).textTheme;
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 20, 16, 12),
+      decoration: BoxDecoration(
+        color: colores.surfaceContainerLowest,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: colores.outlineVariant),
+      ),
+      child: Column(
+        children: [
+          if (_imagen is SinImagen)
+            Container(
+              width: 112,
+              height: 112,
+              decoration: BoxDecoration(
+                color: colores.primaryContainer,
+                borderRadius: BorderRadius.circular(24),
+              ),
+              child: Icon(
+                Icons.add_photo_alternate_outlined,
+                size: 40,
+                color: colores.onPrimaryContainer,
+              ),
+            )
+          else
+            ProductoImagenWidget(imagen: _imagen, size: 112),
+          const SizedBox(height: 12),
+          Text('Imagen del producto', style: textos.titleMedium),
+          const SizedBox(height: 4),
+          Text(
+            'Agrega una foto o elige un icono. Es opcional.',
+            textAlign: TextAlign.center,
+            style: textos.bodySmall?.copyWith(color: colores.onSurfaceVariant),
+          ),
+          const SizedBox(height: 8),
+          Wrap(
+            alignment: WrapAlignment.center,
             spacing: 8,
             runSpacing: 4,
             children: [
-              OutlinedButton.icon(
+              TextButton.icon(
                 onPressed: () => _elegirFoto(camara: false),
-                icon: const Icon(Icons.photo_library),
+                icon: const Icon(Icons.photo_library_outlined, size: 20),
                 label: const Text('Elegir foto'),
               ),
-              if (_imagenes.admiteCamara)
-                OutlinedButton.icon(
-                  onPressed: () => _elegirFoto(camara: true),
-                  icon: const Icon(Icons.photo_camera),
-                  label: const Text('Tomar foto'),
-                ),
-              OutlinedButton.icon(
+              TextButton.icon(
                 onPressed: _elegirIcono,
-                icon: const Icon(Icons.category),
+                icon: const Icon(Icons.category_outlined, size: 20),
                 label: const Text('Usar icono'),
               ),
+              if (_imagenes.admiteCamara)
+                TextButton.icon(
+                  onPressed: () => _elegirFoto(camara: true),
+                  icon: const Icon(Icons.photo_camera_outlined, size: 20),
+                  label: const Text('Tomar foto'),
+                ),
               if (_imagen is! SinImagen)
                 TextButton.icon(
                   onPressed: () => setState(() => _imagen = const SinImagen()),
-                  icon: const Icon(Icons.close),
+                  icon: const Icon(Icons.close, size: 20),
                   label: const Text('Quitar'),
                 ),
             ],
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
