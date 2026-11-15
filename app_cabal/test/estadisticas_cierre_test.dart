@@ -15,6 +15,7 @@ Future<void> abrir(
   int ventas = 4,
   Size size = const Size(375, 812),
   double escala = 1,
+  List<CierreProducto> productos = const [],
 }) async {
   tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1;
@@ -46,7 +47,7 @@ Future<void> abrir(
                   dia: hoy,
                   numeroVentas: ventas,
                   total: total,
-                  productos: const [],
+                  productos: productos,
                 ),
               ),
             ),
@@ -59,19 +60,84 @@ Future<void> abrir(
 }
 
 void main() {
-  testWidgets('compara con ayer, calcula promedio y permite consultar un día', (
+  testWidgets('compara con ayer, destaca unidades y permite consultar un día', (
     tester,
   ) async {
-    await abrir(tester);
+    await abrir(
+      tester,
+      productos: const [
+        CierreProducto(
+          productoId: 'g',
+          nombre: 'Gaseosa',
+          unidades: 8,
+          subtotal: 120,
+        ),
+        CierreProducto(
+          productoId: 'c',
+          nombre: 'Chicles',
+          unidades: 120,
+          subtotal: 60,
+        ),
+      ],
+    );
     expect(find.text('+100.0%'), findsOneWidget);
     expect(find.text('Q50.00 más en ventas'), findsOneWidget);
-    expect(find.text('Q25.00'), findsOneWidget);
+    expect(find.text('Más vendido por unidades'), findsOneWidget);
+    expect(find.text('Chicles'), findsOneWidget);
+    expect(find.text('120 unidades vendidas'), findsOneWidget);
+    expect(find.text('Promedio por venta'), findsNothing);
     expect(find.text('Hoy en curso · Ayer completo'), findsOneWidget);
     await tester.ensureVisible(find.byKey(const ValueKey('actividad_dia_5')));
     await tester.tap(find.byKey(const ValueKey('actividad_dia_5')));
     await tester.pumpAndSettle();
     expect(find.text('Q50.00'), findsOneWidget);
     expect(find.text('2 ventas'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+  testWidgets('un empate no presenta un producto como único ganador', (
+    tester,
+  ) async {
+    await abrir(
+      tester,
+      productos: const [
+        CierreProducto(
+          productoId: 'c',
+          nombre: 'Chicles',
+          unidades: 100,
+          subtotal: 50,
+        ),
+        CierreProducto(
+          productoId: 'p',
+          nombre: 'Pan',
+          unidades: 100,
+          subtotal: 100,
+        ),
+      ],
+    );
+    expect(find.text('Más vendidos por unidades'), findsOneWidget);
+    expect(find.text('2 productos empatados'), findsOneWidget);
+    expect(find.text('100 unidades cada uno'), findsOneWidget);
+  });
+  testWidgets('nombre largo y una unidad se leen con texto ampliado', (
+    tester,
+  ) async {
+    const nombre =
+        'Paquete familiar de galletas de chocolate con relleno de vainilla';
+    await abrir(
+      tester,
+      size: const Size(320, 568),
+      escala: 2,
+      productos: const [
+        CierreProducto(
+          productoId: 'g',
+          nombre: nombre,
+          unidades: 1,
+          subtotal: 10,
+        ),
+      ],
+    );
+    expect(find.text(nombre), findsOneWidget);
+    expect(find.text('1 unidad vendida'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
   testWidgets('ayer sin ventas no produce porcentaje infinito', (tester) async {
@@ -94,7 +160,8 @@ void main() {
       await tester.ensureVisible(find.byKey(const ValueKey('actividad_dia_6')));
       await tester.pumpAndSettle();
       expect(find.text('Sin base porcentual'), findsOneWidget);
-      expect(find.text('Q0.00'), findsNWidgets(2));
+      expect(find.text('Q0.00'), findsOneWidget);
+      expect(find.text('Sin productos vendidos'), findsOneWidget);
       expect(tester.takeException(), isNull);
       expect(tester.binding.transientCallbackCount, 0);
     });

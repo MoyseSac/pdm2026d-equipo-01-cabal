@@ -395,3 +395,13 @@ Las pruebas automatizadas detectaron desbordamientos con texto ampliado en la ho
 **Qué se ajustó:** Las comparaciones utilizan ventas reales y explican los casos sin base porcentual.
 
 **Cómo se verificó:** Se realizaron 355 pruebas automatizadas. El análisis estático y la revisión de formato terminaron sin observaciones. Se probaron los flujos modificados en un emulador Android. Las capturas del PR quedan pendientes.
+
+## 2026-11-13 · Moisés Sac · Destacar el producto más vendido por unidades
+
+**Qué se planteó:** Se planteó adaptar el indicador del cierre a las necesidades de una tienda con productos de venta frecuente.
+
+**Qué se aceptó:** Se reemplazó el promedio por venta por el producto con más unidades vendidas y su cantidad.
+
+**Qué se ajustó:** Se contemplaron empates y días sin productos vendidos para evitar resultados ambiguos.
+
+**Cómo se verificó:** Se realizaron 357 pruebas automatizadas. El análisis estático y la revisión de formato terminaron sin observaciones. Se probaron los flujos modificados en un emulador Android. Las capturas del PR quedan pendientes.

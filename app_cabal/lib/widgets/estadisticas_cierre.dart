@@ -69,7 +69,13 @@ class _ComparacionSemanalState extends State<_ComparacionSemanal> {
       0,
       (maximo, d) => math.max(maximo, d.centavos),
     );
-    final promedio = hoy.numeroVentas == 0 ? 0.0 : hoy.total / hoy.numeroVentas;
+    final maxUnidades = hoy.productos.fold<int>(
+      0,
+      (maximo, producto) => math.max(maximo, producto.unidades),
+    );
+    final masVendidos = hoy.productos
+        .where((producto) => producto.unidades == maxUnidades)
+        .toList();
     final reducir = MediaQuery.disableAnimationsOf(context);
     const etiquetas = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
     return EntradaVentas(
@@ -111,10 +117,22 @@ class _ComparacionSemanalState extends State<_ComparacionSemanal> {
                       : Icons.trending_down,
                 ),
                 _Indicador(
-                  titulo: 'Promedio por venta',
-                  valor: formatearQuetzales(promedio),
-                  descripcion: 'Total de hoy ÷ ventas',
-                  icono: Icons.receipt_long_outlined,
+                  titulo: masVendidos.length > 1
+                      ? 'Más vendidos por unidades'
+                      : 'Más vendido por unidades',
+                  valor: masVendidos.isEmpty
+                      ? 'Sin productos vendidos'
+                      : masVendidos.length == 1
+                      ? masVendidos.single.nombre
+                      : '${masVendidos.length} productos empatados',
+                  descripcion: masVendidos.isEmpty
+                      ? 'Todavía no hay unidades registradas.'
+                      : '${maxUnidades == 1 ? '1 unidad' : '$maxUnidades unidades'}${masVendidos.length > 1
+                            ? ' cada uno'
+                            : maxUnidades == 1
+                            ? ' vendida'
+                            : ' vendidas'}',
+                  icono: Icons.inventory_2_outlined,
                 ),
               ],
             ),
