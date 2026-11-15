@@ -142,51 +142,49 @@ void main() {
     comprobarUltimo();
   });
 
-  testWidgets('aviso largo deja libres FAB, navegacion y Ver venta', (
-    tester,
-  ) async {
-    final container = await _abrirApp(
-      tester,
-      productos: productosLargos,
-      size: const Size(320, 568),
-    );
-    await irAlFinal(tester);
-    final ultimaFila = find.byKey(const ValueKey('l19'));
-    await tester.tap(
-      find.descendant(
-        of: ultimaFila,
-        matching: find.byTooltip('Agregar a la venta'),
-      ),
-    );
-    await tester.pumpAndSettle();
-    await tester.tap(find.textContaining('Agregar a la venta ·'));
-    await tester.pumpAndSettle();
-    tester.platformDispatcher.textScaleFactorTestValue = 1.3;
-    await tester.pumpAndSettle();
+  testWidgets(
+    'agregar un nombre largo no muestra avisos ni tapa la navegación',
+    (tester) async {
+      final container = await _abrirApp(
+        tester,
+        productos: productosLargos,
+        size: const Size(320, 568),
+      );
+      await irAlFinal(tester);
+      final ultimaFila = find.byKey(const ValueKey('l19'));
+      await tester.tap(
+        find.descendant(
+          of: ultimaFila,
+          matching: find.byTooltip('Agregar a la venta'),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.textContaining('Agregar a la venta ·'));
+      await tester.pumpAndSettle();
+      tester.platformDispatcher.textScaleFactorTestValue = 1.3;
+      await tester.pumpAndSettle();
 
-    final aviso = find.text('1 × $nombreLargo 19 agregado a la venta');
-    final fab = find.byType(FloatingActionButton);
-    expect(aviso, findsOneWidget);
-    expect(
-      tester.getBottomRight(aviso).dy,
-      lessThan(tester.getTopLeft(fab).dy),
-    );
-    expect(
-      tester.getBottomRight(find.text('Ver venta')).dy,
-      lessThan(tester.getTopLeft(fab).dy),
-    );
-    expect(
-      tester.getBottomRight(fab).dy,
-      lessThan(tester.getTopLeft(find.byType(NavigationBar)).dy),
-    );
-    expect(tester.takeException(), isNull);
-    // La navegacion se verifica con escala normal; el aviso ya se comprobo ampliado.
-    tester.platformDispatcher.textScaleFactorTestValue = 1;
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Ver venta'));
-    await tester.pumpAndSettle();
-    expect(container.read(tabProvider), Pestana.vender);
-  });
+      final fab = find.byType(FloatingActionButton);
+      expect(find.byType(SnackBar), findsNothing);
+      expect(container.read(ventaProvider).detalles.single.producto.id, 'l19');
+      expect(
+        tester.getBottomRight(fab).dy,
+        lessThan(tester.getTopLeft(find.byType(NavigationBar)).dy),
+      );
+      expect(tester.takeException(), isNull);
+      // La venta sigue disponible desde la navegación principal.
+      tester.platformDispatcher.textScaleFactorTestValue = 1;
+      await tester.pumpAndSettle();
+      await tester.tap(
+        find.descendant(
+          of: find.byType(NavigationBar),
+          matching: find.text('Vender'),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(container.read(tabProvider), Pestana.vender);
+    },
+  );
 
   testWidgets('el botón + abre la hoja y no cambia de pestaña', (tester) async {
     final container = await _abrirApp(tester);
@@ -227,7 +225,7 @@ void main() {
     expect(_enHoja(find.text('2')), findsOneWidget);
   });
 
-  testWidgets('confirmar agrega la cantidad, muestra aviso y badge', (
+  testWidgets('confirmar agrega la cantidad y actualiza el badge sin aviso', (
     tester,
   ) async {
     final container = await _abrirApp(tester);
@@ -249,7 +247,7 @@ void main() {
 
     expect(_hoja(), findsNothing);
     expect(container.read(tabProvider), Pestana.catalogo);
-    expect(find.text('2 × Leche agregado a la venta'), findsOneWidget);
+    expect(find.byType(SnackBar), findsNothing);
     expect(
       find.descendant(
         of: find.byType(NavigationBar),
@@ -258,7 +256,12 @@ void main() {
       findsWidgets,
     );
 
-    await tester.tap(find.text('Ver venta'));
+    await tester.tap(
+      find.descendant(
+        of: find.byType(NavigationBar),
+        matching: find.text('Vender'),
+      ),
+    );
     await tester.pumpAndSettle();
 
     expect(container.read(tabProvider), Pestana.vender);

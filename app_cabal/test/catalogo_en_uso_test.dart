@@ -94,7 +94,8 @@ void main() {
       expect(servicio.archivados, {'p1'});
       expect(servicio.eliminados, isEmpty);
       expect(find.text('Coca Cola'), findsNothing);
-      expect(find.text('Producto archivado'), findsOneWidget);
+      expect(find.text('Producto archivado'), findsNothing);
+      expect(find.byType(SnackBar), findsNothing);
     });
 
     testWidgets('un producto sin ventas se borra como siempre', (tester) async {

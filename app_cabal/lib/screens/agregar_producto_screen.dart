@@ -7,6 +7,7 @@ import '../services/imagen_producto_service.dart';
 import '../services/producto_service.dart';
 import '../validators/producto_validator.dart';
 import '../widgets/producto_imagen_widget.dart';
+import '../widgets/aviso_en_linea.dart';
 import '../widgets/icono_producto_widget.dart';
 
 /// Formulario de producto. Sin [producto] agrega uno nuevo; con [producto]
@@ -44,6 +45,8 @@ class _AgregarProductoScreenState extends State<AgregarProductoScreen> {
   final Set<String> _fotosNuevas = {};
   bool _guardado = false;
   bool _isLoading = false;
+  String? _errorImagen;
+  String? _errorGuardado;
 
   bool get _esEdicion => widget.producto != null;
 
@@ -82,15 +85,15 @@ class _AgregarProductoScreenState extends State<AgregarProductoScreen> {
       final archivo = await _imagenes.elegir(camara: camara);
       if (archivo == null || !mounted) return;
       _fotosNuevas.add(archivo);
-      setState(() => _imagen = FotoElegida(archivo));
+      setState(() {
+        _imagen = FotoElegida(archivo);
+        _errorImagen = null;
+      });
     } catch (_) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
+      setState(
+        () => _errorImagen =
             'No se pudo cargar la foto. Puedes usar un icono o guardar sin imagen.',
-          ),
-        ),
       );
     }
   }
@@ -193,7 +196,10 @@ class _AgregarProductoScreenState extends State<AgregarProductoScreen> {
       ),
     );
     if (clave == null || !mounted) return;
-    setState(() => _imagen = IconoElegido(clave));
+    setState(() {
+      _imagen = IconoElegido(clave);
+      _errorImagen = null;
+    });
   }
 
   Future<void> _guardarProducto() async {
@@ -201,8 +207,10 @@ class _AgregarProductoScreenState extends State<AgregarProductoScreen> {
       return;
     }
 
+    FocusScope.of(context).unfocus();
     setState(() {
       _isLoading = true;
+      _errorGuardado = null;
     });
 
     try {
@@ -246,15 +254,10 @@ class _AgregarProductoScreenState extends State<AgregarProductoScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              e is NombreRepetidoException
-                  ? e.toString()
-                  : 'Error al guardar: $e',
-            ),
-            backgroundColor: Theme.of(context).colorScheme.error,
-          ),
+        setState(
+          () => _errorGuardado = e is NombreRepetidoException
+              ? e.toString()
+              : 'No se pudo guardar el producto. Intenta de nuevo.',
         );
       }
     } finally {
@@ -291,23 +294,37 @@ class _AgregarProductoScreenState extends State<AgregarProductoScreen> {
               heightFactor: 1,
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 520),
-                child: SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      minimumSize: const Size(0, 52),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    if (_errorGuardado != null) ...[
+                      AvisoEnLinea(mensaje: _errorGuardado!),
+                      const SizedBox(height: 12),
+                    ],
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          minimumSize: const Size(0, 52),
+                        ),
+                        onPressed: _isLoading ? null : _guardarProducto,
+                        child: _isLoading
+                            ? const SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : Text(
+                                _esEdicion
+                                    ? 'Guardar cambios'
+                                    : 'Guardar producto',
+                              ),
+                      ),
                     ),
-                    onPressed: _isLoading ? null : _guardarProducto,
-                    child: _isLoading
-                        ? const SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : Text(
-                            _esEdicion ? 'Guardar cambios' : 'Guardar producto',
-                          ),
-                  ),
+                  ],
                 ),
               ),
             ),
@@ -350,6 +367,11 @@ class _AgregarProductoScreenState extends State<AgregarProductoScreen> {
                               hintText: 'Ej: Coca Cola',
                               border: OutlineInputBorder(),
                             ),
+                            onChanged: (_) {
+                              if (_errorGuardado != null) {
+                                setState(() => _errorGuardado = null);
+                              }
+                            },
                             validator: ProductoValidator.validarNombre,
                           ),
                           const SizedBox(height: 20),
@@ -365,6 +387,11 @@ class _AgregarProductoScreenState extends State<AgregarProductoScreen> {
                             keyboardType: const TextInputType.numberWithOptions(
                               decimal: true,
                             ),
+                            onChanged: (_) {
+                              if (_errorGuardado != null) {
+                                setState(() => _errorGuardado = null);
+                              }
+                            },
                             validator: ProductoValidator.validarPrecio,
                           ),
                         ],
@@ -416,6 +443,10 @@ class _AgregarProductoScreenState extends State<AgregarProductoScreen> {
             textAlign: TextAlign.center,
             style: textos.bodySmall?.copyWith(color: colores.onSurfaceVariant),
           ),
+          if (_errorImagen != null) ...[
+            const SizedBox(height: 12),
+            AvisoEnLinea(mensaje: _errorImagen!),
+          ],
           const SizedBox(height: 8),
           Wrap(
             alignment: WrapAlignment.center,
@@ -440,7 +471,10 @@ class _AgregarProductoScreenState extends State<AgregarProductoScreen> {
                 ),
               if (_imagen is! SinImagen)
                 TextButton.icon(
-                  onPressed: () => setState(() => _imagen = const SinImagen()),
+                  onPressed: () => setState(() {
+                    _imagen = const SinImagen();
+                    _errorImagen = null;
+                  }),
                   icon: const Icon(Icons.close, size: 20),
                   label: const Text('Quitar'),
                 ),

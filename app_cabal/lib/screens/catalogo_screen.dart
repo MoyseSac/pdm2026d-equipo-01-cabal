@@ -5,9 +5,9 @@ import '../constants/app_routes.dart';
 import '../models/producto.dart';
 import '../providers/catalogo_provider.dart';
 import '../providers/producto_provider.dart';
-import '../providers/tab_provider.dart';
 import '../providers/venta_provider.dart';
 import '../utils/moneda.dart';
+import '../utils/avisos.dart';
 import '../utils/busqueda.dart';
 import '../widgets/cantidad_producto_sheet.dart';
 import '../widgets/catalogo_vacio_widget.dart';
@@ -20,16 +20,6 @@ enum _AccionProducto { editar, eliminar }
 
 // FAB de 56, margen inferior de 16 y separacion de 16 sobre el boton.
 const _espacioInferiorCatalogo = 88.0;
-
-SnackBar _avisoCatalogo({required Widget content, SnackBarAction? action}) {
-  // HomeShell muestra el aviso; su Scaffold no conoce el FAB del catalogo.
-  return SnackBar(
-    content: content,
-    action: action,
-    behavior: SnackBarBehavior.floating,
-    margin: const EdgeInsets.fromLTRB(12, 12, 12, _espacioInferiorCatalogo),
-  );
-}
 
 class CatalogoScreen extends ConsumerStatefulWidget {
   const CatalogoScreen({super.key});
@@ -83,21 +73,21 @@ class _CatalogoScreenState extends ConsumerState<CatalogoScreen> {
       return true;
     } catch (_) {
       if (mounted) {
-        ScaffoldMessenger.of(context)
-          ..hideCurrentSnackBar()
-          ..showSnackBar(
-            _avisoCatalogo(
-              content: const Text(
-                'No se pudo eliminar el producto. Intenta de nuevo.',
-              ),
-            ),
-          );
+        mostrarAvisoTemporal(
+          context,
+          contenido: const Text(
+            'No se pudo eliminar el producto. Intenta de nuevo.',
+          ),
+          error: true,
+          margenInferior: _espacioInferiorCatalogo,
+        );
       }
       return false;
     }
   }
 
   Future<void> _ofrecerArchivar(Producto producto, int ventas) async {
+    limpiarAvisosTemporales(context);
     final archivar = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -123,11 +113,6 @@ class _CatalogoScreenState extends ConsumerState<CatalogoScreen> {
 
     await ref.read(productoServiceProvider).archivarProducto(producto);
     ref.invalidate(catalogoProductosProvider);
-
-    if (!mounted) return;
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(_avisoCatalogo(content: const Text('Producto archivado')));
   }
 
   /// La fila ya salio de la pantalla: se oculta y se ofrece deshacer.
@@ -135,17 +120,15 @@ class _CatalogoScreenState extends ConsumerState<CatalogoScreen> {
     setState(() => _ocultos.add(producto.id));
     ref.invalidate(catalogoProductosProvider);
 
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        _avisoCatalogo(
-          content: const Text('Producto eliminado'),
-          action: SnackBarAction(
-            label: 'Deshacer',
-            onPressed: () => _restaurar(producto),
-          ),
-        ),
-      );
+    mostrarAvisoTemporal(
+      context,
+      contenido: const Text('Producto eliminado'),
+      accion: SnackBarAction(
+        label: 'Deshacer',
+        onPressed: () => _restaurar(producto),
+      ),
+      margenInferior: _espacioInferiorCatalogo,
+    );
   }
 
   Future<void> _restaurar(Producto producto) async {
@@ -153,12 +136,13 @@ class _CatalogoScreenState extends ConsumerState<CatalogoScreen> {
       await ref.read(productoServiceProvider).restaurarProducto(producto);
     } catch (_) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          _avisoCatalogo(
-            content: const Text(
-              'No se pudo restaurar el producto. Intenta de nuevo.',
-            ),
+        mostrarAvisoTemporal(
+          context,
+          contenido: const Text(
+            'No se pudo restaurar el producto. Intenta de nuevo.',
           ),
+          error: true,
+          margenInferior: _espacioInferiorCatalogo,
         );
       }
       return;
@@ -170,9 +154,10 @@ class _CatalogoScreenState extends ConsumerState<CatalogoScreen> {
   }
 
   /// Pide la cantidad en una hoja y agrega el producto a la venta en curso
-  /// sin salir del catalogo. El aviso ofrece ir a la venta si se quiere.
+  /// sin salir del catalogo. La hoja y el contador confirman el cambio.
   Future<void> _agregarALaVenta(Producto producto) async {
     FocusScope.of(context).unfocus();
+    limpiarAvisosTemporales(context);
     final yaEnVenta = ref
         .read(ventaProvider)
         .detalles
@@ -189,43 +174,19 @@ class _CatalogoScreenState extends ConsumerState<CatalogoScreen> {
     if (!ref.read(ventaProvider.notifier).agregarProducto(producto, cantidad)) {
       return;
     }
-
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        _avisoCatalogo(
-          content: Text(
-            '$cantidad × ${producto.nombre} agregado a la venta',
-            maxLines: 3,
-            overflow: TextOverflow.ellipsis,
-          ),
-          action: SnackBarAction(
-            label: 'Ver venta',
-            onPressed: () =>
-                ref.read(tabProvider.notifier).seleccionar(Pestana.vender),
-          ),
-        ),
-      );
   }
 
   /// Abre el formulario con el producto. Se invalida siempre al volver porque
   /// el catalogo lee el servicio directo y no se entera de la edicion solo.
   Future<void> _editarProducto(Producto producto) async {
-    final result = await Navigator.of(
+    limpiarAvisosTemporales(context);
+    await Navigator.of(
       context,
     ).pushNamed(AppRoutes.editarProducto, arguments: producto);
 
     if (!mounted) return;
 
     ref.invalidate(catalogoProductosProvider);
-
-    if (result == true) {
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          _avisoCatalogo(content: const Text('Producto actualizado')),
-        );
-    }
   }
 
   @override
@@ -243,20 +204,13 @@ class _CatalogoScreenState extends ConsumerState<CatalogoScreen> {
     );
 
     Future<void> abrirAgregarProducto() async {
-      final result = await Navigator.of(
-        context,
-      ).pushNamed(AppRoutes.agregarProducto);
+      limpiarAvisosTemporales(context);
+      await Navigator.of(context).pushNamed(AppRoutes.agregarProducto);
 
       if (!context.mounted) return;
 
       // Actualiza el catálogo al regresar del formulario.
       ref.invalidate(catalogoProductosProvider);
-
-      if (result == true) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          _avisoCatalogo(content: const Text('Producto agregado')),
-        );
-      }
     }
 
     return Scaffold(
@@ -266,16 +220,24 @@ class _CatalogoScreenState extends ConsumerState<CatalogoScreen> {
           IconButton(
             tooltip: 'Acerca de Cabal',
             icon: const Icon(Icons.info_outline),
-            onPressed: () => Navigator.of(context).push(
-              MaterialPageRoute<void>(builder: (_) => const AcercaDeScreen()),
-            ),
+            onPressed: () {
+              limpiarAvisosTemporales(context);
+              Navigator.of(context).push(
+                MaterialPageRoute<void>(builder: (_) => const AcercaDeScreen()),
+              );
+            },
           ),
           IconButton(
             tooltip: 'Archivados',
             icon: const Icon(Icons.inventory_2_outlined),
-            onPressed: () => Navigator.of(context).push(
-              MaterialPageRoute<void>(builder: (_) => const ArchivadosScreen()),
-            ),
+            onPressed: () {
+              limpiarAvisosTemporales(context);
+              Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => const ArchivadosScreen(),
+                ),
+              );
+            },
           ),
         ],
       ),

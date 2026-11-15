@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../utils/avisos.dart';
+
 class AcercaDeScreen extends StatelessWidget {
   const AcercaDeScreen({super.key});
 
@@ -11,8 +13,9 @@ class AcercaDeScreen extends StatelessWidget {
       // El credito sigue disponible si el dispositivo no tiene navegador.
     }
     if (!context.mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Puedes visitar https://icons8.com')),
+    mostrarAvisoTemporal(
+      context,
+      contenido: const Text('Puedes visitar https://icons8.com'),
     );
   }
 

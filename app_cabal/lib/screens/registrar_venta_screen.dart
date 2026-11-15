@@ -9,6 +9,7 @@ import '../providers/tab_provider.dart';
 import '../providers/catalogo_provider.dart';
 import '../providers/venta_provider.dart';
 import '../utils/moneda.dart';
+import '../utils/avisos.dart';
 import '../validators/cantidad_validator.dart';
 import '../widgets/transicion_venta.dart';
 import '../widgets/producto_imagen_widget.dart';
@@ -48,26 +49,26 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
     final detalle = detalles[posicion];
     _venta.quitarProducto(productoId);
     setState(() => _invalidos.remove(productoId));
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          content: Text(
-            '${detalle.producto.nombre} quitado de la venta',
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
-          action: SnackBarAction(
-            label: 'Deshacer',
-            onPressed: () => _venta.restaurarDetalle(detalle, posicion),
-          ),
-        ),
-      );
+    mostrarAvisoTemporal(
+      context,
+      // Deja libre el resumen y su confirmación; limita la reserva en paisaje.
+      margenInferior: (140 * MediaQuery.textScalerOf(context).scale(16) / 16)
+          .clamp(12.0, MediaQuery.sizeOf(context).height * 0.3),
+      contenido: Text(
+        '${detalle.producto.nombre} quitado de la venta',
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
+      ),
+      accion: SnackBarAction(
+        label: 'Deshacer',
+        onPressed: () => _venta.restaurarDetalle(detalle, posicion),
+      ),
+    );
   }
 
   Future<void> _confirmar() async {
     FocusScope.of(context).unfocus();
-    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    limpiarAvisosTemporales(context);
     final guardada = await _venta.confirmarVenta();
     if (!guardada || !mounted) return;
 
