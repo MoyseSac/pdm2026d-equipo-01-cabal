@@ -1,6 +1,7 @@
 import 'package:sqflite/sqflite.dart';
 
 import '../models/cierre.dart';
+import '../models/actividad_ventas.dart';
 import 'database_service.dart';
 
 /// Se intento cerrar un dia en el que no hubo ventas.
@@ -71,6 +72,36 @@ class CierreService {
       total: (totales.single['total_centavos'] as int) / 100,
       productos: productos,
     );
+  }
+
+  /// Siete dias locales, incluyendo hoy. Los dias sin ventas valen cero.
+  /// Una sola consulta agrega los importes historicos en centavos.
+  Future<List<ActividadVentasDia>> actividadSemana(DateTime hoy) async {
+    final inicio = DateTime(hoy.year, hoy.month, hoy.day - 6);
+    final fin = DateTime(hoy.year, hoy.month, hoy.day + 1);
+    final db = await _databaseService.database;
+    final filas = await db.rawQuery(
+      '''
+      SELECT substr(v.fecha_hora, 1, 10) AS dia,
+        COUNT(DISTINCT v.id) AS ventas,
+        COALESCE(SUM(d.cantidad * $_centavosDelDetalle), 0) AS centavos
+      FROM venta v
+      LEFT JOIN detalle_venta d ON d.venta_id = v.id
+      WHERE v.fecha_hora >= ? AND v.fecha_hora < ?
+      GROUP BY substr(v.fecha_hora, 1, 10)
+      ''',
+      [inicio.toIso8601String(), fin.toIso8601String()],
+    );
+    final porDia = {for (final fila in filas) fila['dia'] as String: fila};
+    return List.generate(7, (index) {
+      final dia = DateTime(inicio.year, inicio.month, inicio.day + index);
+      final fila = porDia[_claveDia(dia)];
+      return ActividadVentasDia(
+        dia: dia,
+        ventas: fila?['ventas'] as int? ?? 0,
+        centavos: fila?['centavos'] as int? ?? 0,
+      );
+    });
   }
 
   /// Guarda el cierre del dia. Si ese dia ya estaba cerrado lo reemplaza, asi

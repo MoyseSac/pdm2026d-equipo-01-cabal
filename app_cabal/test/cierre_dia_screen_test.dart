@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:app_cabal/models/cierre.dart';
+import 'package:app_cabal/models/actividad_ventas.dart';
 import 'package:app_cabal/providers/cierre_provider.dart';
 import 'package:app_cabal/providers/tab_provider.dart';
 import 'package:app_cabal/providers/ventas_filtro_provider.dart';
@@ -46,6 +47,9 @@ class _FakeCierreService extends CierreService {
     this.productos = const [],
     this.guardado,
   });
+
+  @override
+  Future<List<ActividadVentasDia>> actividadSemana(DateTime hoy) async => [];
 
   @override
   Future<Cierre> calcularDia(DateTime dia) async {
