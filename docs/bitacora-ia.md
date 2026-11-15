@@ -415,3 +415,13 @@ Las pruebas automatizadas detectaron desbordamientos con texto ampliado en la ho
 **Qué se ajustó:** Se conservaron la suma a la venta actual y la validación de cantidades, con adaptación al teclado y al movimiento reducido.
 
 **Cómo se verificó:** Se realizaron 363 pruebas automatizadas. El análisis estático y la revisión de formato terminaron sin observaciones. Se probaron los flujos modificados en un emulador Android. Las capturas del PR quedan pendientes.
+
+## 2026-11-13 · Moisés Sac · Animar la confirmación y los cambios del catálogo
+
+**Qué se planteó:** Se planteó hacer visibles los resultados de las acciones mediante animaciones breves, manteniendo la continuidad del trabajo.
+
+**Qué se aceptó:** Se animó la confirmación de venta con la identidad de la aplicación y se incorporaron transiciones al agregar, eliminar y restaurar productos.
+
+**Qué se ajustó:** Las filas existentes no repiten su entrada al buscar o recargar y se respeta el movimiento reducido.
+
+**Cómo se verificó:** Se realizaron 369 pruebas automatizadas. El análisis estático y la revisión de formato terminaron sin observaciones. Se probaron los flujos modificados en un emulador Android. Las capturas del PR quedan pendientes.

@@ -12,6 +12,7 @@ import '../utils/busqueda.dart';
 import '../widgets/cantidad_producto_sheet.dart';
 import '../widgets/catalogo_vacio_widget.dart';
 import '../widgets/producto_imagen_widget.dart';
+import '../widgets/fila_catalogo_animada.dart';
 import 'archivados_screen.dart';
 import 'acerca_de_screen.dart';
 
@@ -42,6 +43,10 @@ class _CatalogoScreenState extends ConsumerState<CatalogoScreen> {
   /// Dismissible descartado debe salir del arbol de inmediato, asi que la
   /// fila se oculta aqui sin esperar a que se vuelva a leer la base.
   final Set<String> _ocultos = {};
+  Set<String>? _idsAnteriores;
+  final Set<String> _entradasPendientes = {};
+  final Map<String, GlobalKey<FilaCatalogoAnimadaState>> _clavesFilas = {};
+
   final _busquedaController = TextEditingController();
   final _scrollController = ScrollController();
   String _consulta = '';
@@ -326,13 +331,22 @@ class _CatalogoScreenState extends ConsumerState<CatalogoScreen> {
 
         // ESTADOS 3 Y 4: VACÍO O DATOS
         data: (lista) {
+          final ids = activos!.map((p) => p.id).toSet();
+          if (_idsAnteriores != null) {
+            _entradasPendientes.addAll(ids.difference(_idsAnteriores!));
+          }
+          _idsAnteriores = ids;
+          _clavesFilas.removeWhere(
+            (id, clave) => !ids.contains(id) && clave.currentState == null,
+          );
+
           // También es el estado vacío cuando se borran todos los productos.
           if (mostrarVacio) {
             return CatalogoVacioWidget(onAgregarProducto: abrirAgregarProducto);
           }
 
           final consulta = normalizarBusqueda(_consulta);
-          final productos = activos!
+          final productos = activos
               .where(
                 (producto) =>
                     normalizarBusqueda(producto.nombre).contains(consulta),
@@ -421,116 +435,150 @@ class _CatalogoScreenState extends ConsumerState<CatalogoScreen> {
                           _espacioInferiorCatalogo,
                         ),
                         itemCount: productos.length,
+                        findChildIndexCallback: (key) {
+                          final indice = productos.indexWhere(
+                            (p) => _clavesFilas[p.id] == key,
+                          );
+                          return indice < 0 ? null : indice;
+                        },
                         itemBuilder: (context, index) {
                           final producto = productos[index];
 
                           // La key es el id del producto, nunca el indice: al borrar una
                           // fila las demas conservan su estado en lugar de heredar el de
                           // la fila anterior.
-                          return Dismissible(
-                            key: ValueKey(producto.id),
-                            direction: DismissDirection.endToStart,
-                            confirmDismiss: (_) => _borrar(producto),
-                            onDismissed: (_) => _alDescartar(producto),
-                            background: Container(
-                              alignment: Alignment.centerRight,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 20,
-                              ),
-                              margin: const EdgeInsets.symmetric(vertical: 4),
-                              decoration: BoxDecoration(
-                                color: Theme.of(context).colorScheme.error,
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Icon(
-                                Icons.delete,
-                                color: Theme.of(context).colorScheme.onError,
-                              ),
+                          final claveFila = _clavesFilas.putIfAbsent(
+                            producto.id,
+                            () => GlobalKey<FilaCatalogoAnimadaState>(),
+                          );
+                          return FilaCatalogoAnimada(
+                            key: claveFila,
+                            animarEntrada: _entradasPendientes.remove(
+                              producto.id,
                             ),
-                            child: Card(
-                              margin: const EdgeInsets.symmetric(vertical: 4),
-                              child: ListTile(
-                                onTap: () => _agregarALaVenta(producto),
-                                // Atajo para quien lo descubra; el icono es la via visible.
-                                onLongPress: () => _editarProducto(producto),
-                                leading: ProductoImagenWidget(
-                                  imagen: producto.imagenProducto,
+                            child: Dismissible(
+                              key: ValueKey(producto.id),
+                              movementDuration:
+                                  MediaQuery.disableAnimationsOf(context)
+                                  ? Duration.zero
+                                  : const Duration(milliseconds: 200),
+                              resizeDuration:
+                                  MediaQuery.disableAnimationsOf(context)
+                                  ? null
+                                  : const Duration(milliseconds: 220),
+                              direction: DismissDirection.endToStart,
+                              confirmDismiss: (_) => _borrar(producto),
+                              onDismissed: (_) => _alDescartar(producto),
+                              background: Container(
+                                alignment: Alignment.centerRight,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 20,
                                 ),
-                                contentPadding: const EdgeInsets.fromLTRB(
-                                  12,
-                                  8,
-                                  4,
-                                  8,
+                                margin: const EdgeInsets.symmetric(vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: Theme.of(context).colorScheme.error,
+                                  borderRadius: BorderRadius.circular(12),
                                 ),
-                                title: Text(
-                                  producto.nombre,
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: Theme.of(context).textTheme.titleMedium
-                                      ?.copyWith(fontWeight: FontWeight.w600),
+                                child: Icon(
+                                  Icons.delete,
+                                  color: Theme.of(context).colorScheme.onError,
                                 ),
-                                subtitle: Padding(
-                                  padding: const EdgeInsets.only(top: 4),
-                                  child: Text(
-                                    formatearQuetzales(producto.precio),
+                              ),
+                              child: Card(
+                                margin: const EdgeInsets.symmetric(vertical: 4),
+                                child: ListTile(
+                                  onTap: () => _agregarALaVenta(producto),
+                                  // Atajo para quien lo descubra; el icono es la via visible.
+                                  onLongPress: () => _editarProducto(producto),
+                                  leading: ProductoImagenWidget(
+                                    imagen: producto.imagenProducto,
+                                  ),
+                                  contentPadding: const EdgeInsets.fromLTRB(
+                                    12,
+                                    8,
+                                    4,
+                                    8,
+                                  ),
+                                  title: Text(
+                                    producto.nombre,
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
                                     style: Theme.of(context)
                                         .textTheme
-                                        .bodyMedium
-                                        ?.copyWith(
-                                          fontWeight: FontWeight.w500,
-                                          color: Theme.of(
-                                            context,
-                                          ).colorScheme.onSurfaceVariant,
-                                        ),
+                                        .titleMedium
+                                        ?.copyWith(fontWeight: FontWeight.w600),
                                   ),
-                                ),
-                                trailing: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    IconButton.filledTonal(
-                                      tooltip: 'Agregar a la venta',
-                                      constraints: const BoxConstraints(
-                                        minWidth: 48,
-                                        minHeight: 48,
+                                  subtitle: Padding(
+                                    padding: const EdgeInsets.only(top: 4),
+                                    child: Text(
+                                      formatearQuetzales(producto.precio),
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodyMedium
+                                          ?.copyWith(
+                                            fontWeight: FontWeight.w500,
+                                            color: Theme.of(
+                                              context,
+                                            ).colorScheme.onSurfaceVariant,
+                                          ),
+                                    ),
+                                  ),
+                                  trailing: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      IconButton.filledTonal(
+                                        tooltip: 'Agregar a la venta',
+                                        constraints: const BoxConstraints(
+                                          minWidth: 48,
+                                          minHeight: 48,
+                                        ),
+                                        onPressed: () =>
+                                            _agregarALaVenta(producto),
+                                        icon: const Icon(Icons.add),
                                       ),
-                                      onPressed: () =>
-                                          _agregarALaVenta(producto),
-                                      icon: const Icon(Icons.add),
-                                    ),
-                                    PopupMenuButton<_AccionProducto>(
-                                      tooltip: 'Opciones de producto',
-                                      icon: const Icon(Icons.more_vert),
-                                      onSelected: (accion) async {
-                                        switch (accion) {
-                                          case _AccionProducto.editar:
-                                            await _editarProducto(producto);
-                                          case _AccionProducto.eliminar:
-                                            if (await _borrar(producto) &&
-                                                mounted) {
-                                              _alDescartar(producto);
-                                            }
-                                        }
-                                      },
-                                      itemBuilder: (_) => const [
-                                        PopupMenuItem(
-                                          value: _AccionProducto.editar,
-                                          child: ListTile(
-                                            leading: Icon(Icons.edit_outlined),
-                                            title: Text('Editar producto'),
-                                            contentPadding: EdgeInsets.zero,
+                                      PopupMenuButton<_AccionProducto>(
+                                        tooltip: 'Opciones de producto',
+                                        icon: const Icon(Icons.more_vert),
+                                        onSelected: (accion) async {
+                                          switch (accion) {
+                                            case _AccionProducto.editar:
+                                              await _editarProducto(producto);
+                                            case _AccionProducto.eliminar:
+                                              if (await _borrar(producto) &&
+                                                  mounted) {
+                                                await claveFila.currentState
+                                                    ?.retirar();
+                                                if (mounted) {
+                                                  _alDescartar(producto);
+                                                }
+                                              }
+                                          }
+                                        },
+                                        itemBuilder: (_) => const [
+                                          PopupMenuItem(
+                                            value: _AccionProducto.editar,
+                                            child: ListTile(
+                                              leading: Icon(
+                                                Icons.edit_outlined,
+                                              ),
+                                              title: Text('Editar producto'),
+                                              contentPadding: EdgeInsets.zero,
+                                            ),
                                           ),
-                                        ),
-                                        PopupMenuItem(
-                                          value: _AccionProducto.eliminar,
-                                          child: ListTile(
-                                            leading: Icon(Icons.delete_outline),
-                                            title: Text('Eliminar producto'),
-                                            contentPadding: EdgeInsets.zero,
+                                          PopupMenuItem(
+                                            value: _AccionProducto.eliminar,
+                                            child: ListTile(
+                                              leading: Icon(
+                                                Icons.delete_outline,
+                                              ),
+                                              title: Text('Eliminar producto'),
+                                              contentPadding: EdgeInsets.zero,
+                                            ),
                                           ),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
+                                        ],
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
                             ),
