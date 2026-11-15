@@ -131,7 +131,18 @@ void main() {
 
       expect(find.text('25/10/2026 17:00'), findsOneWidget);
 
+      await tester.scrollUntilVisible(
+        find.text('28/09/2026 10:00'),
+        180,
+        scrollable: find.descendant(
+          of: find.byType(CustomScrollView),
+          matching: find.byType(Scrollable),
+        ),
+      );
+      await tester.pumpAndSettle();
       expect(find.text('28/09/2026 10:00'), findsOneWidget);
+      await tester.ensureVisible(find.text('Total vendido'));
+      await tester.pumpAndSettle();
 
       // FILTRO: HOY
       await _seleccionarPeriodo(tester, 'Hoy');
@@ -167,7 +178,18 @@ void main() {
 
       expect(find.text('26/10/2026 09:00'), findsOneWidget);
 
+      await tester.scrollUntilVisible(
+        find.text('28/09/2026 10:00'),
+        180,
+        scrollable: find.descendant(
+          of: find.byType(CustomScrollView),
+          matching: find.byType(Scrollable),
+        ),
+      );
+      await tester.pumpAndSettle();
       expect(find.text('28/09/2026 10:00'), findsOneWidget);
+      await tester.ensureVisible(find.text('Total vendido'));
+      await tester.pumpAndSettle();
 
       // Una consulta inicial y cuatro cambios.
       // No se utiliza ningun boton Recargar.

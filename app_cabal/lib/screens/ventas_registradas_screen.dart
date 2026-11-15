@@ -2,14 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../widgets/ilustracion_estado_vacio.dart';
+import '../widgets/historial_ventas.dart';
+import 'detalle_venta_screen.dart';
 
 import '../constants/app_routes.dart';
 import '../providers/tab_provider.dart';
-import '../providers/venta_provider.dart';
 import '../providers/ventas_filtro_provider.dart';
 import '../providers/ventas_registradas_provider.dart';
-import '../utils/fecha.dart';
-import '../utils/moneda.dart';
 
 /// Lista de ventas guardadas, con filtro por periodo.
 /// Tocar una venta abre su detalle.
@@ -35,7 +34,10 @@ class VentasRegistradasScreen extends ConsumerWidget {
             },
           ),
 
-          const Divider(height: 1),
+          if (ventas.isLoading && ventas.hasValue)
+            const LinearProgressIndicator(
+              semanticsLabel: 'Actualizando período',
+            ),
 
           // Listado de ventas y estados.
           Expanded(
@@ -97,33 +99,44 @@ class VentasRegistradasScreen extends ConsumerWidget {
                   );
                 }
 
-                // Lista con ventas filtradas.
-                return ListView.separated(
-                  key: const PageStorageKey('ventas_registradas_lista'),
-                  itemCount: lista.length,
-                  separatorBuilder: (_, _) => const Divider(height: 1),
-                  itemBuilder: (context, index) {
-                    final venta = lista[index];
-                    final productos = venta.detalles.length;
-
-                    return ListTile(
-                      key: ValueKey(venta.id),
-                      title: Text(formatearFechaHora(venta.fechaHora)),
-                      subtitle: Text(
-                        productos == 1 ? '1 producto' : '$productos productos',
-                      ),
-                      trailing: Text(
-                        formatearQuetzales(totalDe(venta.detalles)),
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
+                return HistorialVentas(
+                  ventas: lista,
+                  filtro: periodoSeleccionado.name,
+                  onAbrir: (venta) {
+                    final reducir = MediaQuery.disableAnimationsOf(context);
+                    Navigator.of(context).push(
+                      PageRouteBuilder<void>(
+                        settings: RouteSettings(
+                          name: AppRoutes.detalleVenta,
+                          arguments: venta,
                         ),
+                        transitionDuration: reducir
+                            ? Duration.zero
+                            : const Duration(milliseconds: 320),
+                        reverseTransitionDuration: reducir
+                            ? Duration.zero
+                            : const Duration(milliseconds: 220),
+                        pageBuilder: (_, _, _) => const DetalleVentaScreen(),
+                        transitionsBuilder: (_, animation, _, child) =>
+                            FadeTransition(
+                              opacity: animation.drive(
+                                CurveTween(curve: Curves.easeOut),
+                              ),
+                              child: SlideTransition(
+                                position:
+                                    Tween(
+                                      begin: const Offset(0.04, 0),
+                                      end: Offset.zero,
+                                    ).animate(
+                                      CurvedAnimation(
+                                        parent: animation,
+                                        curve: Curves.easeOutCubic,
+                                      ),
+                                    ),
+                                child: child,
+                              ),
+                            ),
                       ),
-                      onTap: () {
-                        Navigator.of(
-                          context,
-                        ).pushNamed(AppRoutes.detalleVenta, arguments: venta);
-                      },
                     );
                   },
                 );
@@ -183,7 +196,7 @@ class _SinVentasPeriodo extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: Padding(
+      child: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -226,7 +239,7 @@ class _SinVentas extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: Padding(
+      child: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Column(
           mainAxisSize: MainAxisSize.min,
