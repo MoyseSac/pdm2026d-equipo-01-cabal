@@ -13,6 +13,7 @@ import '../widgets/cantidad_producto_sheet.dart';
 import '../widgets/catalogo_vacio_widget.dart';
 import '../widgets/producto_imagen_widget.dart';
 import 'archivados_screen.dart';
+import 'acerca_de_screen.dart';
 
 enum _AccionProducto { editar, eliminar }
 
@@ -257,6 +258,13 @@ class _CatalogoScreenState extends ConsumerState<CatalogoScreen> {
       appBar: AppBar(
         title: const Text('Catálogo'),
         actions: [
+          IconButton(
+            tooltip: 'Acerca de Cabal',
+            icon: const Icon(Icons.info_outline),
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(builder: (_) => const AcercaDeScreen()),
+            ),
+          ),
           IconButton(
             tooltip: 'Archivados',
             icon: const Icon(Icons.inventory_2_outlined),

@@ -365,3 +365,13 @@ Las pruebas automatizadas detectaron desbordamientos con texto ampliado en la ho
 - La arquitectura se comprobó contra `origin/main` y no contra la rama local `pr-91`, que estaba 91 commits atrás y sin la tabla de cierre.
 
 **Cómo lo verifiqué:** compilé con `pdflatex` sin errores en una sola hoja A0 y comprobé la altura de las tres columnas en una vista previa. Recontando contra `main` (#118): 228 commits, 55 issues cerrados, 62 PR integrados, 10 pantallas, 8 providers, 4 servicios y 5 tablas. La cifra de 340 pruebas es la que registra la bitácora de #117; no corrí `flutter test` para este póster.
+
+## 2026-11-13 · Moisés Sac · Unificar la presentación y el registro de productos
+
+**Qué se planteó:** Se planteó unificar la presentación de los productos y simplificar su registro a partir de las referencias compartidas.
+
+**Qué se aceptó:** Se incorporaron iconos a color, estados vacíos coherentes y un formulario con vista previa, precio en quetzales y guardado accesible.
+
+**Qué se ajustó:** Se conservaron las categorías existentes y la identidad visual de la aplicación.
+
+**Cómo se verificó:** Se realizaron 343 pruebas automatizadas. El análisis estático y la revisión de formato terminaron sin observaciones. Se probaron los flujos modificados en un emulador Android. Las capturas del PR quedan pendientes.

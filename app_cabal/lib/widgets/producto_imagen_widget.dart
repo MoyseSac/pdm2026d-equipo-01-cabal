@@ -7,6 +7,7 @@ import 'package:path/path.dart' as p;
 import '../constants/iconos_producto.dart';
 import '../models/imagen_producto.dart';
 import '../providers/imagen_producto_provider.dart';
+import 'icono_producto_widget.dart';
 
 /// Cuadro de imagen de un producto. Si la foto no se puede leer (borrada,
 /// o la carpeta aun no se resuelve) o el icono no esta en el registro, se
@@ -30,10 +31,10 @@ class ProductoImagenWidget extends ConsumerWidget {
       ),
       child: switch (imagen) {
         FotoElegida(:final archivo) => _foto(context, ref, archivo),
-        IconoElegido(:final clave) => _icono(
-          iconosProducto[clave]?.icono ?? iconoProductoGenerico,
-          colores.onSurfaceVariant,
-        ),
+        IconoElegido(:final clave) =>
+          iconosProducto.containsKey(clave)
+              ? IconoProductoWidget(clave: clave, size: size)
+              : _generico(colores),
         SinImagen() => _generico(colores),
       },
     );

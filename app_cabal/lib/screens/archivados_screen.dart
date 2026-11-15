@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../widgets/ilustracion_estado_vacio.dart';
+
 import '../providers/catalogo_provider.dart';
 import '../providers/producto_provider.dart';
 import '../utils/moneda.dart';
@@ -46,10 +48,8 @@ class ArchivadosScreen extends ConsumerWidget {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(
-                      Icons.inventory_2_outlined,
-                      size: 64,
-                      color: Theme.of(context).colorScheme.outline,
+                    const IlustracionEstadoVacio(
+                      estado: EstadoVacio.archivados,
                     ),
                     const SizedBox(height: 16),
                     const Text(

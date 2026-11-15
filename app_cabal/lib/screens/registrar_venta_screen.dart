@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../widgets/ilustracion_estado_vacio.dart';
+
 import '../constants/app_routes.dart';
 import '../models/detalle_venta.dart';
 import '../providers/tab_provider.dart';
@@ -714,11 +716,7 @@ class _MensajeVentaVacia extends StatelessWidget {
                   if (cargando)
                     const CircularProgressIndicator()
                   else
-                    Icon(
-                      Icons.shopping_cart_outlined,
-                      size: 64,
-                      color: Theme.of(context).colorScheme.outline,
-                    ),
+                    const IlustracionEstadoVacio(estado: EstadoVacio.venta),
                   const SizedBox(height: 16),
                   Text(
                     titulo,
